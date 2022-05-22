@@ -33,15 +33,6 @@ class Link:
             norm_value = norm(self.identity)
             return to_hex(cmap(norm_value))
 
-    def get_link_pos(self, track_name: str) -> Tuple[int, int]:
-        """Get link start-end position tuple"""
-        if self.track_name1 == track_name:
-            return (self.track_start1, self.track_end1)
-        elif self.track_name2 == track_name:
-            return (self.track_start2, self.track_end2)
-        else:
-            raise ValueError()
-
     def is_inverted(self):
         """Check inverted link or not"""
         track_link_length1 = self.track_end1 - self.track_start1

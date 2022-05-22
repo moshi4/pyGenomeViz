@@ -22,7 +22,12 @@ class GenomeViz:
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
         self.align_type = align_type
-        self.min_plot_size = 0.001  # 0.1 %
+        self._min_plot_size = 0.001  # 0.1 %
+        self._feature_track_ratio = 1.0
+        self._link_track_ratio = 1.0
+        self._track_y_pad = 0.05
+        self._track_labelsize = 30
+        self._feature_size_ratio = 1.0
         self._tracks: List[Track] = []
         self._links: List[Link] = []
 
@@ -31,8 +36,8 @@ class GenomeViz:
             raise ValueError(err_msg)
 
     @property
-    def max_genome_size(self) -> int:
-        """Max genome size"""
+    def _max_track_size(self) -> int:
+        """Max track size"""
         if len(self._tracks) > 0:
             return max([track.size for track in self._tracks])
         else:
@@ -41,8 +46,8 @@ class GenomeViz:
     def add_track(self, name: str, size: int) -> Track:
         """Add track"""
         if len(self._tracks) > 0:
-            intermediate_track = Track("", 0, "intermediate")
-            self._tracks.append(intermediate_track)
+            link_track = Track("", 0, type="link")
+            self._tracks.append(link_track)
         track = Track(name, size)
         self._tracks.append(track)
         return track
@@ -51,18 +56,31 @@ class GenomeViz:
         self,
         track_link1: Tuple[str, int, int],
         track_link2: Tuple[str, int, int],
+        normal_color: str = "grey",
+        inverted_color: str = "red",
+        identity: Optional[float] = None,
+        interpolation: bool = True,
     ) -> None:
         """Add link"""
-        self._links.append(Link(*track_link1, *track_link2))
+        self._links.append(
+            Link(
+                *track_link1,
+                *track_link2,
+                normal_color,
+                inverted_color,
+                identity,
+                interpolation,
+            )
+        )
 
     def _track_offset(self, track: Track) -> int:
         """Get track offset"""
         if self.align_type == "left":
             return 0
         elif self.align_type == "center":
-            return int((self.max_genome_size - track.size) / 2)
+            return int((self._max_track_size - track.size) / 2)
         elif self.align_type == "right":
-            return self.max_genome_size - track.size
+            return self._max_track_size - track.size
         else:
             return 0
 
@@ -86,6 +104,16 @@ class GenomeViz:
             track_name2offset[track.name] = self._track_offset(track)
         return track_name2offset
 
+    @property
+    def _track_ratios(self) -> List[float]:
+        track_ratios = []
+        for track in self._tracks:
+            if track.type == "feature":
+                track_ratios.append(self._feature_track_ratio)
+            elif track.type == "link":
+                track_ratios.append(self._link_track_ratio)
+        return track_ratios
+
     def plotfig(self, savefile: Union[str, Path], dpi: int = 300) -> None:
         """Plot figure"""
         track_num = len(self._tracks)
@@ -93,13 +121,14 @@ class GenomeViz:
             raise RuntimeError("No tracks are defined for plotting figure.")
         figsize = (self.fig_width, self.fig_track_height * track_num)
         fig: Figure = plt.figure(figsize=figsize, tight_layout=False)
-        fig.subplots_adjust(hspace=0)
         spec = gridspec.GridSpec(
-            nrows=track_num, ncols=1, height_ratios=[1] * track_num
+            nrows=track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
         )
         for idx, track in enumerate(self._tracks):
             # Create new track subplot
-            xlim, ylim = (0, self.max_genome_size), (-0.05, 1.05)
+            xlim = (0, self._max_track_size)
+            ylim = (0 - self._track_y_pad, 1.0 + self._track_y_pad)
+            y_center = (ylim[1] + ylim[0]) / 2
             ax: Axes = fig.add_subplot(spec[idx], xlim=xlim, ylim=ylim)
 
             # Disable 'spines' and 'ticks' visibility
@@ -108,22 +137,31 @@ class GenomeViz:
             ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
 
             # Plot track label
-            x = -self.max_genome_size / 100
-            ax.text(x=x, y=0.5, s=track.name, fontsize=20, ha="right", va="center")
+            x = -self._max_track_size / 100
+            ax.text(
+                x=x,
+                y=y_center,
+                s=track.name,
+                fontsize=self._track_labelsize,
+                ha="right",
+                va="center",
+            )
 
             # Plot track scale line
             track_offset = self._track_offset(track)
             xmin, xmax = track_offset, track.size + track_offset
-            ax.hlines(0.5, xmin, xmax, "black", linewidth=2, zorder=-1)
+            ax.hlines(
+                y_center, xmin, xmax, "black", linewidth=track.linewidth, zorder=-1
+            )
 
             offset_features = [f + track_offset for f in track.features]
             for feature in offset_features:
                 x = feature.start if feature.strand == 1 else feature.end
                 arrow_length = feature.length * feature.strand
 
-                head_length = self.max_genome_size * 0.02
-                if abs(arrow_length) < head_length:
-                    head_length = abs(arrow_length)
+                head_length = self._max_track_size * 0.02
+                if abs(feature.length) < head_length:
+                    head_length = abs(feature.length)
 
                 zorder = -5
                 if feature.plotstyle == "bigarrow":
@@ -147,14 +185,14 @@ class GenomeViz:
                     fc=feature.facecolor,
                     ec=feature.edgecolor,
                     alpha=1.0,
-                    width=width,
-                    head_width=head_width,
+                    width=width * self._feature_size_ratio,
+                    head_width=head_width * self._feature_size_ratio,
                     head_length=head_length,
                     length_includes_head=True,
                     zorder=zorder,
                 )
 
-            if track.type == "intermediate":
+            if track.type == "link":
                 for link in self._links:
                     above_track = self._tracks[idx - 1]
                     below_track = self._tracks[idx + 1]

@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
+
+from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 
 
 @dataclass
 class Link:
+    """Link DataClass"""
+
     track_name1: str
     track_start1: int
     track_end1: int
@@ -14,14 +18,20 @@ class Link:
     track_end2: int
     normal_color: str = "grey"
     inverted_color: str = "red"
+    identity: Optional[float] = None
+    interpolation: bool = True
 
     @property
     def color(self) -> str:
         """Get color"""
-        if self.is_inverted():
-            return self.inverted_color
+        color = self.inverted_color if self.is_inverted() else self.normal_color
+        if self.interpolation is False or self.identity is None:
+            return color
         else:
-            return self.normal_color
+            cmap = LinearSegmentedColormap.from_list("cmap", ("white", color))
+            norm = Normalize(vmin=0, vmax=100)
+            norm_value = norm(self.identity)
+            return to_hex(cmap(norm_value))
 
     def get_link_pos(self, track_name: str) -> Tuple[int, int]:
         """Get link start-end position tuple"""
@@ -47,4 +57,8 @@ class Link:
             self.track_name2,
             self.track_start2 + track_name2offset[self.track_name2],
             self.track_end2 + track_name2offset[self.track_name2],
+            self.normal_color,
+            self.inverted_color,
+            self.identity,
+            self.interpolation,
         )

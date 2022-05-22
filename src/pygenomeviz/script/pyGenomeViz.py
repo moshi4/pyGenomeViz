@@ -1,9 +1,10 @@
-from pygenomeviz.genomeviz import GenomeViz
+from pygenomeviz import GenomeViz
 
 
 def main():
     """Test main script"""
     gv = GenomeViz(fig_width=15, fig_track_height=1.0, align_type="center")
+
     # Track01
     track1 = gv.add_track(name="track1", size=100)
     track1.add_feature(20, 30, 1)
@@ -25,10 +26,11 @@ def main():
     track4.add_feature(100, 102, -1, plotstyle="arrow")
     track4.add_feature(135, 136, 1, plotstyle="box", edgecolor="black")
 
-    # Track01 - Track02 link
-    gv.add_link(("track1", 10, 20), ("track2", 0, 10))
-    gv.add_link(("track2", 50, 70), ("track3", 80, 110))
-    gv.add_link(("track3", 50, 20), ("track4", 0, 30))
+    # Track links
+    gv.add_link(("track1", 10, 20), ("track2", 0, 10), normal_color="lime")
+    gv.add_link(("track2", 50, 70), ("track3", 80, 110), identity=30)
+    gv.add_link(("track3", 50, 20), ("track4", 0, 30), identity=40)
+    gv.add_link(("track5", 50, 20), ("track4", 0, 30), identity=25)
 
     gv.plotfig("example/test.jpg")
 

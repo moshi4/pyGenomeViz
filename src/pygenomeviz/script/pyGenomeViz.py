@@ -3,7 +3,7 @@ from pygenomeviz import GenomeViz
 
 def main():
     """Test main script"""
-    gv = GenomeViz(fig_width=15, fig_track_height=1.0, align_type="center")
+    gv = GenomeViz(fig_width=25, fig_track_height=1.5, align_type="center")
 
     # Track01
     track1 = gv.add_feature_track(name="track1", size=100)

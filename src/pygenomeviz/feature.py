@@ -38,7 +38,6 @@ class Feature:
         return self.end - self.start
 
     def __add__(self, offset: int) -> Feature:
-        """Add offset"""
         return Feature(
             self.start + offset,
             self.end + offset,

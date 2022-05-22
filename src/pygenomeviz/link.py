@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 
@@ -23,7 +23,11 @@ class Link:
 
     @property
     def color(self) -> str:
-        """Get color"""
+        """Get conditional hexcolor code
+
+        Returns:
+            str: Conditional hexcolor code
+        """
         color = self.inverted_color if self.is_inverted() else self.normal_color
         if self.interpolation is False or self.identity is None:
             return color
@@ -33,14 +37,25 @@ class Link:
             norm_value = norm(self.identity)
             return to_hex(cmap(norm_value))
 
-    def is_inverted(self):
-        """Check inverted link or not"""
+    def is_inverted(self) -> bool:
+        """Check inverted link or not
+
+        Returns:
+            bool: Inverted or not
+        """
         track_link_length1 = self.track_end1 - self.track_start1
         track_link_length2 = self.track_end2 - self.track_start2
         return track_link_length1 * track_link_length2 < 0
 
     def add_offset(self, track_name2offset: Dict[str, int]) -> Link:
-        """Add offset to each link position"""
+        """Add offset to each link position
+
+        Args:
+            track_name2offset (Dict[str, int]): Track name & offset dict
+
+        Returns:
+            Link: Offset added Link object
+        """
         return Link(
             self.track_name1,
             self.track_start1 + track_name2offset[self.track_name1],

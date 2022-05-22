@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from tkinter import W
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
@@ -16,10 +15,16 @@ class GenomeViz:
     def __init__(
         self,
         fig_width: float = 15,
-        fig_track_height: float = 1,
+        fig_track_height: float = 1.0,
         align_type: str = "left",
     ):
-        """Constructor"""
+        """GenomeViz constructor
+
+        Args:
+            fig_width (float, optional): Figure width. Defaults to 15.
+            fig_track_height (float, optional): Figure track height. Defaults to 1.0.
+            align_type (str, optional): Track align type. Defaults to "left".
+        """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
         self.align_type = align_type
@@ -44,6 +49,7 @@ class GenomeViz:
 
     @property
     def _track_name2offset(self) -> Dict[str, int]:
+        """Track name & offset dict"""
         track_name2offset = {}
         for track in self._tracks:
             track_name2offset[track.name] = self._track_offset(track)
@@ -51,6 +57,7 @@ class GenomeViz:
 
     @property
     def _track_ratios(self) -> List[float]:
+        """Each track height ratio list"""
         track_ratios = []
         for track in self._tracks:
             if isinstance(track, FeatureTrack):
@@ -59,15 +66,30 @@ class GenomeViz:
                 track_ratios.append(self._link_track_ratio)
         return track_ratios
 
-    def _get_track_idx(self, track_name) -> int:
-        """Get track index by track name"""
+    def _get_track_idx(self, track_name: str) -> int:
+        """Get track index by track name
+
+        Args:
+            track_name (str): Track name
+
+        Returns:
+            int: Track index
+        """
         track_names = [t.name for t in self._tracks]
         return track_names.index(track_name)
 
     def _get_link_track(
         self, feature_track_name1: str, feature_track_name2: str
     ) -> LinkTrack:
-        """Get link track"""
+        """Get link track by two feature track names
+
+        Args:
+            feature_track_name1 (str): Feature track name1
+            feature_track_name2 (str): Feature track name2
+
+        Returns:
+            LinkTrack: Target LinkTrack
+        """
         feature_track_idx1 = self._get_track_idx(feature_track_name1)
         feature_track_idx2 = self._get_track_idx(feature_track_name2)
         if abs(feature_track_idx1 - feature_track_idx2) == 2:
@@ -80,7 +102,14 @@ class GenomeViz:
         raise RuntimeError()
 
     def _track_offset(self, track: Track) -> int:
-        """Get track offset"""
+        """Get track offset
+
+        Args:
+            track (Track): Target track for alignment offset calculation
+
+        Returns:
+            int: Target track offset
+        """
         if self.align_type == "left":
             return 0
         elif self.align_type == "center":
@@ -97,7 +126,17 @@ class GenomeViz:
         labelsize: int = 30,
         linewidth: int = 2,
     ) -> FeatureTrack:
-        """Add track"""
+        """Add feature track
+
+        Args:
+            name (str): Track name
+            size (int): Track size
+            labelsize (int, optional): Track label size. Defaults to 30.
+            linewidth (int, optional): Track line width. Defaults to 2.
+
+        Returns:
+            FeatureTrack: Newly added FeatureTrack
+        """
         if len(self._tracks) > 0:
             link_track = LinkTrack(f"{self._tracks[-1].name}-{name}", 0)
             self._tracks.append(link_track)
@@ -114,7 +153,16 @@ class GenomeViz:
         identity: Optional[float] = None,
         interpolation: bool = True,
     ) -> None:
-        """Add link"""
+        """Add link data to link track
+
+        Args:
+            track_link1 (Tuple[str, int, int]): Track link data1
+            track_link2 (Tuple[str, int, int]): Track link data2
+            normal_color (str, optional): Normal link color.
+            inverted_color (str, optional): Inverted link color.
+            identity (Optional[float], optional): Link identity [0 - 100].
+            interpolation (bool, optional): Enable color interpolation by identity.
+        """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         if self._get_track_idx(track_link1[0]) < self._get_track_idx(track_link2[0]):
             above_track_link, below_track_link = track_link1, track_link2
@@ -132,7 +180,11 @@ class GenomeViz:
         )
 
     def plotfig(self) -> Figure:
-        """Plot figure"""
+        """Plot figure
+
+        Returns:
+            Figure: Plot figure result
+        """
         track_num = len(self._tracks)
         if track_num == 0:
             raise RuntimeError("No tracks are defined for plotting figure.")
@@ -227,7 +279,13 @@ class GenomeViz:
     def savefig(
         self, savefile: Union[str, Path], dpi: int = 300, pad_inches: float = 0.5
     ) -> None:
-        """Save figure to file"""
+        """Save figure to file
+
+        Args:
+            savefile (Union[str, Path]): Save file
+            dpi (int, optional): DPI. Defaults to 300.
+            pad_inches (float, optional): Padding inches. Defaults to 0.5.
+        """
         figure = self.plotfig()
         figure.savefig(
             fname=savefile,

@@ -22,7 +22,7 @@ class Link:
     interpolation: bool = True
 
     def polygon_xy(
-        self, ymin: float = 0.0, ymax: float = 1.0
+        self, ymin: float = -1.0, ymax: float = 1.0
     ) -> Tuple[
         Tuple[float, float],
         Tuple[float, float],

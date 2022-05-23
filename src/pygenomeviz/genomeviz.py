@@ -18,6 +18,10 @@ class GenomeViz:
         fig_width: float = 15,
         fig_track_height: float = 1.0,
         align_type: str = "left",
+        feature_track_pad: float = 0.1,
+        link_track_pad: float = 0.1,
+        arrow_shaft_ratio: float = 0.5,
+        track_spines: bool = False,
     ):
         """GenomeViz constructor
 
@@ -25,15 +29,21 @@ class GenomeViz:
             fig_width (float, optional): Figure width
             fig_track_height (float, optional): Figure track height
             align_type (str, optional): Track align type ('left'|'center'|'right')
+            feature_track_pad (float, optional): Feature track y padding [0.0 - 1.0]
+            link_track_pad (float, optional): Link track y padding [0.0 - 1.0]
+            arrow_shaft_ratio (float, optional): Feature arrow shaft ratio [0.0 - 1.0]
+            track_spines (bool, optional): Track spines visibility
         """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
         self.align_type = align_type
+        self.track_spines = track_spines
+        self.feature_track_pad = feature_track_pad
+        self.link_track_pad = link_track_pad
+        self.arrow_shaft_ratio = arrow_shaft_ratio
         self._min_plot_size = 0.001  # 0.1 %
         self._feature_track_ratio = 1.0
         self._link_track_ratio = 1.0
-        self._track_y_pad = 0.05
-        self._feature_size_ratio = 1.0
         self._tracks: List[Union[FeatureTrack, LinkTrack]] = []
 
         if self.align_type not in ("left", "center", "right"):
@@ -204,36 +214,32 @@ class GenomeViz:
         )
         for idx, track in enumerate(self._tracks):
             # Create new track subplot
-            xlim = (0, self._max_track_size)
-            ylim = (0 - self._track_y_pad, 1.0 + self._track_y_pad)
-            y_center = (ylim[1] + ylim[0]) / 2
+            xlim, ylim = (0, self._max_track_size), (-1.0, 1.0)
             ax: Axes = figure.add_subplot(spec[idx], xlim=xlim, ylim=ylim)
 
             # Disable 'spines' and 'ticks' visibility
             for spine in ax.spines:
-                ax.spines[spine].set_visible(False)
+                ax.spines[spine].set_visible(self.track_spines)
             ax.tick_params(left=False, labelleft=False, bottom=False, labelbottom=False)
 
-            # Plot track label
-            x = -self._max_track_size * 0.05
-            if track.labelsize != 0:
-                ax.text(
-                    x=x,
-                    y=y_center,
-                    s=track.name,
-                    fontsize=track.labelsize,
-                    ha="right",
-                    va="center",
-                )
-
-            # Plot track scale line
-            track_offset = self._track_offset(track)
-            xmin, xmax = track_offset, track.size + track_offset
-            ax.hlines(
-                y_center, xmin, xmax, "black", linewidth=track.linewidth, zorder=-1
-            )
-
             if isinstance(track, FeatureTrack):
+                # Plot track label
+                x = -self._max_track_size * 0.05
+                if track.labelsize != 0:
+                    ax.text(
+                        x=x,
+                        y=0,
+                        s=track.name,
+                        fontsize=track.labelsize,
+                        ha="right",
+                        va="center",
+                    )
+
+                # Plot track scale line
+                track_offset = self._track_offset(track)
+                xmin, xmax = track_offset, track.size + track_offset
+                ax.hlines(0, xmin, xmax, "black", linewidth=track.linewidth)
+
                 offset_features = [f + track_offset for f in track.features]
                 for feature in offset_features:
                     x = feature.start if feature.strand == 1 else feature.end
@@ -245,16 +251,29 @@ class GenomeViz:
 
                     zorder = -5
                     if feature.plotstyle == "bigarrow":
-                        y, width, head_width = 0.5, 0.4, 1.0
+                        y = 0
+                        head_width = 2.0 - (self.feature_track_pad * 2)
+                        shaft_width = head_width * self.arrow_shaft_ratio
                         zorder = 5
-                    elif feature.plotstyle == "arrow":
-                        y = 0.75 if feature.strand == 1 else 0.25
-                        width, head_width = 0.2, 0.5
-                    elif feature.plotstyle == "box":
-                        y = 0.75 if feature.strand == 1 else 0.25
-                        width, head_width, head_length = 0.5, 0.5, 0
+                    elif feature.plotstyle == "bigbox":
+                        y = 0
+                        head_width = 2.0 - (self.feature_track_pad * 2)
+                        shaft_width = head_width
+                        head_length = 0
+                        zorder = 5
                     else:
-                        raise ValueError()
+                        head_width = 1.0 - self.feature_track_pad
+                        if feature.strand == -1:
+                            y = -0.5 + (self.feature_track_pad / 2)
+                        else:
+                            y = 0.5 - (self.feature_track_pad / 2)
+                        if feature.plotstyle == "arrow":
+                            shaft_width = head_width * self.arrow_shaft_ratio
+                        elif feature.plotstyle == "box":
+                            shaft_width = head_width
+                            head_length = 0
+                        else:
+                            raise ValueError()
 
                     ax.arrow(
                         x=x,
@@ -263,8 +282,8 @@ class GenomeViz:
                         dy=0,
                         fc=feature.facecolor,
                         ec=feature.edgecolor,
-                        width=width * self._feature_size_ratio,
-                        head_width=head_width * self._feature_size_ratio,
+                        width=shaft_width,
+                        head_width=head_width,
                         head_length=head_length,
                         length_includes_head=True,
                         zorder=zorder,
@@ -287,8 +306,12 @@ class GenomeViz:
             elif isinstance(track, LinkTrack):
                 for link in track.links:
                     link = link.add_offset(self._track_name2offset)
+                    link_ymin = ylim[0] + self.link_track_pad
+                    link_ymax = ylim[1] - self.link_track_pad
                     p = patches.Polygon(
-                        xy=link.polygon_xy(), fc=link.color, ec=link.color
+                        xy=link.polygon_xy(link_ymin, link_ymax),
+                        fc=link.color,
+                        ec=link.color,
                     )
                     ax.add_patch(p)
 

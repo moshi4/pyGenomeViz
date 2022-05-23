@@ -28,10 +28,8 @@ class Feature:
             raise ValueError(err_msg)
         # Check feature plot style
         self.plotstyle = self.plotstyle.lower()
-        if self.plotstyle not in ("bigarrow", "arrow", "box"):
-            err_msg = (
-                f"'Style must be 'bigarrow' or 'arrow' or 'box' ('{self.plotstyle}')"
-            )
+        if self.plotstyle not in ("bigarrow", "arrow", "bigbox", "box"):
+            err_msg = f"'Style must be 'bigarrow|arrow|bigbox|box' ('{self.plotstyle}')"
             raise ValueError(err_msg)
 
     @property

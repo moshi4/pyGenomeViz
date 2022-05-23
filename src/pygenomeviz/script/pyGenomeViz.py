@@ -3,16 +3,32 @@ from pygenomeviz import GenomeViz
 
 def main():
     """Test main script"""
-    gv = GenomeViz(fig_width=25, fig_track_height=1.5, align_type="center")
+    gv = GenomeViz(fig_width=8, fig_track_height=1, align_type="left")
 
     # Track01
-    track1 = gv.add_feature_track(name="track1", size=100)
+    track1 = gv.add_feature_track(name="track1", size=180)
     track1.add_feature(20, 30, 1)
     track1.add_feature(50, 55, -1)
     # Track02
     track2 = gv.add_feature_track(name="track2", size=120)
-    track2.add_feature(20, 40, 1, facecolor="blue", edgecolor="blue")
-    track2.add_feature(50, 80, -1, plotstyle="box", edgecolor="black")
+    track2.add_feature(
+        20,
+        40,
+        1,
+        facecolor="blue",
+        edgecolor="blue",
+        label="feature",
+        labelcolor="white",
+    )
+    track2.add_feature(
+        50,
+        80,
+        -1,
+        plotstyle="box",
+        edgecolor="black",
+        label="feature2",
+        labelcolor="red",
+    )
     # Track03
     track3 = gv.add_feature_track(name="track3", size=200)
     track3.add_feature(10, 15, -1)
@@ -27,11 +43,14 @@ def main():
     track4.add_feature(135, 136, 1, plotstyle="box", edgecolor="black")
 
     # Track links
-    gv.add_link(("track1", 10, 20), ("track2", 0, 10), normal_color="lime")
+    gv.add_link(("track1", 10, 20), ("track2", 0, 10), normal_color="red", identity=100)
+    gv.add_link(("track1", 50, 90), ("track2", 40, 80), normal_color="red", identity=30)
     gv.add_link(("track2", 50, 70), ("track3", 80, 110), identity=30)
     gv.add_link(("track3", 50, 20), ("track4", 0, 30), identity=40)
 
     gv.savefig("example/test.jpg")
+
+    gv.print_tracks_info()
 
 
 if __name__ == "__main__":

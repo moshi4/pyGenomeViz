@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 
@@ -20,6 +20,30 @@ class Link:
     inverted_color: str = "red"
     identity: Optional[float] = None
     interpolation: bool = True
+
+    def polygon_xy(
+        self, ymin: float = 0.0, ymax: float = 1.0
+    ) -> Tuple[
+        Tuple[float, float],
+        Tuple[float, float],
+        Tuple[float, float],
+        Tuple[float, float],
+    ]:
+        """Polygon coordinates for link plot
+
+        Args:
+            ymin (float, optional): Polygon min y coordinate
+            ymax (float, optional): Polygon max y coordinate
+
+        Returns:
+            Tuple: Polygon coordinates
+        """
+        return (
+            (self.track_start2, ymin),
+            (self.track_end2, ymin),
+            (self.track_end1, ymax),
+            (self.track_start1, ymax),
+        )
 
     @property
     def color(self) -> str:

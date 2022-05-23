@@ -13,15 +13,21 @@ class Track:
         self,
         name: str,
         size: int,
+        labelsize: int = 0,
+        linewidth: int = 0,
     ):
         """Track constructor
 
         Args:
             name (str): Track name
             size (int): Track size
+            labelsize (int, optional): Track label size
+            linewidth (int, optional): Track line width
         """
         self.name = name
         self.size = size
+        self.labelsize = labelsize
+        self.linewidth = linewidth
 
 
 class FeatureTrack(Track):
@@ -39,12 +45,10 @@ class FeatureTrack(Track):
         Args:
             name (str): Track name
             size (int): Track size
-            labelsize (int, optional): Track label size. Defaults to 30.
-            linewidth (int, optional): Track line width. Defaults to 2.
+            labelsize (int, optional): Track label size
+            linewidth (int, optional): Track line width
         """
-        super().__init__(name, size)
-        self.labelsize = labelsize
-        self.linewidth = linewidth
+        super().__init__(name, size, labelsize, linewidth)
         self.features: List[Feature] = []
 
     def add_feature(
@@ -53,6 +57,8 @@ class FeatureTrack(Track):
         end: int,
         strand: int,
         label: str = "",
+        labelsize: int = 15,
+        labelcolor: str = "black",
         plotstyle: str = "bigarrow",
         facecolor: str = "orange",
         edgecolor: str = "black",
@@ -63,13 +69,25 @@ class FeatureTrack(Track):
             start (int): Feature start postion
             end (int): Feature end position
             strand (int): Feature strand
-            label (str, optional): Feature label. Defaults to "".
-            plotstyle (str, optional): Feature plot style. Defaults to "bigarrow".
-            facecolor (str, optional): Feature face color. Defaults to "orange".
-            edgecolor (str, optional): Feature edge color. Defaults to "black".
+            label (str, optional): Feature label
+            labelsize (int, optional): Feature label size
+            labelcolor (int, optional): Feature label color
+            plotstyle (str, optional): Feature plot style
+            facecolor (str, optional): Feature face color
+            edgecolor (str, optional): Feature edge color
         """
         self.features.append(
-            Feature(start, end, strand, label, plotstyle, facecolor, edgecolor)
+            Feature(
+                start,
+                end,
+                strand,
+                label,
+                labelsize,
+                labelcolor,
+                plotstyle,
+                facecolor,
+                edgecolor,
+            )
         )
 
 
@@ -79,7 +97,7 @@ class LinkTrack(Track):
     def __init__(
         self,
         name: str,
-        size: int,
+        size: int = 0,
         labelsize: int = 0,
         linewidth: int = 0,
     ):
@@ -87,13 +105,11 @@ class LinkTrack(Track):
 
         Args:
             name (str): Track name
-            size (int): Track size
-            labelsize (int, optional): Track label size. Defaults to 0.
-            linewidth (int, optional): Track line width. Defaults to 0.
+            size (int, optional): Track size
+            labelsize (int, optional): Track label size
+            linewidth (int, optional): Track line width
         """
-        super().__init__(name, size)
-        self.labelsize = labelsize
-        self.linewidth = linewidth
+        super().__init__(name, size, labelsize, linewidth)
         self.links: List[Link] = []
 
     def add_link(self, link: Link) -> None:

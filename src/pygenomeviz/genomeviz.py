@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from io import BytesIO
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -21,9 +22,9 @@ class GenomeViz:
         """GenomeViz constructor
 
         Args:
-            fig_width (float, optional): Figure width. Defaults to 15.
-            fig_track_height (float, optional): Figure track height. Defaults to 1.0.
-            align_type (str, optional): Track align type. Defaults to "left".
+            fig_width (float, optional): Figure width
+            fig_track_height (float, optional): Figure track height
+            align_type (str, optional): Track align type ('left'|'center'|'right')
         """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
@@ -81,7 +82,7 @@ class GenomeViz:
     def _get_link_track(
         self, feature_track_name1: str, feature_track_name2: str
     ) -> LinkTrack:
-        """Get link track by two feature track names
+        """Get link track by two adjacent feature track names
 
         Args:
             feature_track_name1 (str): Feature track name1
@@ -131,15 +132,21 @@ class GenomeViz:
         Args:
             name (str): Track name
             size (int): Track size
-            labelsize (int, optional): Track label size. Defaults to 30.
-            linewidth (int, optional): Track line width. Defaults to 2.
+            labelsize (int, optional): Track label size
+            linewidth (int, optional): Track line width
 
         Returns:
             FeatureTrack: Newly added FeatureTrack
         """
+        # Check specified track name is unique or not
+        if name in [t.name for t in self._tracks]:
+            err_msg = f"track.name='{name}' is already exists. Change to another name."
+            raise ValueError(err_msg)
+        # Add link track between feature tracks
         if len(self._tracks) > 0:
             link_track = LinkTrack(f"{self._tracks[-1].name}-{name}", 0)
             self._tracks.append(link_track)
+        # Add feature track
         feature_track = FeatureTrack(name, size, labelsize, linewidth)
         self._tracks.append(feature_track)
         return feature_track
@@ -156,8 +163,8 @@ class GenomeViz:
         """Add link data to link track
 
         Args:
-            track_link1 (Tuple[str, int, int]): Track link data1
-            track_link2 (Tuple[str, int, int]): Track link data2
+            track_link1 (Tuple[str, int, int]): Track link1 (track name, start, end)
+            track_link2 (Tuple[str, int, int]): Track link2 (track name, start, end)
             normal_color (str, optional): Normal link color.
             inverted_color (str, optional): Inverted link color.
             identity (Optional[float], optional): Link identity [0 - 100].
@@ -190,6 +197,8 @@ class GenomeViz:
             raise RuntimeError("No tracks are defined for plotting figure.")
         figsize = (self.fig_width, self.fig_track_height * track_num)
         figure: Figure = plt.figure(figsize=figsize, tight_layout=False)
+        # TODO: Title is required?
+        # figure.suptitle("title", fontsize=50)
         spec = gridspec.GridSpec(
             nrows=track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
         )
@@ -203,18 +212,19 @@ class GenomeViz:
             # Disable 'spines' and 'ticks' visibility
             for spine in ax.spines:
                 ax.spines[spine].set_visible(False)
-            ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+            ax.tick_params(left=False, labelleft=False, bottom=False, labelbottom=False)
 
             # Plot track label
-            x = -self._max_track_size / 100
-            ax.text(
-                x=x,
-                y=y_center,
-                s=track.name,
-                fontsize=track.labelsize,
-                ha="right",
-                va="center",
-            )
+            x = -self._max_track_size * 0.05
+            if track.labelsize != 0:
+                ax.text(
+                    x=x,
+                    y=y_center,
+                    s=track.name,
+                    fontsize=track.labelsize,
+                    ha="right",
+                    va="center",
+                )
 
             # Plot track scale line
             track_offset = self._track_offset(track)
@@ -251,10 +261,8 @@ class GenomeViz:
                         y=y,
                         dx=arrow_length,
                         dy=0,
-                        shape="full",
                         fc=feature.facecolor,
                         ec=feature.edgecolor,
-                        alpha=1.0,
                         width=width * self._feature_size_ratio,
                         head_width=head_width * self._feature_size_ratio,
                         head_length=head_length,
@@ -262,29 +270,42 @@ class GenomeViz:
                         zorder=zorder,
                     )
 
+                    feature_text_x = (feature.start + feature.end) / 2
+                    if feature.labelsize != 0:
+                        ax.text(
+                            x=feature_text_x,
+                            y=y,
+                            s=feature.label,
+                            color=feature.labelcolor,
+                            fontsize=feature.labelsize,
+                            ha="center",
+                            va="center",
+                            # rotation=45,
+                            zorder=10,
+                        )
+
             elif isinstance(track, LinkTrack):
                 for link in track.links:
                     link = link.add_offset(self._track_name2offset)
-                    polygon_xy = [
-                        (link.track_start2, 0),
-                        (link.track_end2, 0),
-                        (link.track_end1, 1),
-                        (link.track_start1, 1),
-                    ]
-                    p = patches.Polygon(xy=polygon_xy, fc=link.color, ec=link.color)
+                    p = patches.Polygon(
+                        xy=link.polygon_xy(), fc=link.color, ec=link.color
+                    )
                     ax.add_patch(p)
 
         return figure
 
     def savefig(
-        self, savefile: Union[str, Path], dpi: int = 300, pad_inches: float = 0.5
+        self,
+        savefile: Union[str, Path, BytesIO],
+        dpi: int = 300,
+        pad_inches: float = 0.5,
     ) -> None:
         """Save figure to file
 
         Args:
-            savefile (Union[str, Path]): Save file
-            dpi (int, optional): DPI. Defaults to 300.
-            pad_inches (float, optional): Padding inches. Defaults to 0.5.
+            savefile (Union[str, Path, BytesIO]): Save file
+            dpi (int, optional): DPI
+            pad_inches (float, optional): Padding inches
         """
         figure = self.plotfig()
         figure.savefig(
@@ -293,3 +314,17 @@ class GenomeViz:
             pad_inches=pad_inches,
             bbox_inches="tight",
         )
+
+    def print_tracks_info(self) -> None:
+        """Print tracks info (For developer)"""
+        for idx, track in enumerate(self._tracks, 1):
+            class_name = track.__class__.__name__
+            print(f"\n# Track{idx:02d}: name='{track.name}' ({class_name})")
+            if isinstance(track, FeatureTrack):
+                print(f"# Size={track.size}, FeatureNumber={len(track.features)}")
+                for feature in track.features:
+                    print(feature)
+            elif isinstance(track, LinkTrack):
+                print(f"# Size={track.size}, LinkNumber={len(track.links)}")
+                for link in track.links:
+                    print(link)

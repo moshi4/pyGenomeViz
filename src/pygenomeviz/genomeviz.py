@@ -129,9 +129,14 @@ class GenomeViz:
             target_link_track = self._tracks[link_track_idx]
             if isinstance(target_link_track, LinkTrack):
                 return target_link_track
-
-        # TODO: Error handling
-        raise RuntimeError()
+            else:
+                err_msg = "LinkTrack is not found between target feature tracks "
+                err_msg += f"(`{feature_track_name1}` and '{feature_track_name2}')"
+                raise ValueError(err_msg)
+        else:
+            err_msg = f"`{feature_track_name1}` and '{feature_track_name2}' "
+            err_msg += "are not adjacent feature tracks."
+            raise ValueError(err_msg)
 
     def _track_offset(self, track: Track) -> int:
         """Get track offset
@@ -155,7 +160,7 @@ class GenomeViz:
         self,
         name: str,
         size: int,
-        labelsize: int = 30,
+        labelsize: int = 20,
         linewidth: int = 1,
     ) -> FeatureTrack:
         """Add feature track
@@ -252,20 +257,14 @@ class GenomeViz:
             # Disable 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
-            ax.tick_params(**track.tick_params)
+            ax.tick_params(**track.tick_params, labelsize=15)
 
             if isinstance(track, FeatureTrack):
                 # Plot track label
-                x = -self._max_track_size * 0.05
+                x = -self._max_track_size * 0.01
                 if track.labelsize != 0:
-                    ax.text(
-                        x=x,
-                        y=0,
-                        s=track.name,
-                        fontsize=track.labelsize,
-                        ha="right",
-                        va="center",
-                    )
+                    opts = {"fontsize": track.labelsize, "ha": "right", "va": "center"}
+                    ax.text(x, 0, track.name, **opts)
 
                 # Plot track scale line
                 track_offset = self._track_offset(track)
@@ -331,7 +330,7 @@ class GenomeViz:
                             fontsize=feature.labelsize,
                             ha="center",
                             va="center",
-                            # rotation=45,
+                            rotation=0,
                             zorder=10,
                         )
 
@@ -346,22 +345,14 @@ class GenomeViz:
 
             elif isinstance(track, TickTrack):
                 if self.tick_type == "all":
-                    # ax.tick_params(bottom=True, labelbottom=True, labelsize=15)
-                    # ax.spines["bottom"].set_visible(True)
                     ax.xaxis.set_major_locator(MaxNLocator(10, steps=[1, 2, 5, 10]))
                     ax.xaxis.set_major_formatter(track.tick_formatter)
                 elif self.tick_type == "partial":
                     ax.hlines(ylim[0] / 2, track.xmin, track.xmax, "black", linewidth=1)
                     ax.vlines(track.xmin, ylim[0], 0, "black", linewidth=1)
                     ax.vlines(track.xmax, ylim[0], 0, "black", linewidth=1)
-                    ax.text(
-                        track.xcenter,
-                        ylim[0],
-                        track.scalebar_label,
-                        fontsize=15,
-                        ha="center",
-                        va="top",
-                    )
+                    x, y, label = track.xcenter, ylim[0], track.scalebar_label
+                    ax.text(x, y, label, fontsize=15, ha="center", va="top")
 
         return figure
 

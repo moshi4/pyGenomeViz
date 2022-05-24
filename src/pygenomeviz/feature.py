@@ -23,8 +23,8 @@ class Feature:
             err_msg = f"Feature 'end' must be larger than 'start' ({self})"
             raise ValueError(err_msg)
         # Check strand
-        if self.strand not in (1, -1):
-            err_msg = f"Strand must be '1' or '-1' ('{self.strand}')"
+        if self.strand not in (1, 0, -1):
+            err_msg = f"Strand must be '1 | 0 | -1' (strand={self.strand})"
             raise ValueError(err_msg)
         # Check feature plot style
         self.plotstyle = self.plotstyle.lower()

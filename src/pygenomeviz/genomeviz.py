@@ -7,12 +7,15 @@ from typing import Dict, List, Optional, Tuple, Union
 import matplotlib.pyplot as plt
 from matplotlib import gridspec, patches
 from matplotlib.figure import Axes, Figure
+from matplotlib.ticker import MaxNLocator
 
 from pygenomeviz.link import Link
-from pygenomeviz.track import FeatureTrack, LinkTrack, Track
+from pygenomeviz.track import FeatureTrack, LinkTrack, TickTrack, Track
 
 
 class GenomeViz:
+    """GenomeViz Class"""
+
     def __init__(
         self,
         fig_width: float = 15,
@@ -21,7 +24,10 @@ class GenomeViz:
         feature_track_pad: float = 0.1,
         link_track_pad: float = 0.1,
         arrow_shaft_ratio: float = 0.5,
+        feature_track_ratio: float = 1.0,
+        link_track_ratio: float = 1.0,
         track_spines: bool = False,
+        tick_type: Optional[str] = None,
     ):
         """GenomeViz constructor
 
@@ -32,7 +38,10 @@ class GenomeViz:
             feature_track_pad (float, optional): Feature track y padding [0.0 - 1.0]
             link_track_pad (float, optional): Link track y padding [0.0 - 1.0]
             arrow_shaft_ratio (float, optional): Feature arrow shaft ratio [0.0 - 1.0]
-            track_spines (bool, optional): Track spines visibility
+            feature_track_ratio (float, optional): Feature track ratio
+            link_track_ratio (float, optional): Link track ratio
+            track_spines (bool, optional): Display track spines
+            tick_type (Optional[str]): Tick type ('all' or 'partial')
         """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
@@ -41,14 +50,24 @@ class GenomeViz:
         self.feature_track_pad = feature_track_pad
         self.link_track_pad = link_track_pad
         self.arrow_shaft_ratio = arrow_shaft_ratio
+        self.feature_track_ratio = feature_track_ratio
+        self.link_track_ratio = link_track_ratio
+        self.tick_type = tick_type
         self._min_plot_size = 0.001  # 0.1 %
-        self._feature_track_ratio = 1.0
-        self._link_track_ratio = 1.0
-        self._tracks: List[Union[FeatureTrack, LinkTrack]] = []
+        self._tracks: List[Track] = []
 
         if self.align_type not in ("left", "center", "right"):
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
+
+        if self.tick_type is not None and self.tick_type not in ("all", "partial"):
+            err_msg = f"Invalid tick type '{self.tick_type}'."
+            raise ValueError(err_msg)
+
+    @property
+    def _track_num(self) -> int:
+        """Track number"""
+        return len(self._tracks)
 
     @property
     def _max_track_size(self) -> int:
@@ -72,9 +91,11 @@ class GenomeViz:
         track_ratios = []
         for track in self._tracks:
             if isinstance(track, FeatureTrack):
-                track_ratios.append(self._feature_track_ratio)
+                track_ratios.append(self.feature_track_ratio)
             elif isinstance(track, LinkTrack):
-                track_ratios.append(self._link_track_ratio)
+                track_ratios.append(self.link_track_ratio)
+            elif isinstance(track, TickTrack):
+                track_ratios.append(self.feature_track_ratio * 0.5)
         return track_ratios
 
     def _get_track_idx(self, track_name: str) -> int:
@@ -135,7 +156,7 @@ class GenomeViz:
         name: str,
         size: int,
         labelsize: int = 30,
-        linewidth: int = 2,
+        linewidth: int = 1,
     ) -> FeatureTrack:
         """Add feature track
 
@@ -154,10 +175,12 @@ class GenomeViz:
             raise ValueError(err_msg)
         # Add link track between feature tracks
         if len(self._tracks) > 0:
-            link_track = LinkTrack(f"{self._tracks[-1].name}-{name}", 0)
+            link_track = LinkTrack(f"{self._tracks[-1].name}-{name}", self.track_spines)
             self._tracks.append(link_track)
         # Add feature track
-        feature_track = FeatureTrack(name, size, labelsize, linewidth)
+        feature_track = FeatureTrack(
+            name, size, labelsize, linewidth, self.track_spines
+        )
         self._tracks.append(feature_track)
         return feature_track
 
@@ -187,8 +210,12 @@ class GenomeViz:
             above_track_link, below_track_link = track_link2, track_link2
         link_track.add_link(
             Link(
-                *above_track_link,
-                *below_track_link,
+                above_track_link[0],
+                above_track_link[1],
+                above_track_link[2],
+                below_track_link[0],
+                below_track_link[1],
+                below_track_link[2],
                 normal_color,
                 inverted_color,
                 identity,
@@ -202,15 +229,20 @@ class GenomeViz:
         Returns:
             Figure: Plot figure result
         """
-        track_num = len(self._tracks)
-        if track_num == 0:
+        if self._track_num == 0:
             raise RuntimeError("No tracks are defined for plotting figure.")
-        figsize = (self.fig_width, self.fig_track_height * track_num)
+        if self.tick_type is not None:
+            self._tracks.append(
+                TickTrack(self._max_track_size, self.track_spines, self.tick_type)
+            )
+
+        figsize = (self.fig_width, self.fig_track_height * self._track_num)
         figure: Figure = plt.figure(figsize=figsize, tight_layout=False)
+
         # TODO: Title is required?
         # figure.suptitle("title", fontsize=50)
         spec = gridspec.GridSpec(
-            nrows=track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
+            nrows=self._track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
         )
         for idx, track in enumerate(self._tracks):
             # Create new track subplot
@@ -218,9 +250,9 @@ class GenomeViz:
             ax: Axes = figure.add_subplot(spec[idx], xlim=xlim, ylim=ylim)
 
             # Disable 'spines' and 'ticks' visibility
-            for spine in ax.spines:
-                ax.spines[spine].set_visible(self.track_spines)
-            ax.tick_params(left=False, labelleft=False, bottom=False, labelbottom=False)
+            for spine, display in track.spines_params.items():
+                ax.spines[spine].set_visible(display)
+            ax.tick_params(**track.tick_params)
 
             if isinstance(track, FeatureTrack):
                 # Plot track label
@@ -308,12 +340,28 @@ class GenomeViz:
                     link = link.add_offset(self._track_name2offset)
                     link_ymin = ylim[0] + self.link_track_pad
                     link_ymax = ylim[1] - self.link_track_pad
-                    p = patches.Polygon(
-                        xy=link.polygon_xy(link_ymin, link_ymax),
-                        fc=link.color,
-                        ec=link.color,
-                    )
+                    xy = link.polygon_xy(link_ymin, link_ymax)
+                    p = patches.Polygon(xy=xy, fc=link.color, ec=link.color)
                     ax.add_patch(p)
+
+            elif isinstance(track, TickTrack):
+                if self.tick_type == "all":
+                    # ax.tick_params(bottom=True, labelbottom=True, labelsize=15)
+                    # ax.spines["bottom"].set_visible(True)
+                    ax.xaxis.set_major_locator(MaxNLocator(10, steps=[1, 2, 5, 10]))
+                    ax.xaxis.set_major_formatter(track.tick_formatter)
+                elif self.tick_type == "partial":
+                    ax.hlines(ylim[0] / 2, track.xmin, track.xmax, "black", linewidth=1)
+                    ax.vlines(track.xmin, ylim[0], 0, "black", linewidth=1)
+                    ax.vlines(track.xmax, ylim[0], 0, "black", linewidth=1)
+                    ax.text(
+                        track.xcenter,
+                        ylim[0],
+                        track.scalebar_label,
+                        fontsize=15,
+                        ha="center",
+                        va="top",
+                    )
 
         return figure
 
@@ -339,10 +387,10 @@ class GenomeViz:
         )
 
     def print_tracks_info(self) -> None:
-        """Print tracks info (For developer)"""
+        """Print tracks info (For developer debugging)"""
         for idx, track in enumerate(self._tracks, 1):
             class_name = track.__class__.__name__
-            print(f"\n# Track{idx:02d}: name='{track.name}' ({class_name})")
+            print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
             if isinstance(track, FeatureTrack):
                 print(f"# Size={track.size}, FeatureNumber={len(track.features)}")
                 for feature in track.features:

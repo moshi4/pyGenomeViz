@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List
+import math
+from typing import Dict, List
 
 from pygenomeviz.feature import Feature
 from pygenomeviz.link import Link
@@ -15,6 +16,7 @@ class Track:
         size: int,
         labelsize: int = 0,
         linewidth: int = 0,
+        spines: bool = False,
     ):
         """Track constructor
 
@@ -23,11 +25,33 @@ class Track:
             size (int): Track size
             labelsize (int, optional): Track label size
             linewidth (int, optional): Track line width
+            spines (bool, optional): Display spines
         """
         self.name = name
         self.size = size
         self.labelsize = labelsize
         self.linewidth = linewidth
+        self.spines = spines
+
+    @property
+    def tick_params(self) -> Dict[str, bool]:
+        """Track tick parameters dict"""
+        return {
+            "left": False,
+            "labelleft": False,
+            "bottom": False,
+            "labelbottom": False,
+        }
+
+    @property
+    def spines_params(self) -> Dict[str, bool]:
+        """Spines parameteres dict"""
+        return {
+            "left": self.spines,
+            "right": self.spines,
+            "top": self.spines,
+            "bottom": self.spines,
+        }
 
 
 class FeatureTrack(Track):
@@ -39,6 +63,7 @@ class FeatureTrack(Track):
         size: int,
         labelsize: int = 30,
         linewidth: int = 2,
+        spines: bool = False,
     ):
         """FeatureTrack constructor
 
@@ -47,8 +72,9 @@ class FeatureTrack(Track):
             size (int): Track size
             labelsize (int, optional): Track label size
             linewidth (int, optional): Track line width
+            spines (bool, optional): Display spines
         """
-        super().__init__(name, size, labelsize, linewidth)
+        super().__init__(name, size, labelsize, linewidth, spines)
         self.features: List[Feature] = []
 
     def add_feature(
@@ -94,22 +120,14 @@ class FeatureTrack(Track):
 class LinkTrack(Track):
     """LinkTrack Class"""
 
-    def __init__(
-        self,
-        name: str,
-        size: int = 0,
-        labelsize: int = 0,
-        linewidth: int = 0,
-    ):
+    def __init__(self, name: str, spines: bool = False):
         """LinkTrack constructor
 
         Args:
             name (str): Track name
-            size (int, optional): Track size
-            labelsize (int, optional): Track label size
-            linewidth (int, optional): Track line width
+            spines (bool, optional): Display spines
         """
-        super().__init__(name, size, labelsize, linewidth)
+        super().__init__(name, 0, 0, 0, spines)
         self.links: List[Link] = []
 
     def add_link(self, link: Link) -> None:
@@ -119,3 +137,122 @@ class LinkTrack(Track):
             link (Link): FeatureTrack to FeatureTrack Link
         """
         self.links.append(link)
+
+
+class TickTrack(Track):
+    """TickTrack Class"""
+
+    def __init__(
+        self,
+        size: int,
+        spines: bool = False,
+        tick_type: str = "partial",
+    ):
+        """TickTrack constructor
+
+        Args:
+            size (int): Track size
+            spines (bool, optional): Display spines
+            tick_type (str, optional): Tick type ('all' or 'partial')
+        """
+        super().__init__("tick", size, 0, 0, spines)
+        self.tick_type = tick_type
+
+    @property
+    def tick_params(self) -> Dict[str, bool]:
+        """Track tick parameters"""
+        return {
+            "left": False,
+            "labelleft": False,
+            "bottom": self.tick_type == "all",
+            "labelbottom": self.tick_type == "all",
+        }
+
+    @property
+    def spines_params(self) -> Dict[str, bool]:
+        """Spines parameteres dict"""
+        return {
+            "left": self.spines,
+            "right": self.spines,
+            "top": self.spines,
+            "bottom": self.spines or self.tick_type == "all",
+        }
+
+    def tick_formatter(self, value: float, pos: int) -> str:
+        """Tick formatter
+
+        Use for matplotlib `Axes.xaxis.set_major_formatter` function
+
+        Args:
+            value (float): Format target tick value
+            pos (int): Tick position
+
+        Returns:
+            str: Format tick value string
+        """
+        tick_value = value / self.base_value
+        return f"{tick_value:{self.format_str}} {self.unit}"
+
+    @property
+    def unit(self) -> str:
+        """Unit (bp, Kb, Mb, Gb)"""
+        for unit, value in self.unit2base_value.items():
+            if self.size >= value:
+                return unit
+        raise ValueError("Unexpected error.")
+
+    @property
+    def format_str(self) -> str:
+        """Format string ('.0f' or '.1f')"""
+        if self.size / self.base_value >= 10:
+            return ".0f"
+        else:
+            return ".1f"
+
+    @property
+    def base_value(self) -> float:
+        """Base value"""
+        return self.unit2base_value[self.unit]
+
+    @property
+    def unit2base_value(self) -> Dict[str, int]:
+        """Unit & base value dict"""
+        return {"Gb": 10**9, "Mb": 10**6, "Kb": 10**3, "bp": 1}
+
+    @property
+    def scalebar_label(self) -> str:
+        """Label"""
+        label = f"{self.scalebar_size / self.base_value:{self.format_str}}"
+        return f"{label} {self.unit}"
+
+    @property
+    def right_padding(self) -> float:
+        """Right padding size"""
+        return self.size * 0.01
+
+    @property
+    def xmin(self) -> float:
+        """xmin"""
+        return self.size - self.scalebar_size - self.right_padding
+
+    @property
+    def xmax(self) -> float:
+        """xmax"""
+        return self.size - self.right_padding
+
+    @property
+    def xcenter(self) -> float:
+        """xcenter"""
+        return (self.xmin + self.xmax) / 2
+
+    @property
+    def scalebar_size(self) -> float:
+        """Scalebar size"""
+        min_scalebar_size = self.size * 0.1
+        unit = int(10 ** (len(str(int(min_scalebar_size))) - 1))
+        value = math.ceil(min_scalebar_size / unit)
+        steps = [1, 2, 5, 10]
+        for i in range(0, len(steps) - 1):
+            if steps[i] < value < steps[i + 1]:
+                return steps[i + 1] * unit
+        return value * unit

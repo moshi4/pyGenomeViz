@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from pygenomeviz.feature import Feature
 from pygenomeviz.link import Link
@@ -77,6 +77,16 @@ class FeatureTrack(Track):
         super().__init__(name, size, labelsize, linewidth, spines)
         self.features: List[Feature] = []
 
+    @property
+    def label_params(self) -> Dict[str, Any]:
+        """Label drawing parameters"""
+        return {
+            "s": self.name,
+            "fontsize": self.labelsize,
+            "ha": "right",
+            "va": "center",
+        }
+
     def add_feature(
         self,
         start: int,
@@ -145,6 +155,7 @@ class TickTrack(Track):
     def __init__(
         self,
         size: int,
+        labelsize: int = 15,
         spines: bool = False,
         tick_type: str = "partial",
     ):
@@ -152,20 +163,22 @@ class TickTrack(Track):
 
         Args:
             size (int): Track size
+            labelsize (int): Tick label size
             spines (bool, optional): Display spines
             tick_type (str, optional): Tick type ('all' or 'partial')
         """
-        super().__init__("tick", size, 0, 0, spines)
+        super().__init__("tick", size, labelsize, 0, spines)
         self.tick_type = tick_type
 
     @property
-    def tick_params(self) -> Dict[str, bool]:
+    def tick_params(self) -> Dict[str, Any]:
         """Track tick parameters"""
         return {
             "left": False,
             "labelleft": False,
             "bottom": self.tick_type == "all",
             "labelbottom": self.tick_type == "all",
+            "labelsize": self.labelsize,
         }
 
     @property

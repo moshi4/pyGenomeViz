@@ -55,6 +55,7 @@ class GenomeViz:
         self.tick_type = tick_type
         self._min_plot_size = 0.001  # 0.1 %
         self._tracks: List[Track] = []
+        self._tick_labelsize = 15
 
         if self.align_type not in ("left", "center", "right"):
             err_msg = f"Invalid align type '{self.align_type}'."
@@ -235,17 +236,19 @@ class GenomeViz:
             Figure: Plot figure result
         """
         if self._track_num == 0:
-            raise RuntimeError("No tracks are defined for plotting figure.")
+            raise ValueError("No tracks are defined for plotting figure.")
         if self.tick_type is not None:
             self._tracks.append(
-                TickTrack(self._max_track_size, self.track_spines, self.tick_type)
+                TickTrack(
+                    self._max_track_size,
+                    self._tick_labelsize,
+                    self.track_spines,
+                    self.tick_type,
+                )
             )
 
         figsize = (self.fig_width, self.fig_track_height * self._track_num)
         figure: Figure = plt.figure(figsize=figsize, tight_layout=False)
-
-        # TODO: Title is required?
-        # figure.suptitle("title", fontsize=50)
         spec = gridspec.GridSpec(
             nrows=self._track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
         )
@@ -257,82 +260,30 @@ class GenomeViz:
             # Disable 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
-            ax.tick_params(**track.tick_params, labelsize=15)
+            ax.tick_params(**track.tick_params)
 
             if isinstance(track, FeatureTrack):
                 # Plot track label
-                x = -self._max_track_size * 0.01
                 if track.labelsize != 0:
-                    opts = {"fontsize": track.labelsize, "ha": "right", "va": "center"}
-                    ax.text(x, 0, track.name, **opts)
-
+                    ax.text(-self._max_track_size * 0.01, 0, **track.label_params)
                 # Plot track scale line
                 track_offset = self._track_offset(track)
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, "black", linewidth=track.linewidth)
 
-                offset_features = [f + track_offset for f in track.features]
-                for feature in offset_features:
-                    x = feature.start if feature.strand == 1 else feature.end
-                    arrow_length = feature.length * feature.strand
-
-                    head_length = self._max_track_size * 0.02
-                    if abs(feature.length) < head_length:
-                        head_length = abs(feature.length)
-
-                    zorder = -5
-                    if feature.plotstyle == "bigarrow":
-                        y = 0
-                        head_width = 2.0 - (self.feature_track_pad * 2)
-                        shaft_width = head_width * self.arrow_shaft_ratio
-                        zorder = 5
-                    elif feature.plotstyle == "bigbox":
-                        y = 0
-                        head_width = 2.0 - (self.feature_track_pad * 2)
-                        shaft_width = head_width
-                        head_length = 0
-                        zorder = 5
-                    else:
-                        head_width = 1.0 - self.feature_track_pad
-                        if feature.strand == -1:
-                            y = -0.5 + (self.feature_track_pad / 2)
-                        else:
-                            y = 0.5 - (self.feature_track_pad / 2)
-                        if feature.plotstyle == "arrow":
-                            shaft_width = head_width * self.arrow_shaft_ratio
-                        elif feature.plotstyle == "box":
-                            shaft_width = head_width
-                            head_length = 0
-                        else:
-                            raise ValueError()
-
-                    ax.arrow(
-                        x=x,
-                        y=y,
-                        dx=arrow_length,
-                        dy=0,
-                        fc=feature.facecolor,
-                        ec=feature.edgecolor,
-                        width=shaft_width,
-                        head_width=head_width,
-                        head_length=head_length,
-                        length_includes_head=True,
-                        zorder=zorder,
+                for feature in [f + track_offset for f in track.features]:
+                    # Plot feature object
+                    obj_params = feature.obj_params(
+                        self._max_track_size,
+                        ylim,
+                        self.feature_track_pad,
+                        self.arrow_shaft_ratio,
                     )
-
+                    ax.arrow(**obj_params)
+                    # Plot feature text
                     feature_text_x = (feature.start + feature.end) / 2
                     if feature.labelsize != 0:
-                        ax.text(
-                            x=feature_text_x,
-                            y=y,
-                            s=feature.label,
-                            color=feature.labelcolor,
-                            fontsize=feature.labelsize,
-                            ha="center",
-                            va="center",
-                            rotation=0,
-                            zorder=10,
-                        )
+                        ax.text(feature_text_x, obj_params["y"], **feature.text_params)
 
             elif isinstance(track, LinkTrack):
                 for link in track.links:

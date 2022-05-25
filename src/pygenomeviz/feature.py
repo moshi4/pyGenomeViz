@@ -43,28 +43,29 @@ class Feature:
         self,
         max_track_size: int,
         ylim: Tuple[float, float],
-        feature_track_pad: float,
+        feature_size_ratio: float,
         arrow_shaft_ratio: float,
     ) -> Dict[str, Any]:
         """Feature object drawing parameters"""
+        ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
         # x, y
         x = self.end if self.strand == -1 else self.start
         if self.plotstyle in ("bigarrow", "bigbox"):
             y = 0
         else:
             if self.strand == -1:
-                y = -0.5 + (feature_track_pad / 2)
+                y = ylim[0] / 2
             else:
-                y = 0.5 - (feature_track_pad / 2)
+                y = ylim[1] / 2
         # dx, dy
         dx = -self.length if self.strand == -1 else self.length
         dy = 0
         # head width
         max_width = ylim[1] - ylim[0]  # = 2.0
         if self.plotstyle in ("bigarrow", "bigbox"):
-            head_width = max_width - (feature_track_pad * 2)
+            head_width = max_width
         else:
-            head_width = (max_width / 2) - feature_track_pad
+            head_width = max_width / 2
         # shaft_width
         if self.plotstyle in ("bigarrow", "arrow"):
             shaft_width = head_width * arrow_shaft_ratio

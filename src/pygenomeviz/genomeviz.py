@@ -21,8 +21,8 @@ class GenomeViz:
         fig_width: float = 15,
         fig_track_height: float = 1.0,
         align_type: str = "left",
-        feature_track_pad: float = 0.1,
-        link_track_pad: float = 0.1,
+        feature_size_ratio: float = 0.9,
+        link_size_ratio: float = 0.9,
         arrow_shaft_ratio: float = 0.5,
         feature_track_ratio: float = 1.0,
         link_track_ratio: float = 1.0,
@@ -35,8 +35,8 @@ class GenomeViz:
             fig_width (float, optional): Figure width
             fig_track_height (float, optional): Figure track height
             align_type (str, optional): Track align type ('left'|'center'|'right')
-            feature_track_pad (float, optional): Feature track y padding [0.0 - 1.0]
-            link_track_pad (float, optional): Link track y padding [0.0 - 1.0]
+            feature_size_ratio (float, optional): Feature size ratio  [0.0 - 1.0]
+            link_size_ratio (float, optional): Link size ratio [0.0 - 1.0]
             arrow_shaft_ratio (float, optional): Feature arrow shaft ratio [0.0 - 1.0]
             feature_track_ratio (float, optional): Feature track ratio
             link_track_ratio (float, optional): Link track ratio
@@ -47,8 +47,8 @@ class GenomeViz:
         self.fig_track_height = fig_track_height
         self.align_type = align_type
         self.track_spines = track_spines
-        self.feature_track_pad = feature_track_pad
-        self.link_track_pad = link_track_pad
+        self.feature_size_ratio = feature_size_ratio
+        self.link_size_ratio = link_size_ratio
         self.arrow_shaft_ratio = arrow_shaft_ratio
         self.feature_track_ratio = feature_track_ratio
         self.link_track_ratio = link_track_ratio
@@ -57,12 +57,29 @@ class GenomeViz:
         self._tracks: List[Track] = []
         self._tick_labelsize = 15
 
+        self._check_arg_values()
+
+    def _check_arg_values(self) -> None:
         if self.align_type not in ("left", "center", "right"):
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
 
         if self.tick_type is not None and self.tick_type not in ("all", "partial"):
             err_msg = f"Invalid tick type '{self.tick_type}'."
+            raise ValueError(err_msg)
+
+        range_check_dict = {
+            "feature_size_ratio": self.feature_size_ratio,
+            "link_size_ratio": self.link_size_ratio,
+            "arrow_shaft_ratio": self.arrow_shaft_ratio,
+            "feature_track_ratio": self.feature_track_ratio,
+            "link_track_ratio": self.link_track_ratio,
+        }
+        err_msg = ""
+        for k, v in range_check_dict.items():
+            if not 0 <= v <= 1:
+                err_msg += f"'{k}' must be '0 <= value <= 1' ({k}={v})\n"
+        if err_msg:
             raise ValueError(err_msg)
 
     @property
@@ -257,7 +274,7 @@ class GenomeViz:
             xlim, ylim = (0, self._max_track_size), (-1.0, 1.0)
             ax: Axes = figure.add_subplot(spec[idx], xlim=xlim, ylim=ylim)
 
-            # Disable 'spines' and 'ticks' visibility
+            # Set 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
             ax.tick_params(**track.tick_params)
@@ -276,7 +293,7 @@ class GenomeViz:
                     obj_params = feature.obj_params(
                         self._max_track_size,
                         ylim,
-                        self.feature_track_pad,
+                        self.feature_size_ratio,
                         self.arrow_shaft_ratio,
                     )
                     ax.arrow(**obj_params)
@@ -288,8 +305,8 @@ class GenomeViz:
             elif isinstance(track, LinkTrack):
                 for link in track.links:
                     link = link.add_offset(self._track_name2offset)
-                    link_ymin = ylim[0] + self.link_track_pad
-                    link_ymax = ylim[1] - self.link_track_pad
+                    link_ymin = ylim[0] * self.link_size_ratio
+                    link_ymax = ylim[1] * self.link_size_ratio
                     xy = link.polygon_xy(link_ymin, link_ymax)
                     p = patches.Polygon(xy=xy, fc=link.color, ec=link.color)
                     ax.add_patch(p)
@@ -341,3 +358,5 @@ class GenomeViz:
                 print(f"# Size={track.size}, LinkNumber={len(track.links)}")
                 for link in track.links:
                     print(link)
+            elif isinstance(track, TickTrack):
+                pass

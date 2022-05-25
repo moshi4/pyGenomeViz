@@ -173,18 +173,18 @@ class TickTrack(Track):
         size: int,
         labelsize: int = 15,
         spines: bool = False,
-        tick_type: str = "partial",
+        tick_style: str = "bar",
     ):
         """TickTrack constructor
 
         Args:
             size (int): Track size
-            labelsize (int): Tick label size
+            labelsize (float): Tick label size
             spines (bool, optional): Display spines
-            tick_type (str, optional): Tick type ('all' or 'partial')
+            tick_style (str, optional): Tick style (`axis`|`bar`)
         """
         super().__init__("tick", size, labelsize, 0, spines)
-        self.tick_type = tick_type
+        self.tick_style = tick_style
 
     @property
     def tick_params(self) -> Dict[str, Any]:
@@ -192,8 +192,8 @@ class TickTrack(Track):
         return {
             "left": False,
             "labelleft": False,
-            "bottom": self.tick_type == "all",
-            "labelbottom": self.tick_type == "all",
+            "bottom": self.tick_style == "axis",
+            "labelbottom": self.tick_style == "axis",
             "labelsize": self.labelsize,
         }
 
@@ -204,7 +204,7 @@ class TickTrack(Track):
             "left": self.spines,
             "right": self.spines,
             "top": self.spines,
-            "bottom": self.spines or self.tick_type == "all",
+            "bottom": self.spines or self.tick_style == "axis",
         }
 
     @property

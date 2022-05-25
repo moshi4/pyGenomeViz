@@ -28,16 +28,16 @@ class GenomeViz:
         link_track_ratio: float = 1.0,
         tick_track_ratio: float = 1.0,
         track_spines: bool = False,
-        tick_type: Optional[str] = None,
+        tick_style: Optional[str] = None,
         plot_size_thr: float = 0.0005,  # 0.05 %
-        tick_labelsize: float = 15,
+        tick_labelsize: int = 15,
     ):
         """GenomeViz constructor
 
         Args:
             fig_width (float, optional): Figure width
             fig_track_height (float, optional): Figure track height
-            align_type (str, optional): Track align type ('left'|'center'|'right')
+            align_type (str, optional): Track align type (`left`|`center`|`right`)
             feature_size_ratio (float, optional): Feature size ratio  [0.0 - 1.0]
             link_size_ratio (float, optional): Link size ratio [0.0 - 1.0]
             arrow_shaft_ratio (float, optional): Feature arrow shaft ratio [0.0 - 1.0]
@@ -45,9 +45,9 @@ class GenomeViz:
             link_track_ratio (float, optional): Link track ratio
             tick_track_ratio (float, optional): Tick track ratio
             track_spines (bool, optional): Display track spines
-            tick_type (str, optional): Tick type ('all' or 'partial')
+            tick_style (str, optional): Tick style (`axis`|`bar`)
             plot_size_thr (float, optional): Plot feature size threshold
-            tick_labelsize (float, optional): Tick label size
+            tick_labelsize (int, optional): Tick label size
 
         Notes:
             If `max_track_size=4.0Mb` and `plot_size_thr=0.0005`, don't plot feature
@@ -63,7 +63,7 @@ class GenomeViz:
         self.feature_track_ratio = feature_track_ratio
         self.link_track_ratio = link_track_ratio
         self.tick_track_ratio = tick_track_ratio
-        self.tick_type = tick_type
+        self.tick_style = tick_style
         self.plot_size_thr = plot_size_thr
         self.tick_labelsize = tick_labelsize
         self._tracks: List[Track] = []
@@ -75,8 +75,8 @@ class GenomeViz:
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
 
-        if self.tick_type is not None and self.tick_type not in ("all", "partial"):
-            err_msg = f"Invalid tick type '{self.tick_type}'."
+        if self.tick_style is not None and self.tick_style not in ("axis", "bar"):
+            err_msg = f"Invalid tick type '{self.tick_style}'."
             raise ValueError(err_msg)
 
         range_check_dict = {
@@ -270,13 +270,13 @@ class GenomeViz:
         """
         if self.track_num == 0:
             raise ValueError("No tracks are defined for plotting figure.")
-        if self.tick_type is not None:
+        if self.tick_style is not None:
             self._tracks.append(
                 TickTrack(
                     self.max_track_size,
                     self.tick_labelsize,
                     self.track_spines,
-                    self.tick_type,
+                    self.tick_style,
                 )
             )
 
@@ -331,10 +331,10 @@ class GenomeViz:
                     ax.add_patch(p)
 
             elif isinstance(track, TickTrack):
-                if self.tick_type == "all":
+                if self.tick_style == "axis":
                     ax.xaxis.set_major_locator(MaxNLocator(10, steps=[1, 2, 5, 10]))
                     ax.xaxis.set_major_formatter(track.tick_formatter)
-                elif self.tick_type == "partial":
+                elif self.tick_style == "bar":
                     ymin, ycenter, ymax = track.ymin, track.ycenter, track.ymax
                     ax.hlines(ycenter, track.xmin, track.xmax, "black", linewidth=1)
                     ax.vlines(track.xmin, ymin, ymax, "black", linewidth=1)

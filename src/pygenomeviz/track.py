@@ -208,6 +208,18 @@ class TickTrack(Track):
         }
 
     @property
+    def scalebar_text_params(self) -> Dict[str, Any]:
+        """Scalebar text parameters dict"""
+        return {
+            "x": self.xcenter,
+            "y": self.ymin,
+            "s": self.scalebar_label,
+            "fontsize": self.labelsize,
+            "ha": "center",
+            "va": "top",
+        }
+
+    @property
     def unit(self) -> str:
         """Unit (bp, Kb, Mb, Gb)"""
         for unit, value in self.unit2base_value.items():

@@ -30,6 +30,7 @@ class GenomeViz:
         track_spines: bool = False,
         tick_type: Optional[str] = None,
         plot_size_thr: float = 0.0005,  # 0.05 %
+        tick_labelsize: float = 15,
     ):
         """GenomeViz constructor
 
@@ -46,6 +47,7 @@ class GenomeViz:
             track_spines (bool, optional): Display track spines
             tick_type (str, optional): Tick type ('all' or 'partial')
             plot_size_thr (float, optional): Plot feature size threshold
+            tick_labelsize (float, optional): Tick label size
 
         Notes:
             If `max_track_size=4.0Mb` and `plot_size_thr=0.0005`, don't plot feature
@@ -63,8 +65,8 @@ class GenomeViz:
         self.tick_track_ratio = tick_track_ratio
         self.tick_type = tick_type
         self.plot_size_thr = plot_size_thr
+        self.tick_labelsize = tick_labelsize
         self._tracks: List[Track] = []
-        self.tick_labelsize = 15
 
         self._check_arg_values()
 
@@ -337,8 +339,7 @@ class GenomeViz:
                     ax.hlines(ycenter, track.xmin, track.xmax, "black", linewidth=1)
                     ax.vlines(track.xmin, ymin, ymax, "black", linewidth=1)
                     ax.vlines(track.xmax, ymin, ymax, "black", linewidth=1)
-                    x, y, label = track.xcenter, ymin, track.scalebar_label
-                    ax.text(x, y, label, fontsize=15, ha="center", va="top")
+                    ax.text(**track.scalebar_text_params)
 
         return figure
 

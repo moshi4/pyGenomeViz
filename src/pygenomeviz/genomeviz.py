@@ -26,8 +26,10 @@ class GenomeViz:
         arrow_shaft_ratio: float = 0.5,
         feature_track_ratio: float = 1.0,
         link_track_ratio: float = 1.0,
+        tick_track_ratio: float = 1.0,
         track_spines: bool = False,
         tick_type: Optional[str] = None,
+        plot_size_thr: float = 0.0005,  # 0.05 %
     ):
         """GenomeViz constructor
 
@@ -40,8 +42,14 @@ class GenomeViz:
             arrow_shaft_ratio (float, optional): Feature arrow shaft ratio [0.0 - 1.0]
             feature_track_ratio (float, optional): Feature track ratio
             link_track_ratio (float, optional): Link track ratio
+            tick_track_ratio (float, optional): Tick track ratio
             track_spines (bool, optional): Display track spines
-            tick_type (Optional[str]): Tick type ('all' or 'partial')
+            tick_type (str, optional): Tick type ('all' or 'partial')
+            plot_size_thr (float, optional): Plot feature size threshold
+
+        Notes:
+            If `max_track_size=4.0Mb` and `plot_size_thr=0.0005`, don't plot feature
+            smaller than `max_track_size * plot_size_thr=2.0Kb`.
         """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
@@ -52,10 +60,11 @@ class GenomeViz:
         self.arrow_shaft_ratio = arrow_shaft_ratio
         self.feature_track_ratio = feature_track_ratio
         self.link_track_ratio = link_track_ratio
+        self.tick_track_ratio = tick_track_ratio
         self.tick_type = tick_type
-        self._min_plot_size = 0.001  # 0.1 %
+        self.plot_size_thr = plot_size_thr
         self._tracks: List[Track] = []
-        self._tick_labelsize = 15
+        self.tick_labelsize = 15
 
         self._check_arg_values()
 
@@ -72,23 +81,21 @@ class GenomeViz:
             "feature_size_ratio": self.feature_size_ratio,
             "link_size_ratio": self.link_size_ratio,
             "arrow_shaft_ratio": self.arrow_shaft_ratio,
-            "feature_track_ratio": self.feature_track_ratio,
-            "link_track_ratio": self.link_track_ratio,
         }
         err_msg = ""
         for k, v in range_check_dict.items():
             if not 0 <= v <= 1:
-                err_msg += f"'{k}' must be '0 <= value <= 1' ({k}={v})\n"
+                err_msg += f"'{k}' must be '0 <= value <= 1' (value={v})\n"
         if err_msg:
             raise ValueError(err_msg)
 
     @property
-    def _track_num(self) -> int:
+    def track_num(self) -> int:
         """Track number"""
         return len(self._tracks)
 
     @property
-    def _max_track_size(self) -> int:
+    def max_track_size(self) -> int:
         """Max track size"""
         if len(self._tracks) > 0:
             return max([track.size for track in self._tracks])
@@ -113,7 +120,7 @@ class GenomeViz:
             elif isinstance(track, LinkTrack):
                 track_ratios.append(self.link_track_ratio)
             elif isinstance(track, TickTrack):
-                track_ratios.append(self.feature_track_ratio * 0.5)
+                track_ratios.append(self.tick_track_ratio)
         return track_ratios
 
     def _get_track_idx(self, track_name: str) -> int:
@@ -125,8 +132,7 @@ class GenomeViz:
         Returns:
             int: Track index
         """
-        track_names = [t.name for t in self._tracks]
-        return track_names.index(track_name)
+        return [t.name for t in self._tracks].index(track_name)
 
     def _get_link_track(
         self, feature_track_name1: str, feature_track_name2: str
@@ -168,9 +174,9 @@ class GenomeViz:
         if self.align_type == "left":
             return 0
         elif self.align_type == "center":
-            return int((self._max_track_size - track.size) / 2)
+            return int((self.max_track_size - track.size) / 2)
         elif self.align_type == "right":
-            return self._max_track_size - track.size
+            return self.max_track_size - track.size
         else:
             return 0
 
@@ -213,8 +219,9 @@ class GenomeViz:
         track_link2: Tuple[str, int, int],
         normal_color: str = "grey",
         inverted_color: str = "red",
-        identity: Optional[float] = None,
-        interpolation: bool = True,
+        interpolation_value: Optional[float] = None,
+        vmin: float = 0,
+        vmax: float = 100,
     ) -> None:
         """Add link data to link track
 
@@ -223,8 +230,14 @@ class GenomeViz:
             track_link2 (Tuple[str, int, int]): Track link2 (track name, start, end)
             normal_color (str, optional): Normal link color.
             inverted_color (str, optional): Inverted link color.
-            identity (Optional[float], optional): Link identity [0 - 100].
-            interpolation (bool, optional): Enable color interpolation by identity.
+            interpolation_value (float, optional): Value for color interpolation
+            vmin (float, optional): Min value for color interpolation
+            vmax (float, optional): Max value for color interpolation
+
+        Notes:
+            If `interpolation_value` (e.g. Identity[%]) is specified,
+            interpolates from `normal_color|inverted_color` to 'white' based on
+            settings of `interpolation_value`, `vmin`, `vmax`.
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         if self._get_track_idx(track_link1[0]) < self._get_track_idx(track_link2[0]):
@@ -241,8 +254,9 @@ class GenomeViz:
                 below_track_link[2],
                 normal_color,
                 inverted_color,
-                identity,
-                interpolation,
+                interpolation_value,
+                vmin,
+                vmax,
             )
         )
 
@@ -252,26 +266,26 @@ class GenomeViz:
         Returns:
             Figure: Plot figure result
         """
-        if self._track_num == 0:
+        if self.track_num == 0:
             raise ValueError("No tracks are defined for plotting figure.")
         if self.tick_type is not None:
             self._tracks.append(
                 TickTrack(
-                    self._max_track_size,
-                    self._tick_labelsize,
+                    self.max_track_size,
+                    self.tick_labelsize,
                     self.track_spines,
                     self.tick_type,
                 )
             )
 
-        figsize = (self.fig_width, self.fig_track_height * self._track_num)
+        figsize = (self.fig_width, self.fig_track_height * self.track_num)
         figure: Figure = plt.figure(figsize=figsize, tight_layout=False)
         spec = gridspec.GridSpec(
-            nrows=self._track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
+            nrows=self.track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
         )
         for idx, track in enumerate(self._tracks):
             # Create new track subplot
-            xlim, ylim = (0, self._max_track_size), (-1.0, 1.0)
+            xlim, ylim = (0, self.max_track_size), track.ylim
             ax: Axes = figure.add_subplot(spec[idx], xlim=xlim, ylim=ylim)
 
             # Set 'spines' and 'ticks' visibility
@@ -282,16 +296,19 @@ class GenomeViz:
             if isinstance(track, FeatureTrack):
                 # Plot track label
                 if track.labelsize != 0:
-                    ax.text(-self._max_track_size * 0.01, 0, **track.label_params)
+                    ax.text(-self.max_track_size * 0.01, 0, **track.label_params)
                 # Plot track scale line
                 track_offset = self._track_offset(track)
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, "black", linewidth=track.linewidth)
 
                 for feature in [f + track_offset for f in track.features]:
+                    # Don't draw too small feature (To reduce drawing time)
+                    if feature.length < self.max_track_size * self.plot_size_thr:
+                        continue
                     # Plot feature object
                     obj_params = feature.obj_params(
-                        self._max_track_size,
+                        self.max_track_size,
                         ylim,
                         self.feature_size_ratio,
                         self.arrow_shaft_ratio,
@@ -316,10 +333,11 @@ class GenomeViz:
                     ax.xaxis.set_major_locator(MaxNLocator(10, steps=[1, 2, 5, 10]))
                     ax.xaxis.set_major_formatter(track.tick_formatter)
                 elif self.tick_type == "partial":
-                    ax.hlines(ylim[0] / 2, track.xmin, track.xmax, "black", linewidth=1)
-                    ax.vlines(track.xmin, ylim[0], 0, "black", linewidth=1)
-                    ax.vlines(track.xmax, ylim[0], 0, "black", linewidth=1)
-                    x, y, label = track.xcenter, ylim[0], track.scalebar_label
+                    ymin, ycenter, ymax = track.ymin, track.ycenter, track.ymax
+                    ax.hlines(ycenter, track.xmin, track.xmax, "black", linewidth=1)
+                    ax.vlines(track.xmin, ymin, ymax, "black", linewidth=1)
+                    ax.vlines(track.xmax, ymin, ymax, "black", linewidth=1)
+                    x, y, label = track.xcenter, ymin, track.scalebar_label
                     ax.text(x, y, label, fontsize=15, ha="center", va="top")
 
         return figure

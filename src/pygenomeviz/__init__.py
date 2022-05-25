@@ -1,7 +1,8 @@
 from pygenomeviz.feature import Feature
+from pygenomeviz.genbank import Genbank
 from pygenomeviz.genomeviz import GenomeViz
 from pygenomeviz.link import Link
-from pygenomeviz.track import FeatureTrack, LinkTrack, Track
+from pygenomeviz.track import FeatureTrack, LinkTrack, TickTrack, Track
 
 __version__ = "0.1.0"
 
@@ -12,4 +13,6 @@ __all__ = [
     "Track",
     "FeatureTrack",
     "LinkTrack",
+    "TickTrack",
+    "Genbank",
 ]

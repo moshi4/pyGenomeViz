@@ -17,6 +17,7 @@ class Feature:
     plotstyle: str = "bigarrow"  # "bigarrow", "arrow", "bigbox", "box"
     facecolor: str = "orange"
     edgecolor: str = "black"
+    linewidth: float = 0
     labelrotation: int = 0
 
     def __post_init__(self):
@@ -75,7 +76,7 @@ class Feature:
         if self.plotstyle in ("bigbox", "box"):
             head_length = 0
         else:
-            head_length = max_track_size * 0.02
+            head_length = max_track_size * 0.015
             if abs(self.length) < head_length:
                 head_length = abs(self.length)
         # zorder
@@ -93,6 +94,7 @@ class Feature:
             "ec": self.edgecolor,
             "length_includes_head": True,
             "zorder": zorder,
+            "linewidth": self.linewidth,
         }
 
     @property
@@ -119,5 +121,6 @@ class Feature:
             self.plotstyle,
             self.facecolor,
             self.edgecolor,
+            self.linewidth,
             self.labelrotation,
         )

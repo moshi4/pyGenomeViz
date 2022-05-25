@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from pygenomeviz.feature import Feature
 from pygenomeviz.link import Link
@@ -32,6 +32,11 @@ class Track:
         self.labelsize = labelsize
         self.linewidth = linewidth
         self.spines = spines
+
+    @property
+    def ylim(self) -> Tuple[float, float]:
+        """Track y min-max limit tuple"""
+        return (-1.0, 1.0)
 
     @property
     def tick_params(self) -> Dict[str, bool]:
@@ -98,6 +103,8 @@ class FeatureTrack(Track):
         plotstyle: str = "bigarrow",
         facecolor: str = "orange",
         edgecolor: str = "black",
+        linewidth: float = 0,
+        labelrotation: int = 0,
     ) -> None:
         """Add feature to track
 
@@ -111,6 +118,13 @@ class FeatureTrack(Track):
             plotstyle (str, optional): Feature plot style
             facecolor (str, optional): Feature face color
             edgecolor (str, optional): Feature edge color
+            linewidth (float, optional): Feature edge line width
+            labelrotation (int, optional): Feature label rotation
+
+        Notes:
+            If linewidth is greater than 0, edgecolor is displayed.
+            Set small value for linewidth (e.g. 0.01), as a large linewidth
+            may corrupt the display of feature.
         """
         self.features.append(
             Feature(
@@ -123,6 +137,8 @@ class FeatureTrack(Track):
                 plotstyle,
                 facecolor,
                 edgecolor,
+                linewidth,
+                labelrotation,
             )
         )
 
@@ -172,7 +188,7 @@ class TickTrack(Track):
 
     @property
     def tick_params(self) -> Dict[str, Any]:
-        """Track tick parameters"""
+        """Track tick parameters dict"""
         return {
             "left": False,
             "labelleft": False,
@@ -190,21 +206,6 @@ class TickTrack(Track):
             "top": self.spines,
             "bottom": self.spines or self.tick_type == "all",
         }
-
-    def tick_formatter(self, value: float, pos: int) -> str:
-        """Tick formatter
-
-        Use for matplotlib `Axes.xaxis.set_major_formatter` function
-
-        Args:
-            value (float): Format target tick value
-            pos (int): Tick position
-
-        Returns:
-            str: Format tick value string
-        """
-        tick_value = value / self.base_value
-        return f"{tick_value:{self.format_str}} {self.unit}"
 
     @property
     def unit(self) -> str:
@@ -259,6 +260,21 @@ class TickTrack(Track):
         return (self.xmin + self.xmax) / 2
 
     @property
+    def ymin(self) -> float:
+        """ymin"""
+        return self.ylim[0]
+
+    @property
+    def ycenter(self) -> float:
+        """ycenter"""
+        return self.ylim[0] + abs(self.ylim[0] * 0.1)
+
+    @property
+    def ymax(self) -> float:
+        """ymax"""
+        return self.ylim[0] + abs(self.ylim[0] * 0.2)
+
+    @property
     def scalebar_size(self) -> float:
         """Scalebar size"""
         min_scalebar_size = self.size * 0.1
@@ -269,3 +285,18 @@ class TickTrack(Track):
             if steps[i] < value < steps[i + 1]:
                 return steps[i + 1] * unit
         return value * unit
+
+    def tick_formatter(self, value: float, pos: int) -> str:
+        """Tick formatter
+
+        Use for matplotlib `Axes.xaxis.set_major_formatter` function
+
+        Args:
+            value (float): Format target tick value
+            pos (int): Tick position (Not used for value formatting)
+
+        Returns:
+            str: Format tick value string
+        """
+        tick_value = value / self.base_value
+        return f"{tick_value:{self.format_str}} {self.unit}"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pygenomeviz.feature import Feature
 from pygenomeviz.genbank import Genbank
@@ -163,7 +163,7 @@ class FeatureTrack(Track):
         self,
         gbk_file: Union[str, Path],
         feature_type: str = "CDS",
-        label_type: str = "gene",
+        label_type: Optional[str] = None,
         labelsize: int = 15,
         labelcolor: str = "black",
         plotstyle: str = "bigarrow",
@@ -192,7 +192,10 @@ class FeatureTrack(Track):
             start = feature.location.start
             end = feature.location.end
             strand = feature.strand
-            label = feature.qualifiers.get(label_type, [""])[0]
+            if label_type is None:
+                label = ""
+            else:
+                label = feature.qualifiers.get(label_type, [""])[0]
             self.add_feature(
                 start,
                 end,

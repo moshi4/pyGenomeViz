@@ -199,6 +199,10 @@ class GenomeViz:
 
         Returns:
             FeatureTrack: Newly added FeatureTrack
+
+        Notes:
+            On the second and subsequent method calls, generate link track
+            between feature tracks created immediately before.
         """
         # Check specified track name is unique or not
         if name in [t.name for t in self._tracks]:
@@ -281,15 +285,16 @@ class GenomeViz:
             )
 
         figsize = (self.fig_width, self.fig_track_height * self.track_num)
-        figure: Figure = plt.figure(figsize=figsize, tight_layout=False)
+        figure: Figure = plt.figure(figsize=figsize, facecolor="white")
         spec = gridspec.GridSpec(
             nrows=self.track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
         )
         for idx, track in enumerate(self._tracks):
             # Create new track subplot
             xlim, ylim = (0, self.max_track_size), track.ylim
-            ax: Axes = figure.add_subplot(spec[idx], xlim=xlim, ylim=ylim)
-
+            ax: Axes = figure.add_subplot(
+                spec[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
+            )
             # Set 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
@@ -317,9 +322,8 @@ class GenomeViz:
                     )
                     ax.arrow(**obj_params)
                     # Plot feature text
-                    feature_text_x = (feature.start + feature.end) / 2
                     if feature.labelsize != 0:
-                        ax.text(feature_text_x, obj_params["y"], **feature.text_params)
+                        ax.text(**feature.text_params(ylim, self.feature_size_ratio))
 
             elif isinstance(track, LinkTrack):
                 for link in track.links:

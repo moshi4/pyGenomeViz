@@ -97,17 +97,38 @@ class Feature:
             "linewidth": self.linewidth,
         }
 
-    @property
-    def text_params(self) -> Dict[str, Any]:
+    def text_params(
+        self, ylim: Tuple[float, float], feature_size_ratio: float
+    ) -> Dict[str, Any]:
         """Feature text drawing parameters"""
+        x = (self.start + self.end) / 2
+        ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
+        # if self.plotstyle in ("bigarrow", "bigbox"):
+        #     y = 0
+        # else:
+        if self.strand == -1:
+            # y = ylim[0] / 2
+            y = ylim[0]
+        else:
+            # y = ylim[1] / 2
+            y = ylim[1]
+        if self.strand == -1:
+            ha, va = "left", "top"
+            labelrotation = self.labelrotation * self.strand
+        else:
+            ha, va = "left", "bottom"
+            labelrotation = self.labelrotation
         return {
+            "x": x,
+            "y": y,
             "s": self.label,
             "color": self.labelcolor,
             "fontsize": self.labelsize,
-            "rotation": self.labelrotation,
-            "ha": "center",
-            "va": "center",
+            "rotation": labelrotation,
+            "ha": ha,
+            "va": va,
             "zorder": 10,
+            "rotation_mode": "default",  # 'anchor' or 'default'
         }
 
     def __add__(self, offset: int) -> Feature:

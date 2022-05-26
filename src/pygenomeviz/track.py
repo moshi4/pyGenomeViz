@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Tuple, Union
 
 from pygenomeviz.feature import Feature
+from pygenomeviz.genbank import Genbank
 from pygenomeviz.link import Link
 
 
@@ -32,6 +34,11 @@ class Track:
         self.labelsize = labelsize
         self.linewidth = linewidth
         self.spines = spines
+
+    @property
+    def zorder(self) -> float:
+        """Track zorder"""
+        return 0
 
     @property
     def ylim(self) -> Tuple[float, float]:
@@ -81,6 +88,11 @@ class FeatureTrack(Track):
         """
         super().__init__(name, size, labelsize, linewidth, spines)
         self.features: List[Feature] = []
+
+    @property
+    def zorder(self) -> float:
+        """Track zorder"""
+        return 10
 
     @property
     def label_params(self) -> Dict[str, Any]:
@@ -141,6 +153,54 @@ class FeatureTrack(Track):
                 labelrotation,
             )
         )
+
+    def add_genbank_features(
+        self,
+        gbk_file: Union[str, Path],
+        feature_type: str = "CDS",
+        label_type: str = "gene",
+        labelsize: int = 15,
+        labelcolor: str = "black",
+        plotstyle: str = "bigarrow",
+        facecolor: str = "orange",
+        edgecolor: str = "black",
+        linewidth: float = 0,
+        labelrotation: int = 0,
+    ):
+        """Add features from genbank record
+
+        Args:
+            gbk_file (Union[str, Path]): Genbank file
+            feature_type (str, optional): Feature type (e.g. `CDS`, `rRNA`, etc...)
+            label_type (str, optional): Label type (e.g. `gene`, `protein_id`, etc...)
+            labelsize (int, optional): Feature label size
+            labelcolor (int, optional): Feature label color
+            plotstyle (str, optional): Feature plot style
+            facecolor (str, optional): Feature face color
+            edgecolor (str, optional): Feature edge color
+            linewidth (float, optional): Feature edge line width
+            labelrotation (int, optional): Feature label rotation
+        """
+        gbk = Genbank(gbk_file)
+        target_features = gbk.extract_all_features(feature_type)
+        for feature in target_features:
+            start = feature.location.start
+            end = feature.location.end
+            strand = feature.strand
+            label = feature.qualifiers.get(label_type, [""])[0]
+            self.add_feature(
+                start,
+                end,
+                strand,
+                label,
+                labelsize,
+                labelcolor,
+                plotstyle,
+                facecolor,
+                edgecolor,
+                linewidth,
+                labelrotation,
+            )
 
 
 class LinkTrack(Track):

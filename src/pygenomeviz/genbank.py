@@ -156,7 +156,7 @@ class Genbank:
 
             start = self._to_int(feature.location.start)
             end = self._to_int(feature.location.end)
-            strand = "+" if feature.strand == 1 else "-"
+            strand = "-" if feature.strand == -1 else "+"
 
             location_id = f"|{start}_{end}_{strand}|"
             if protein_id is None:

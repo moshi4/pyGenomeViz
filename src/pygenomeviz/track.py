@@ -19,6 +19,7 @@ class Track:
         labelsize: int = 0,
         linewidth: int = 0,
         spines: bool = False,
+        ratio: float = 1.0,
     ):
         """Track constructor
 
@@ -28,12 +29,14 @@ class Track:
             labelsize (int, optional): Track label size
             linewidth (int, optional): Track line width
             spines (bool, optional): Display spines
+            ratio (float, optional): Track height ratio
         """
         self.name = name
         self.size = size
         self.labelsize = labelsize
         self.linewidth = linewidth
         self.spines = spines
+        self.ratio = ratio
 
     @property
     def zorder(self) -> float:
@@ -76,6 +79,7 @@ class FeatureTrack(Track):
         labelsize: int = 30,
         linewidth: int = 2,
         spines: bool = False,
+        ratio: float = 1.0,
     ):
         """FeatureTrack constructor
 
@@ -85,8 +89,9 @@ class FeatureTrack(Track):
             labelsize (int, optional): Track label size
             linewidth (int, optional): Track line width
             spines (bool, optional): Display spines
+            ratio (float, optional): Track height ratio
         """
-        super().__init__(name, size, labelsize, linewidth, spines)
+        super().__init__(name, size, labelsize, linewidth, spines, ratio)
         self.features: List[Feature] = []
 
     @property
@@ -206,14 +211,15 @@ class FeatureTrack(Track):
 class LinkTrack(Track):
     """LinkTrack Class"""
 
-    def __init__(self, name: str, spines: bool = False):
+    def __init__(self, name: str, spines: bool = False, ratio: float = 1.0):
         """LinkTrack constructor
 
         Args:
             name (str): Track name
             spines (bool, optional): Display spines
+            ratio (float, optional): Track height ratio
         """
-        super().__init__(name, 0, 0, 0, spines)
+        super().__init__(name, 0, 0, 0, spines, ratio)
         self.links: List[Link] = []
 
     def add_link(self, link: Link) -> None:
@@ -233,6 +239,7 @@ class TickTrack(Track):
         size: int,
         labelsize: int = 15,
         spines: bool = False,
+        ratio: float = 1.0,
         tick_style: str = "bar",
     ):
         """TickTrack constructor
@@ -241,9 +248,10 @@ class TickTrack(Track):
             size (int): Track size
             labelsize (float): Tick label size
             spines (bool, optional): Display spines
+            ratio (float, optional): Track height ratio
             tick_style (str, optional): Tick style (`axis`|`bar`)
         """
-        super().__init__("tick", size, labelsize, 0, spines)
+        super().__init__("tick", size, labelsize, 0, spines, ratio)
         self.tick_style = tick_style
 
     @property

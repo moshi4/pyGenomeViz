@@ -10,7 +10,7 @@ class Feature:
 
     start: int
     end: int
-    strand: int  # -1 or 0 or 1
+    strand: int  # -1 or 1
     label: str = ""
     labelsize: int = 15
     labelcolor: str = "black"
@@ -21,13 +21,12 @@ class Feature:
     labelrotation: int = 0
 
     def __post_init__(self):
+        # Change unknown strand value to 1
+        if self.strand not in (1, -1):
+            self.strand = 1
         # Check start, end postion
         if self.start > self.end:
             err_msg = f"Feature 'end' must be larger than 'start' ({self})"
-            raise ValueError(err_msg)
-        # Check strand
-        if self.strand not in (1, 0, -1):
-            err_msg = f"Strand must be '1 | 0 | -1' (strand={self.strand})"
             raise ValueError(err_msg)
         # Check feature plot style
         self.plotstyle = self.plotstyle.lower()
@@ -59,8 +58,7 @@ class Feature:
             else:
                 y = ylim[1] / 2
         # dx, dy
-        dx = -self.length if self.strand == -1 else self.length
-        dy = 0
+        dx, dy = self.length * self.strand, 0
         # head width
         max_width = ylim[1] - ylim[0]  # = 2.0
         if self.plotstyle in ("bigarrow", "bigbox"):
@@ -105,17 +103,14 @@ class Feature:
         ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
         # if self.plotstyle in ("bigarrow", "bigbox"):
         #     y = 0
-        # else:
         if self.strand == -1:
             # y = ylim[0] / 2
             y = ylim[0]
-        else:
-            # y = ylim[1] / 2
-            y = ylim[1]
-        if self.strand == -1:
             ha, va = "left", "top"
             labelrotation = self.labelrotation * self.strand
         else:
+            # y = ylim[1] / 2
+            y = ylim[1]
             ha, va = "left", "bottom"
             labelrotation = self.labelrotation
         return {
@@ -128,7 +123,7 @@ class Feature:
             "ha": ha,
             "va": va,
             "zorder": 10,
-            "rotation_mode": "default",  # 'anchor' or 'default'
+            "rotation_mode": "anchor",  # 'anchor' or 'default'
         }
 
     def __add__(self, offset: int) -> Feature:

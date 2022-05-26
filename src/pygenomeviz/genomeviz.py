@@ -68,9 +68,9 @@ class GenomeViz:
         self.tick_labelsize = tick_labelsize
         self._tracks: List[Track] = []
 
-        self._check_arg_values()
+        self._check_init_values()
 
-    def _check_arg_values(self) -> None:
+    def _check_init_values(self) -> None:
         if self.align_type not in ("left", "center", "right"):
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
@@ -111,19 +111,6 @@ class GenomeViz:
         for track in self._tracks:
             track_name2offset[track.name] = self._track_offset(track)
         return track_name2offset
-
-    @property
-    def _track_ratios(self) -> List[float]:
-        """Each track height ratio list"""
-        track_ratios = []
-        for track in self._tracks:
-            if isinstance(track, FeatureTrack):
-                track_ratios.append(self.feature_track_ratio)
-            elif isinstance(track, LinkTrack):
-                track_ratios.append(self.link_track_ratio)
-            elif isinstance(track, TickTrack):
-                track_ratios.append(self.tick_track_ratio)
-        return track_ratios
 
     def _get_track_idx(self, track_name: str) -> int:
         """Get track index by track name
@@ -210,11 +197,20 @@ class GenomeViz:
             raise ValueError(err_msg)
         # Add link track between feature tracks
         if len(self._tracks) > 0:
-            link_track = LinkTrack(f"{self._tracks[-1].name}-{name}", self.track_spines)
+            link_track = LinkTrack(
+                f"{self._tracks[-1].name}-{name}",
+                self.track_spines,
+                self.link_track_ratio,
+            )
             self._tracks.append(link_track)
         # Add feature track
         feature_track = FeatureTrack(
-            name, size, labelsize, linewidth, self.track_spines
+            name,
+            size,
+            labelsize,
+            linewidth,
+            self.track_spines,
+            self.feature_track_ratio,
         )
         self._tracks.append(feature_track)
         return feature_track
@@ -280,14 +276,16 @@ class GenomeViz:
                     self.max_track_size,
                     self.tick_labelsize,
                     self.track_spines,
+                    self.tick_track_ratio,
                     self.tick_style,
                 )
             )
 
         figsize = (self.fig_width, self.fig_track_height * self.track_num)
         figure: Figure = plt.figure(figsize=figsize, facecolor="white")
+        track_ratios = [t.ratio for t in self._tracks]
         spec = gridspec.GridSpec(
-            nrows=self.track_num, ncols=1, height_ratios=self._track_ratios, hspace=0
+            nrows=self.track_num, ncols=1, height_ratios=track_ratios, hspace=0
         )
         for idx, track in enumerate(self._tracks):
             # Create new track subplot

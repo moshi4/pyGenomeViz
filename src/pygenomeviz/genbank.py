@@ -15,11 +15,13 @@ class Genbank:
         gbk_file: Union[str, Path],
         name: str = "",
     ):
-        """Constructor
-
-        Args:
-            gbk_file (Union[str, StringIO, Path]): Genbank file
-            name (str, optional): Name
+        """
+        Parameters
+        ----------
+        gbk_file : Union[str, Path]
+            Genbank file
+        name : str, optional
+            name
         """
         self.gbk_file: Path = Path(gbk_file)
         self.name: str = name if name != "" else self.gbk_file.with_suffix("").name
@@ -48,11 +50,17 @@ class Genbank:
     def gc_skew(self, window_size: int = 5000, step_size: int = 2000) -> List[float]:
         """Calculate GC skew in sliding window
 
-        Args:
-            window_size (int, optional): Window size
-            step_size (int, optional): Step size
-        Returns:
-            List[float]: GC skew values in sliding window
+        Parameters
+        ----------
+        window_size : int, optional
+            Window size
+        step_size : int, optional
+            Step size
+
+        Returns
+        -------
+        gc_skews : List[float]
+            GC skew value list
         """
         gc_skew_values = []
         seq = self.genome_seq
@@ -75,11 +83,17 @@ class Genbank:
     def gc_content(self, window_size: int = 5000, step_size: int = 2000) -> List[float]:
         """Calculate GC content in sliding window
 
-        Args:
-            window_size (int, optional): Window size
-            step_size (int, optional): Step size
-        Returns:
-            List[float]: GC content values in sliding window
+        Parameters
+        ----------
+        window_size : int, optional
+            Window size
+        step_size : int, optional
+            Step size
+
+        Returns
+        -------
+        gc_contents : List[float]
+            GC content value list
         """
         gc_content_values = []
         seq = self.genome_seq
@@ -100,12 +114,17 @@ class Genbank:
     ) -> List[SeqFeature]:
         """Extract all features
 
-        Args:
-            feature_type (str): Feature type to extract
-            target_strand (Optional[int]): Target starnd to extract
+        Parameters
+        ----------
+        feature_type : str, optional
+            Extract feature type
+        target_strand : Optional[int], optional
+            Extract target strand
 
-        Returns:
-            List[SeqFeature]: All features
+        Returns
+        -------
+        all_features : List[SeqFeature]
+            Extracted all features
         """
         extract_features = []
         base_len = 0
@@ -143,8 +162,10 @@ class Genbank:
     ):
         """Write CDS protein features fasta file
 
-        Args:
-            fasta_outfile (Union[str, Path]): CDS fasta file
+        Parameters
+        ----------
+        fasta_outfile : Union[str, Path]
+            CDS fasta file
         """
         features = self.extract_all_features("CDS", None)
         cds_seq_records: List[SeqRecord] = []
@@ -177,8 +198,10 @@ class Genbank:
     ) -> None:
         """Write genome fasta file
 
-        Args:
-            outfile (Union[str, Path]): Output genome fasta file
+        Parameters
+        ----------
+        outfile : Union[str, Path]
+            Output genome fasta file
         """
         write_seq = self.genome_seq
         with open(outfile, "w") as f:

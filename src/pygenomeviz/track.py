@@ -21,15 +21,21 @@ class Track:
         spines: bool = False,
         ratio: float = 1.0,
     ):
-        """Track constructor
-
-        Args:
-            name (str): Track name
-            size (int): Track size
-            labelsize (int, optional): Track label size
-            linewidth (int, optional): Track line width
-            spines (bool, optional): Display spines
-            ratio (float, optional): Track height ratio
+        """
+        Parameters
+        ----------
+        name : str
+            Track name
+        size : int
+            Track size
+        labelsize : int, optional
+            Track label size
+        linewidth : int, optional
+            Track line width
+        spines : bool, optional
+            Display track spines
+        ratio : float, optional
+            Track height ratio
         """
         self.name = name
         self.size = size
@@ -81,15 +87,21 @@ class FeatureTrack(Track):
         spines: bool = False,
         ratio: float = 1.0,
     ):
-        """FeatureTrack constructor
-
-        Args:
-            name (str): Track name
-            size (int): Track size
-            labelsize (int, optional): Track label size
-            linewidth (int, optional): Track line width
-            spines (bool, optional): Display spines
-            ratio (float, optional): Track height ratio
+        """
+        Parameters
+        ----------
+        name : str
+            Track name
+        size : int
+            Track size
+        labelsize : int, optional
+            Track label size
+        linewidth : int, optional
+            Track line width
+        spines : bool, optional
+            Display track spines
+        ratio : float, optional
+            Track height ratio
         """
         super().__init__(name, size, labelsize, linewidth, spines, ratio)
         self.features: List[Feature] = []
@@ -128,30 +140,42 @@ class FeatureTrack(Track):
     ) -> None:
         """Add feature to track
 
-        Args:
-            start (int): Feature start postion
-            end (int): Feature end position
-            strand (int): Feature strand
-            label (str, optional): Feature label
-            labelsize (int, optional): Feature label size
-            labelcolor (str, optional): Feature label color
-            plotstyle (str, optional): Feature plot style
-            (`bigarrow`|`arrow`|`bigbox`|`box`)
-            facecolor (str, optional): Feature face color
-            edgecolor (str, optional): Feature edge color
-            linewidth (float, optional): Feature edge line width
-            labelrotation (int, optional): Feature label rotation
-            labelvpos (str, optional): Label vertical position
-            (`top`|`center`|`bottom`|`strand`)
-            labelhpos (str, optional): Label horizontal position
-            (`left`|`center`|`right`)
-            labelha (str, optional): Label horizontal alignment
-            (`left`|`center`|`right`)
+        Parameters
+        ----------
+        start : int
+            Featrue start position
+        end : int
+            Feature end position
+        strand : int
+            Feature strand
+        label : str, optional
+            Feature label
+        labelsize : int, optional
+            Feature label size
+        labelcolor : str, optional
+            Feature label color
+        plotstyle : str, optional
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`)
+        facecolor : str, optional
+            Feature facecolor
+        edgecolor : str, optional
+            Feature edgecolor
+        linewidth : float, optional
+            Feature edge linewidth
+        labelrotation : int, optional
+            Feature label rotation
+        labelvpos : str, optional
+            Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+        labelhpos : str, optional
+            Feature label horizontal position (`left`|`center`|`right`)
+        labelha : str, optional
+            Feature label horizontal alignment (`left`|`center`|`right`)
 
-        Note:
-            If linewidth is greater than 0, edgecolor is displayed.
-            Set small value for linewidth (e.g. 0.01), as a large linewidth
-            may corrupt the display of feature.
+        Notes
+        -----
+        If linewidth is greater than 0, edgecolor is displayed.
+        Set small value for linewidth (e.g. 0.1), as a large linewidth
+        may corrupt the display of feature.
         """
         self.features.append(
             Feature(
@@ -190,24 +214,40 @@ class FeatureTrack(Track):
     ):
         """Add features from genbank record
 
-        Args:
-            gbk_file (Union[str, Path]): Genbank file
-            feature_type (str, optional): Feature type (e.g. `CDS`,`rRNA`,etc...)
-            label_type (str, optional): Label type (e.g. `gene`,`protein_id`,etc...)
-            labelsize (int, optional): Feature label size
-            labelcolor (str, optional): Feature label color
-            plotstyle (str, optional): Feature plot style
-            (`bigarrow`|`arrow`|`bigbox`|`box`)
-            facecolor (str, optional): Feature face color
-            edgecolor (str, optional): Feature edge color
-            linewidth (float, optional): Feature edge line width
-            labelrotation (int, optional): Feature label rotation
-            labelvpos (str, optional): Label vertical position
-            (`top`|`center`|`bottom`|`strand`)
-            labelhpos (str, optional): Label horizontal position
-            (`left`|`center`|`right`)
-            labelha (str, optional): Label horizontal alignment
-            (`left`|`center`|`right`)
+        Parameters
+        ----------
+        gbk_file : Union[str, Path]
+            Genbank file
+        feature_type : str, optional
+            Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
+        label_type : Optional[str], optional
+            Label type (e.g. `gene`,`protein_id`,`product`,etc...)
+        labelsize : int, optional
+            Feature label size
+        labelcolor : str, optional
+            Feature label color
+        plotstyle : str, optional
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`)
+        facecolor : str, optional
+            Feature facecolor
+        edgecolor : str, optional
+            Feature edgecolor
+        linewidth : float, optional
+            Feature edge linewidth
+        labelrotation : int, optional
+            Feature label rotation
+        labelvpos : str, optional
+            Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+        labelhpos : str, optional
+            Feature label horizontal position (`left`|`center`|`right`)
+        labelha : str, optional
+            Feature label horizontal alignment (`left`|`center`|`right`)
+
+        Notes
+        -----
+        If linewidth is greater than 0, edgecolor is displayed.
+        Set small value for linewidth (e.g. 0.1), as a large linewidth
+        may corrupt the display of feature.
         """
         gbk = Genbank(gbk_file)
         target_features = gbk.extract_all_features(feature_type)
@@ -243,12 +283,15 @@ class LinkTrack(Track):
     """LinkTrack Class"""
 
     def __init__(self, name: str, spines: bool = False, ratio: float = 1.0):
-        """LinkTrack constructor
-
-        Args:
-            name (str): Track name
-            spines (bool, optional): Display spines
-            ratio (float, optional): Track height ratio
+        """
+        Parameters
+        ----------
+        name : str
+            Track name
+        spines : bool, optional
+            Display track spines
+        ratio : float, optional
+            Track height ratio
         """
         super().__init__(name, 0, 0, 0, spines, ratio)
         self.links: List[Link] = []
@@ -256,8 +299,10 @@ class LinkTrack(Track):
     def add_link(self, link: Link) -> None:
         """Add link to track
 
-        Args:
-            link (Link): FeatureTrack to FeatureTrack Link
+        Parameters
+        ----------
+        link : Link
+            Link between feature track
         """
         self.links.append(link)
 
@@ -273,14 +318,19 @@ class TickTrack(Track):
         ratio: float = 1.0,
         tick_style: str = "bar",
     ):
-        """TickTrack constructor
-
-        Args:
-            size (int): Track size
-            labelsize (float): Tick label size
-            spines (bool, optional): Display spines
-            ratio (float, optional): Track height ratio
-            tick_style (str, optional): Tick style (`axis`|`bar`)
+        """
+        Parameters
+        ----------
+        size : int
+            Track size
+        labelsize : int, optional
+            Tick label size
+        spines : bool, optional
+            Display track spines
+        ratio : float, optional
+            Track height ratio
+        tick_style : str, optional
+            Tick style (`axis`|`bar`)
         """
         super().__init__("tick", size, labelsize, 0, spines, ratio)
         self.tick_style = tick_style
@@ -400,14 +450,17 @@ class TickTrack(Track):
     def tick_formatter(self, value: float, pos: int) -> str:
         """Tick formatter
 
-        Use for matplotlib `Axes.xaxis.set_major_formatter` function
+        Parameters
+        ----------
+        value : float
+            Format target tick value
+        pos : int
+            Tick position (Not used for value formatting)
 
-        Args:
-            value (float): Format target tick value
-            pos (int): Tick position (Not used for value formatting)
-
-        Returns:
-            str: Format tick value string
+        Returns
+        -------
+        format_value : str
+            Format tick value string
         """
         tick_value = value / self.base_value
         return f"{tick_value:{self.format_str}} {self.unit}"

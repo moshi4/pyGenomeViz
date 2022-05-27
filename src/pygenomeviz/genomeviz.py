@@ -32,26 +32,40 @@ class GenomeViz:
         plot_size_thr: float = 0.0005,  # 0.05 %
         tick_labelsize: int = 15,
     ):
-        """GenomeViz constructor
+        """
+        Parameters
+        ----------
+        fig_width : float, optional
+            Figure width
+        fig_track_height : float, optional
+            Figure track height
+        align_type : str, optional
+            Track align type
+        feature_size_ratio : float, optional
+            Feature size ratio to track
+        link_size_ratio : float, optional
+            Link size ratio to track
+        arrow_shaft_ratio : float, optional
+            Feature arrow shaft ratio
+        feature_track_ratio : float, optional
+            Feature track ratio
+        link_track_ratio : float, optional
+            Link track ratio
+        tick_track_ratio : float, optional
+            Tick track ratio
+        track_spines : bool, optional
+            Display track spines
+        tick_style : Optional[str], optional
+            Tick style (`axis`|`bar`)
+        plot_size_thr : float, optional
+            Plot size threshold
+        tick_labelsize : int, optional
+            Tick label size
 
-        Args:
-            fig_width (float, optional): Figure width
-            fig_track_height (float, optional): Figure track height
-            align_type (str, optional): Track align type (`left`|`center`|`right`)
-            feature_size_ratio (float, optional): Feature size ratio  [0.0 - 1.0]
-            link_size_ratio (float, optional): Link size ratio [0.0 - 1.0]
-            arrow_shaft_ratio (float, optional): Feature arrow shaft ratio [0.0 - 1.0]
-            feature_track_ratio (float, optional): Feature track ratio
-            link_track_ratio (float, optional): Link track ratio
-            tick_track_ratio (float, optional): Tick track ratio
-            track_spines (bool, optional): Display track spines
-            tick_style (str, optional): Tick style (`axis`|`bar`)
-            plot_size_thr (float, optional): Plot feature size threshold
-            tick_labelsize (int, optional): Tick label size
-
-        Notes:
-            If `max_track_size=4.0Mb` and `plot_size_thr=0.0005`, don't plot feature
-            smaller than `max_track_size * plot_size_thr=2.0Kb`.
+        Notes
+        -----
+        If `plot_size_thr=0.0005` and `max_track_size=4.0Mb`, features smaller than
+        `max_track_size * plot_size_thr=2.0Kb` are not plotted.
         """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height
@@ -71,6 +85,7 @@ class GenomeViz:
         self._check_init_values()
 
     def _check_init_values(self) -> None:
+        """Check initialize values"""
         if self.align_type not in ("left", "center", "right"):
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
@@ -113,27 +128,36 @@ class GenomeViz:
         return track_name2offset
 
     def _get_track_idx(self, track_name: str) -> int:
-        """Get track index by track name
+        """Get track index from track name
 
-        Args:
-            track_name (str): Track name
+        Parameters
+        ----------
+        track_name : str
+            Track name
 
-        Returns:
-            int: Track index
+        Returns
+        -------
+        track_idx : int
+            Track index
         """
         return [t.name for t in self._tracks].index(track_name)
 
     def _get_link_track(
         self, feature_track_name1: str, feature_track_name2: str
     ) -> LinkTrack:
-        """Get link track by two adjacent feature track names
+        """Get link track from two adjacent feature track names
 
-        Args:
-            feature_track_name1 (str): Feature track name1
-            feature_track_name2 (str): Feature track name2
+        Parameters
+        ----------
+        feature_track_name1 : str
+            Feature track name1
+        feature_track_name2 : str
+            Feature track name2
 
-        Returns:
-            LinkTrack: Target LinkTrack
+        Returns
+        -------
+        link_track : LinkTrack
+            Target link track
         """
         feature_track_idx1 = self._get_track_idx(feature_track_name1)
         feature_track_idx2 = self._get_track_idx(feature_track_name2)
@@ -154,11 +178,15 @@ class GenomeViz:
     def _track_offset(self, track: Track) -> int:
         """Get track offset
 
-        Args:
-            track (Track): Target track for alignment offset calculation
+        Parameters
+        ----------
+        track : Track
+            Target track offset for alignment
 
-        Returns:
-            int: Target track offset
+        Returns
+        -------
+        track_offset : int
+            Track offset
         """
         if self.align_type == "left":
             return 0
@@ -178,18 +206,21 @@ class GenomeViz:
     ) -> FeatureTrack:
         """Add feature track
 
-        Args:
-            name (str): Track name
-            size (int): Track size
-            labelsize (int, optional): Track label size
-            linewidth (int, optional): Track line width
+        Parameters
+        ----------
+        name : str
+            Track name
+        size : int
+            Track size
+        labelsize : int, optional
+            Track label size
+        linewidth : int, optional
+            Trakc line width
 
-        Returns:
-            FeatureTrack: Newly added FeatureTrack
-
-        Notes:
-            On the second and subsequent method calls, generate link track
-            between feature tracks created immediately before.
+        Returns
+        -------
+        feature_track : FeatureTrack
+            Feature track
         """
         # Check specified track name is unique or not
         if name in [t.name for t in self._tracks]:
@@ -227,19 +258,22 @@ class GenomeViz:
     ) -> None:
         """Add link data to link track
 
-        Args:
-            track_link1 (Tuple[str, int, int]): Track link1 (track name, start, end)
-            track_link2 (Tuple[str, int, int]): Track link2 (track name, start, end)
-            normal_color (str, optional): Normal link color.
-            inverted_color (str, optional): Inverted link color.
-            interpolation_value (float, optional): Value for color interpolation
-            vmin (float, optional): Min value for color interpolation
-            vmax (float, optional): Max value for color interpolation
-
-        Notes:
-            If `interpolation_value` (e.g. Identity[%]) is specified,
-            interpolates from `normal_color|inverted_color` to 'white' based on
-            settings of `interpolation_value`, `vmin`, `vmax`.
+        Parameters
+        ----------
+        track_link1 : Tuple[str, int, int]
+            Track link1 (track_name, start, end)
+        track_link2 : Tuple[str, int, int]
+            Track link2 (track_name, start, end)
+        normal_color : str, optional
+            Normal link color
+        inverted_color : str, optional
+            Inverted link color
+        interpolation_value : Optional[float], optional
+            Value for color interpolation
+        vmin : float, optional
+            Min value for color interpolation
+        vmax : float, optional
+            Max value for color interpolation
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         if self._get_track_idx(track_link1[0]) < self._get_track_idx(track_link2[0]):
@@ -265,8 +299,10 @@ class GenomeViz:
     def plotfig(self) -> Figure:
         """Plot figure
 
-        Returns:
-            Figure: Plot figure result
+        Returns
+        -------
+        figure : Figure
+            Plot figure result
         """
         if self.track_num == 0:
             raise ValueError("No tracks are defined for plotting figure.")
@@ -353,10 +389,14 @@ class GenomeViz:
     ) -> None:
         """Save figure to file
 
-        Args:
-            savefile (Union[str, Path, BytesIO]): Save file
-            dpi (int, optional): DPI
-            pad_inches (float, optional): Padding inches
+        Parameters
+        ----------
+        savefile : Union[str, Path, BytesIO]
+            Save file
+        dpi : int, optional
+            DPI
+        pad_inches : float, optional
+            Padding inches
         """
         figure = self.plotfig()
         figure.savefig(

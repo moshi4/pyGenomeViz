@@ -44,14 +44,19 @@ class Link:
         Tuple[float, float],
         Tuple[float, float],
     ]:
-        """Polygon coordinates for link plot
+        """Plygon coordinate for link plot
 
-        Args:
-            ymin (float, optional): Polygon min y coordinate
-            ymax (float, optional): Polygon max y coordinate
+        Parameters
+        ----------
+        ymin : float, optional
+            Polygon min y coordinate
+        ymax : float, optional
+            Polygon max y coordinate
 
-        Returns:
-            Tuple: Polygon coordinates
+        Returns
+        -------
+        polygon_xy : tuple
+            Polygon xy coordinates
         """
         return (
             (self.track_start2, ymin),
@@ -64,8 +69,7 @@ class Link:
     def color(self) -> str:
         """Get conditional hexcolor code
 
-        Returns:
-            str: Conditional hexcolor code
+        If `self.interpolation_value` is set, interpolated color is calculated.
         """
         color = self.inverted_color if self.is_inverted() else self.normal_color
         if self.interpolation_value is None:
@@ -79,8 +83,10 @@ class Link:
     def is_inverted(self) -> bool:
         """Check inverted link or not
 
-        Returns:
-            bool: Inverted or not
+        Returns
+        -------
+        is_inverted : bool
+            Check result
         """
         track_link_length1 = self.track_end1 - self.track_start1
         track_link_length2 = self.track_end2 - self.track_start2
@@ -89,11 +95,15 @@ class Link:
     def add_offset(self, track_name2offset: Dict[str, int]) -> Link:
         """Add offset to each link position
 
-        Args:
-            track_name2offset (Dict[str, int]): Track name & offset dict
+        Parameters
+        ----------
+        track_name2offset : Dict[str, int]
+            Track name & offset dict
 
-        Returns:
-            Link: Offset added Link object
+        Returns
+        -------
+        link : Link
+            Offset added Link object
         """
         return Link(
             self.track_name1,

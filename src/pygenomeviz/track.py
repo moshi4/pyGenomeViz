@@ -121,7 +121,10 @@ class FeatureTrack(Track):
         facecolor: str = "orange",
         edgecolor: str = "black",
         linewidth: float = 0,
-        labelrotation: int = 0,
+        labelrotation: int = 30,
+        labelvpos: str = "strand",
+        labelhpos: str = "center",
+        labelha: str = "left",
     ) -> None:
         """Add feature to track
 
@@ -131,14 +134,21 @@ class FeatureTrack(Track):
             strand (int): Feature strand
             label (str, optional): Feature label
             labelsize (int, optional): Feature label size
-            labelcolor (int, optional): Feature label color
+            labelcolor (str, optional): Feature label color
             plotstyle (str, optional): Feature plot style
+            (`bigarrow`|`arrow`|`bigbox`|`box`)
             facecolor (str, optional): Feature face color
             edgecolor (str, optional): Feature edge color
             linewidth (float, optional): Feature edge line width
             labelrotation (int, optional): Feature label rotation
+            labelvpos (str, optional): Label vertical position
+            (`top`|`center`|`bottom`|`strand`)
+            labelhpos (str, optional): Label horizontal position
+            (`left`|`center`|`right`)
+            labelha (str, optional): Label horizontal alignment
+            (`left`|`center`|`right`)
 
-        Notes:
+        Note:
             If linewidth is greater than 0, edgecolor is displayed.
             Set small value for linewidth (e.g. 0.01), as a large linewidth
             may corrupt the display of feature.
@@ -156,6 +166,9 @@ class FeatureTrack(Track):
                 edgecolor,
                 linewidth,
                 labelrotation,
+                labelvpos,
+                labelhpos,
+                labelha,
             )
         )
 
@@ -171,20 +184,30 @@ class FeatureTrack(Track):
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 0,
+        labelvpos: str = "strand",
+        labelhpos: str = "center",
+        labelha: str = "left",
     ):
         """Add features from genbank record
 
         Args:
             gbk_file (Union[str, Path]): Genbank file
-            feature_type (str, optional): Feature type (e.g. `CDS`, `rRNA`, etc...)
-            label_type (str, optional): Label type (e.g. `gene`, `protein_id`, etc...)
+            feature_type (str, optional): Feature type (e.g. `CDS`,`rRNA`,etc...)
+            label_type (str, optional): Label type (e.g. `gene`,`protein_id`,etc...)
             labelsize (int, optional): Feature label size
-            labelcolor (int, optional): Feature label color
+            labelcolor (str, optional): Feature label color
             plotstyle (str, optional): Feature plot style
+            (`bigarrow`|`arrow`|`bigbox`|`box`)
             facecolor (str, optional): Feature face color
             edgecolor (str, optional): Feature edge color
             linewidth (float, optional): Feature edge line width
             labelrotation (int, optional): Feature label rotation
+            labelvpos (str, optional): Label vertical position
+            (`top`|`center`|`bottom`|`strand`)
+            labelhpos (str, optional): Label horizontal position
+            (`left`|`center`|`right`)
+            labelha (str, optional): Label horizontal alignment
+            (`left`|`center`|`right`)
         """
         gbk = Genbank(gbk_file)
         target_features = gbk.extract_all_features(feature_type)
@@ -196,18 +219,23 @@ class FeatureTrack(Track):
                 label = ""
             else:
                 label = feature.qualifiers.get(label_type, [""])[0]
-            self.add_feature(
-                start,
-                end,
-                strand,
-                label,
-                labelsize,
-                labelcolor,
-                plotstyle,
-                facecolor,
-                edgecolor,
-                linewidth,
-                labelrotation,
+            self.features.append(
+                Feature(
+                    start,
+                    end,
+                    strand,
+                    label,
+                    labelsize,
+                    labelcolor,
+                    plotstyle,
+                    facecolor,
+                    edgecolor,
+                    linewidth,
+                    labelrotation,
+                    labelvpos,
+                    labelhpos,
+                    labelha,
+                )
             )
 
 

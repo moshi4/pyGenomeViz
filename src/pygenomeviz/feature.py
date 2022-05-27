@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Dict, Tuple
 
@@ -18,7 +19,10 @@ class Feature:
     facecolor: str = "orange"
     edgecolor: str = "black"
     linewidth: float = 0
-    labelrotation: int = 0
+    labelrotation: int = 30
+    labelvpos: str = "strand"  # "top", "center", "bottom", "strand"
+    labelhpos: str = "center"  # "left", "center", "right"
+    labelha: str = "left"  # "left", "center", "right"
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -28,6 +32,15 @@ class Feature:
         if self.start > self.end:
             err_msg = f"Feature 'end' must be larger than 'start' ({self})"
             raise ValueError(err_msg)
+        # Check labelvpos
+        if self.labelvpos not in ("top", "center", "bottom", "strand"):
+            raise ValueError(f"'labelvpos={self.labelvpos}' is invalid parameter.")
+        # Check labelhpos
+        if self.labelhpos not in ("left", "center", "right"):
+            raise ValueError(f"'labelhpos={self.labelhpos}' is invalid parameter.")
+        # Check labelha
+        if self.labelha not in ("left", "center", "right"):
+            raise ValueError(f"'labelha={self.labelha}' is invalid parameter.")
         # Check feature plot style
         self.plotstyle = self.plotstyle.lower()
         if self.plotstyle not in ("bigarrow", "arrow", "bigbox", "box"):
@@ -60,7 +73,7 @@ class Feature:
         # dx, dy
         dx, dy = self.length * self.strand, 0
         # head width
-        max_width = ylim[1] - ylim[0]  # = 2.0
+        max_width = ylim[1] - ylim[0]
         if self.plotstyle in ("bigarrow", "bigbox"):
             head_width = max_width
         else:
@@ -99,20 +112,39 @@ class Feature:
         self, ylim: Tuple[float, float], feature_size_ratio: float
     ) -> Dict[str, Any]:
         """Feature text drawing parameters"""
-        x = (self.start + self.end) / 2
+        # x
+        if self.labelhpos == "left":
+            x = self.start
+        elif self.labelhpos == "right":
+            x = self.end
+        else:  # "center"
+            x = (self.start + self.end) / 2
+
+        # labelrotation
+        labelrotation = self.labelrotation
+        if self.labelvpos == "strand":
+            labelrotation = labelrotation * self.strand
+
+        # labelvpos
+        labelvpos = self.labelvpos
+        if labelvpos == "strand":
+            labelvpos = "bottom" if self.strand == -1 else "top"
+
+        # labelva, y
         ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
-        # if self.plotstyle in ("bigarrow", "bigbox"):
-        #     y = 0
-        if self.strand == -1:
-            # y = ylim[0] / 2
-            y = ylim[0]
-            ha, va = "left", "top"
-            labelrotation = self.labelrotation * self.strand
-        else:
-            # y = ylim[1] / 2
+        if labelvpos == "top":
+            labelva = "bottom"
             y = ylim[1]
-            ha, va = "left", "bottom"
-            labelrotation = self.labelrotation
+        elif labelvpos == "bottom":
+            labelva = "top"
+            y = ylim[0]
+        else:  # "center"
+            labelva = "center"
+            if self.plotstyle in ("bigarrow", "bigbox"):
+                y = 0
+            else:
+                y = (abs(ylim[0]) / 2) * self.strand
+
         return {
             "x": x,
             "y": y,
@@ -120,23 +152,14 @@ class Feature:
             "color": self.labelcolor,
             "fontsize": self.labelsize,
             "rotation": labelrotation,
-            "ha": ha,
-            "va": va,
+            "ha": self.labelha,
+            "va": labelva,
             "zorder": 10,
-            "rotation_mode": "anchor",  # 'anchor' or 'default'
+            "rotation_mode": "anchor",
         }
 
-    def __add__(self, offset: int) -> Feature:
-        return Feature(
-            self.start + offset,
-            self.end + offset,
-            self.strand,
-            self.label,
-            self.labelsize,
-            self.labelcolor,
-            self.plotstyle,
-            self.facecolor,
-            self.edgecolor,
-            self.linewidth,
-            self.labelrotation,
-        )
+    def __add__(self, offset: int):
+        feature = deepcopy(self)
+        feature.start += offset
+        feature.end += offset
+        return feature

@@ -10,7 +10,7 @@ from matplotlib.figure import Axes, Figure
 from matplotlib.ticker import MaxNLocator
 
 from pygenomeviz.link import Link
-from pygenomeviz.track import FeatureTrack, LinkTrack, TickTrack, Track
+from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
 
 
 class GenomeViz:
@@ -107,15 +107,10 @@ class GenomeViz:
             raise ValueError(err_msg)
 
     @property
-    def track_num(self) -> int:
-        """Track number"""
-        return len(self._tracks)
-
-    @property
     def max_track_size(self) -> int:
         """Max track size"""
-        if len(self._tracks) > 0:
-            return max([track.size for track in self._tracks])
+        if len(self.get_tracks()) > 0:
+            return max([track.size for track in self.get_tracks()])
         else:
             return 0
 
@@ -123,9 +118,39 @@ class GenomeViz:
     def _track_name2offset(self) -> Dict[str, int]:
         """Track name & offset dict"""
         track_name2offset = {}
-        for track in self._tracks:
-            track_name2offset[track.name] = self._track_offset(track)
+        for track in self.get_tracks(subtrack=True):
+            track_name2offset[track.name] = self.get_track_offset(track)
         return track_name2offset
+
+    def get_tracks(self, subtrack: bool = False) -> List[Track]:
+        """Get tracks
+
+        Parameters
+        ----------
+        subtrack : bool, optional
+            Include feature subtrack or not
+
+        Returns
+        -------
+        tracks : List[Track]
+            Track list
+        """
+        tracks = []
+        for track in self._tracks:
+            if isinstance(track, FeatureTrack):
+                tracks.append(track)
+                if subtrack:
+                    tracks.extend(track.subtracks)
+            else:
+                tracks.append(track)
+        return tracks
+
+    def get_track(self, track_name: str) -> Track:
+        """Get track by name"""
+        track_name2track = {}
+        for track in self.get_tracks(subtrack=True):
+            track_name2track[track.name] = track
+        return track_name2track[track_name]
 
     def _get_track_idx(self, track_name: str) -> int:
         """Get track index from track name
@@ -159,11 +184,12 @@ class GenomeViz:
         link_track : LinkTrack
             Target link track
         """
-        feature_track_idx1 = self._get_track_idx(feature_track_name1)
-        feature_track_idx2 = self._get_track_idx(feature_track_name2)
+        track_names = [t.name for t in self.get_tracks()]
+        feature_track_idx1 = track_names.index(feature_track_name1)
+        feature_track_idx2 = track_names.index(feature_track_name2)
         if abs(feature_track_idx1 - feature_track_idx2) == 2:
             link_track_idx = int((feature_track_idx1 + feature_track_idx2) / 2)
-            target_link_track = self._tracks[link_track_idx]
+            target_link_track = self.get_tracks()[link_track_idx]
             if isinstance(target_link_track, LinkTrack):
                 return target_link_track
             else:
@@ -175,7 +201,7 @@ class GenomeViz:
             err_msg += "are not adjacent feature tracks."
             raise ValueError(err_msg)
 
-    def _track_offset(self, track: Track) -> int:
+    def get_track_offset(self, track: Track) -> int:
         """Get track offset
 
         Parameters
@@ -223,11 +249,11 @@ class GenomeViz:
             Feature track
         """
         # Check specified track name is unique or not
-        if name in [t.name for t in self._tracks]:
+        if name in [t.name for t in self.get_tracks(subtrack=True)]:
             err_msg = f"track.name='{name}' is already exists. Change to another name."
             raise ValueError(err_msg)
         # Add link track between feature tracks
-        if len(self._tracks) > 0:
+        if len(self.get_tracks()) > 0:
             link_track = LinkTrack(
                 f"{self._tracks[-1].name}-{name}",
                 self.track_spines,
@@ -245,6 +271,24 @@ class GenomeViz:
         )
         self._tracks.append(feature_track)
         return feature_track
+
+    def add_feature_subtrack(
+        self,
+        feature_track_name: str,
+        subtrack_name: str,
+        ratio: float = 1.0,
+        type: str = "blank",
+    ) -> None:
+        """Add feature subtrack"""
+        feature_track = self.get_track(feature_track_name)
+        if not isinstance(feature_track, FeatureTrack):
+            raise NotImplementedError()
+        subtrack_ratio = feature_track.ratio * ratio
+        # TODO: Check subtrack name is unique or not
+        subtrack = FeatureSubTrack(
+            subtrack_name, feature_track.size, self.track_spines, subtrack_ratio
+        )
+        feature_track.subtracks.append(subtrack)
 
     def add_link(
         self,
@@ -276,7 +320,10 @@ class GenomeViz:
             Max value for color interpolation
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
-        if self._get_track_idx(track_link1[0]) < self._get_track_idx(track_link2[0]):
+        tracks = [t.name for t in self.get_tracks()]
+        track_idx1 = tracks.index(track_link1[0])
+        track_idx2 = tracks.index(track_link2[0])
+        if track_idx1 < track_idx2:
             above_track_link, below_track_link = track_link1, track_link2
         else:
             above_track_link, below_track_link = track_link2, track_link2
@@ -304,7 +351,7 @@ class GenomeViz:
         figure : Figure
             Plot figure result
         """
-        if self.track_num == 0:
+        if len(self.get_tracks()) == 0:
             raise ValueError("No tracks are defined for plotting figure.")
         if self.tick_style is not None:
             self._tracks.append(
@@ -317,18 +364,21 @@ class GenomeViz:
                 )
             )
 
-        figsize = (self.fig_width, self.fig_track_height * self.track_num)
+        track_num = len(self.get_tracks(subtrack=True))
+        figsize = (self.fig_width, self.fig_track_height * track_num)
         figure: Figure = plt.figure(figsize=figsize, facecolor="white")
-        track_ratios = [t.ratio for t in self._tracks]
+
+        track_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
         spec = gridspec.GridSpec(
-            nrows=self.track_num, ncols=1, height_ratios=track_ratios, hspace=0
+            nrows=track_num, ncols=1, height_ratios=track_ratios, hspace=0
         )
-        for idx, track in enumerate(self._tracks):
+        for idx, track in enumerate(self.get_tracks(subtrack=True)):
             # Create new track subplot
             xlim, ylim = (0, self.max_track_size), track.ylim
             ax: Axes = figure.add_subplot(
                 spec[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
             )
+            track._ax = ax
             # Set 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
@@ -339,7 +389,7 @@ class GenomeViz:
                 if track.labelsize != 0:
                     ax.text(-self.max_track_size * 0.01, 0, **track.label_params)
                 # Plot track scale line
-                track_offset = self._track_offset(track)
+                track_offset = self.get_track_offset(track)
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, "black", linewidth=track.linewidth)
 
@@ -358,6 +408,10 @@ class GenomeViz:
                     # Plot feature text
                     if feature.labelsize != 0:
                         ax.text(**feature.text_params(ylim, self.feature_size_ratio))
+
+            if isinstance(track, FeatureSubTrack):
+                # TODO: Add GC content & GC skew plot function
+                pass
 
             elif isinstance(track, LinkTrack):
                 for link in track.links:
@@ -406,18 +460,23 @@ class GenomeViz:
             bbox_inches="tight",
         )
 
-    def print_tracks_info(self) -> None:
+    def print_tracks_info(self, detail=False) -> None:
         """Print tracks info (For developer debugging)"""
-        for idx, track in enumerate(self._tracks, 1):
+        for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
             class_name = track.__class__.__name__
             print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
+            print(f"# Size={track.size}, Ratio={track.ratio}", end="")
             if isinstance(track, FeatureTrack):
-                print(f"# Size={track.size}, FeatureNumber={len(track.features)}")
-                for feature in track.features:
-                    print(feature)
+                print(f", FeatureNumber={len(track.features)}")
+                if detail:
+                    for feature in track.features:
+                        print(feature)
+            elif isinstance(track, FeatureSubTrack):
+                print("\n")
             elif isinstance(track, LinkTrack):
-                print(f"# Size={track.size}, LinkNumber={len(track.links)}")
-                for link in track.links:
-                    print(link)
+                print(f", LinkNumber={len(track.links)}")
+                if detail:
+                    for link in track.links:
+                        print(link)
             elif isinstance(track, TickTrack):
-                pass
+                print("\n")

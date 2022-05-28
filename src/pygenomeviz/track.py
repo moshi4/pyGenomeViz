@@ -4,6 +4,8 @@ import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from matplotlib.figure import Axes
+
 from pygenomeviz.feature import Feature
 from pygenomeviz.genbank import Genbank
 from pygenomeviz.link import Link
@@ -43,6 +45,7 @@ class Track:
         self.linewidth = linewidth
         self.spines = spines
         self.ratio = ratio
+        self._ax: Optional[Axes] = None
 
     @property
     def zorder(self) -> float:
@@ -73,6 +76,24 @@ class Track:
             "top": self.spines,
             "bottom": self.spines,
         }
+
+    @property
+    def ax(self) -> Axes:
+        """Get track axes object
+
+        Returns
+        -------
+        Axes
+            Track axes
+
+        Notes
+        -----
+        To get track axes object, execution of `plotfig` method
+        in the `GenomeViz` class is required in advance.
+        """
+        if self._ax is None:
+            raise ValueError("No Axes object exists yet.")
+        return self._ax
 
 
 class FeatureTrack(Track):
@@ -105,6 +126,7 @@ class FeatureTrack(Track):
         """
         super().__init__(name, size, labelsize, linewidth, spines, ratio)
         self.features: List[Feature] = []
+        self.subtracks: List[FeatureSubTrack] = []
 
     @property
     def zorder(self) -> float:
@@ -277,6 +299,13 @@ class FeatureTrack(Track):
                     labelha,
                 )
             )
+
+
+class FeatureSubTrack(Track):
+    """FeatureSubTrack Class"""
+
+    def __init__(self, name: str, size: int, spines: bool = False, ratio: float = 1.0):
+        super().__init__(name, size, 0, 0, spines, ratio)
 
 
 class LinkTrack(Track):

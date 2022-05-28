@@ -364,6 +364,7 @@ class GenomeViz:
         """
         if len(self.get_tracks()) == 0:
             raise ValueError("No tracks are defined for plotting figure.")
+        self._tracks = [t for t in self.get_tracks() if not isinstance(t, TickTrack)]
         if self.tick_style is not None:
             self._tracks.append(
                 TickTrack(

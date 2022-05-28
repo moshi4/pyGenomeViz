@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
@@ -44,7 +45,7 @@ class Link:
         Tuple[float, float],
         Tuple[float, float],
     ]:
-        """Plygon coordinate for link plot
+        """Polygon coordinate for link plot
 
         Parameters
         ----------
@@ -105,16 +106,9 @@ class Link:
         link : Link
             Offset added Link object
         """
-        return Link(
-            self.track_name1,
-            self.track_start1 + track_name2offset[self.track_name1],
-            self.track_end1 + track_name2offset[self.track_name1],
-            self.track_name2,
-            self.track_start2 + track_name2offset[self.track_name2],
-            self.track_end2 + track_name2offset[self.track_name2],
-            self.normal_color,
-            self.inverted_color,
-            self.interpolation_value,
-            self.vmin,
-            self.vmax,
-        )
+        link = deepcopy(self)
+        link.track_start1 += track_name2offset[self.track_name1]
+        link.track_end1 += track_name2offset[self.track_name1]
+        link.track_start2 += track_name2offset[self.track_name2]
+        link.track_end2 += track_name2offset[self.track_name2]
+        return link

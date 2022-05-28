@@ -69,7 +69,7 @@ class Track:
 
     @property
     def spines_params(self) -> Dict[str, bool]:
-        """Spines parameteres dict"""
+        """Spines parameters dict"""
         return {
             "left": self.spines,
             "right": self.spines,
@@ -90,6 +90,9 @@ class Track:
         -----
         To get track axes object, execution of `plotfig` method
         in the `GenomeViz` class is required in advance.
+
+        - xlim = (0, gv.max_track_size)
+        - ylim = (-1, 1)
         """
         if self._ax is None:
             raise ValueError("No Axes object exists yet.")
@@ -188,6 +191,7 @@ class FeatureTrack(Track):
             Feature label rotation
         labelvpos : str, optional
             Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+            If 'strand' is set, 'top' or 'bottom' is auto selected by strand.
         labelhpos : str, optional
             Feature label horizontal position (`left`|`center`|`right`)
         labelha : str, optional
@@ -377,7 +381,7 @@ class TickTrack(Track):
 
     @property
     def spines_params(self) -> Dict[str, bool]:
-        """Spines parameteres dict"""
+        """Spines parameters dict"""
         return {
             "left": self.spines,
             "right": self.spines,

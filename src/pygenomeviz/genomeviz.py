@@ -85,7 +85,7 @@ class GenomeViz:
         self._check_init_values()
 
     def _check_init_values(self) -> None:
-        """Check initialize values"""
+        """Check initial values"""
         if self.align_type not in ("left", "center", "right"):
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
@@ -107,65 +107,12 @@ class GenomeViz:
             raise ValueError(err_msg)
 
     @property
-    def max_track_size(self) -> int:
-        """Max track size"""
-        if len(self.get_tracks()) > 0:
-            return max([track.size for track in self.get_tracks()])
-        else:
-            return 0
-
-    @property
     def _track_name2offset(self) -> Dict[str, int]:
         """Track name & offset dict"""
         track_name2offset = {}
         for track in self.get_tracks(subtrack=True):
             track_name2offset[track.name] = self.get_track_offset(track)
         return track_name2offset
-
-    def get_tracks(self, subtrack: bool = False) -> List[Track]:
-        """Get tracks
-
-        Parameters
-        ----------
-        subtrack : bool, optional
-            Include feature subtrack or not
-
-        Returns
-        -------
-        tracks : List[Track]
-            Track list
-        """
-        tracks = []
-        for track in self._tracks:
-            if isinstance(track, FeatureTrack):
-                tracks.append(track)
-                if subtrack:
-                    tracks.extend(track.subtracks)
-            else:
-                tracks.append(track)
-        return tracks
-
-    def get_track(self, track_name: str) -> Track:
-        """Get track by name"""
-        track_name2track = {}
-        for track in self.get_tracks(subtrack=True):
-            track_name2track[track.name] = track
-        return track_name2track[track_name]
-
-    def _get_track_idx(self, track_name: str) -> int:
-        """Get track index from track name
-
-        Parameters
-        ----------
-        track_name : str
-            Track name
-
-        Returns
-        -------
-        track_idx : int
-            Track index
-        """
-        return [t.name for t in self._tracks].index(track_name)
 
     def _get_link_track(
         self, feature_track_name1: str, feature_track_name2: str
@@ -201,28 +148,6 @@ class GenomeViz:
             err_msg += "are not adjacent feature tracks."
             raise ValueError(err_msg)
 
-    def get_track_offset(self, track: Track) -> int:
-        """Get track offset
-
-        Parameters
-        ----------
-        track : Track
-            Target track offset for alignment
-
-        Returns
-        -------
-        track_offset : int
-            Track offset
-        """
-        if self.align_type == "left":
-            return 0
-        elif self.align_type == "center":
-            return int((self.max_track_size - track.size) / 2)
-        elif self.align_type == "right":
-            return self.max_track_size - track.size
-        else:
-            return 0
-
     def add_feature_track(
         self,
         name: str,
@@ -241,7 +166,7 @@ class GenomeViz:
         labelsize : int, optional
             Track label size
         linewidth : int, optional
-            Trakc line width
+            Track line width
 
         Returns
         -------
@@ -250,7 +175,7 @@ class GenomeViz:
         """
         # Check specified track name is unique or not
         if name in [t.name for t in self.get_tracks(subtrack=True)]:
-            err_msg = f"track.name='{name}' is already exists. Change to another name."
+            err_msg = f"track.name='{name}' is already exists."
             raise ValueError(err_msg)
         # Add link track between feature tracks
         if len(self.get_tracks()) > 0:
@@ -282,9 +207,12 @@ class GenomeViz:
         """Add feature subtrack"""
         feature_track = self.get_track(feature_track_name)
         if not isinstance(feature_track, FeatureTrack):
-            raise NotImplementedError()
+            err_msg = f"'{feature_track_name}' is not FeatureTrack."
+            raise ValueError()
         subtrack_ratio = feature_track.ratio * ratio
-        # TODO: Check subtrack name is unique or not
+        if subtrack_name in [t.name for t in self.get_tracks(subtrack=True)]:
+            err_msg = f"track.name='{subtrack_name}' is already exists."
+            raise ValueError(err_msg)
         subtrack = FeatureSubTrack(
             subtrack_name, feature_track.size, self.track_spines, subtrack_ratio
         )
@@ -342,6 +270,89 @@ class GenomeViz:
                 vmax,
             )
         )
+
+    def get_track(self, track_name: str) -> Track:
+        """Get track by name
+
+        Parameters
+        ----------
+        track_name : str
+            Target track name
+
+        Returns
+        -------
+        track : Track
+            Target track
+        """
+        track_name2track = {}
+        for track in self.get_tracks(subtrack=True):
+            track_name2track[track.name] = track
+        if track_name not in track_name2track.keys():
+            err_msg = f"track.name='{track_name}' is not found."
+            raise KeyError(err_msg)
+        return track_name2track[track_name]
+
+    def get_tracks(self, subtrack: bool = False) -> List[Track]:
+        """Get tracks
+
+        Parameters
+        ----------
+        subtrack : bool, optional
+            Include feature subtrack or not
+
+        Returns
+        -------
+        tracks : List[Track]
+            Track list
+        """
+        tracks = []
+        for track in self._tracks:
+            if isinstance(track, FeatureTrack):
+                tracks.append(track)
+                if subtrack:
+                    tracks.extend(track.subtracks)
+            else:
+                tracks.append(track)
+        return tracks
+
+    @property
+    def top_track(self) -> FeatureTrack:
+        """Top track"""
+        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+        if len(feature_tracks) == 0:
+            err_msg = "No track found. Can't access 'top_track' property."
+            raise ValueError(err_msg)
+        return feature_tracks[0]
+
+    @property
+    def max_track_size(self) -> int:
+        """Max track size"""
+        if len(self.get_tracks()) == 0:
+            err_msg = "No track found. Can't access 'max_track_size' property."
+            raise ValueError(err_msg)
+        return max([track.size for track in self.get_tracks()])
+
+    def get_track_offset(self, track: Track) -> int:
+        """Get track offset
+
+        Parameters
+        ----------
+        track : Track
+            Target track offset for alignment
+
+        Returns
+        -------
+        track_offset : int
+            Track offset
+        """
+        if self.align_type == "left":
+            return 0
+        elif self.align_type == "center":
+            return int((self.max_track_size - track.size) / 2)
+        elif self.align_type == "right":
+            return self.max_track_size - track.size
+        else:
+            raise NotImplementedError()
 
     def plotfig(self) -> Figure:
         """Plot figure
@@ -461,22 +472,32 @@ class GenomeViz:
         )
 
     def print_tracks_info(self, detail=False) -> None:
-        """Print tracks info (For developer debugging)"""
+        """Print tracks info (Mainly for debugging work)
+
+        Parameters
+        ----------
+        detail : bool, optional
+            Print detail or not. If True, detail 'feature' and 'link' are output.
+        """
         for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
+            # Print track common info
             class_name = track.__class__.__name__
             print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
-            print(f"# Size={track.size}, Ratio={track.ratio}", end="")
+            size, ratio, zorder = track.size, track.ratio, track.zorder
+            print(f"# Size={size}, Ratio={ratio}, Zorder={zorder}", end="")
+
+            # Print each track specific info
             if isinstance(track, FeatureTrack):
                 print(f", FeatureNumber={len(track.features)}")
                 if detail:
                     for feature in track.features:
                         print(feature)
             elif isinstance(track, FeatureSubTrack):
-                print("\n")
+                print()
             elif isinstance(track, LinkTrack):
                 print(f", LinkNumber={len(track.links)}")
                 if detail:
                     for link in track.links:
                         print(link)
             elif isinstance(track, TickTrack):
-                print("\n")
+                print()

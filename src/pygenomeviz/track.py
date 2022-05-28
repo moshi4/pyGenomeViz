@@ -456,17 +456,17 @@ class TickTrack(Track):
     @property
     def ymin(self) -> float:
         """ymin"""
-        return self.ylim[0]
+        return self.ylim[0] - abs(self.ylim[0] * 0.1)
 
     @property
     def ycenter(self) -> float:
         """ycenter"""
-        return self.ylim[0] + abs(self.ylim[0] * 0.1)
+        return self.ylim[0]
 
     @property
     def ymax(self) -> float:
         """ymax"""
-        return self.ylim[0] + abs(self.ylim[0] * 0.2)
+        return self.ylim[0] + abs(self.ylim[0] * 0.1)
 
     @property
     def scalebar_size(self) -> float:

@@ -440,9 +440,10 @@ class GenomeViz:
                     ax.xaxis.set_major_formatter(track.tick_formatter)
                 elif self.tick_style == "bar":
                     ymin, ycenter, ymax = track.ymin, track.ycenter, track.ymax
-                    ax.hlines(ycenter, track.xmin, track.xmax, "black", linewidth=1)
-                    ax.vlines(track.xmin, ymin, ymax, "black", linewidth=1)
-                    ax.vlines(track.xmax, ymin, ymax, "black", linewidth=1)
+                    common_opts = {"colors": "black", "linewidth": 1, "clip_on": False}
+                    ax.hlines(ycenter, track.xmin, track.xmax, **common_opts)
+                    ax.vlines(track.xmin, ymin, ymax, **common_opts)
+                    ax.vlines(track.xmax, ymin, ymax, **common_opts)
                     ax.text(**track.scalebar_text_params)
 
         return figure

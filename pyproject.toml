@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygenomeviz"
-version = "0.0.1"
+version = "0.0.2"
 description = "A genome visualization python package for comparative genomics"
 authors = ["moshi4"]
 license = "MIT"
@@ -28,7 +28,7 @@ testpaths = ["tests"]
 [tool.poetry.scripts]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 matplotlib = "3.5.2"
 biopython = "^1.79"
 

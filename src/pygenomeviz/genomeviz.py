@@ -254,7 +254,7 @@ class GenomeViz:
         if track_idx1 < track_idx2:
             above_track_link, below_track_link = track_link1, track_link2
         else:
-            above_track_link, below_track_link = track_link2, track_link2
+            above_track_link, below_track_link = track_link2, track_link1
         link_track.add_link(
             Link(
                 above_track_link[0],

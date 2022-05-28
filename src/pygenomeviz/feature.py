@@ -50,7 +50,7 @@ class Feature:
     @property
     def length(self) -> int:
         """Feature length"""
-        return self.end - self.start
+        return self.end - self.start + 1
 
     def obj_params(
         self,

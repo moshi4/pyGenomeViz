@@ -202,9 +202,18 @@ class GenomeViz:
         feature_track_name: str,
         subtrack_name: str,
         ratio: float = 1.0,
-        type: str = "blank",
     ) -> None:
-        """Add feature subtrack"""
+        """Add subtrack of feature track
+
+        Parameters
+        ----------
+        feature_track_name : str
+            Feature track name to be added subtrack
+        subtrack_name : str
+            Subtrack name
+        ratio : float, optional
+            Subtrack size ratio to feature track
+        """
         feature_track = self.get_track(feature_track_name)
         if not isinstance(feature_track, FeatureTrack):
             err_msg = f"'{feature_track_name}' is not FeatureTrack."
@@ -422,7 +431,7 @@ class GenomeViz:
                         ax.text(**feature.text_params(ylim, self.feature_size_ratio))
 
             if isinstance(track, FeatureSubTrack):
-                # TODO: Add GC content & GC skew plot function
+                # No specific plans to implementation at this time
                 pass
 
             elif isinstance(track, LinkTrack):

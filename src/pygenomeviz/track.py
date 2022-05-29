@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import math
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from matplotlib.figure import Axes
 
@@ -83,7 +82,7 @@ class Track:
 
         Returns
         -------
-        Axes
+        ax : Axes
             Track axes
 
         Notes
@@ -91,11 +90,13 @@ class Track:
         To get track axes object, execution of `plotfig` method
         in the `GenomeViz` class is required in advance.
 
+        Pre-defined property of Axes
         - xlim = (0, gv.max_track_size)
         - ylim = (-1, 1)
         """
         if self._ax is None:
-            raise ValueError("No Axes object exists yet.")
+            err_msg = "Can't access ax property before calling 'plotfig' method."
+            raise ValueError(err_msg)
         return self._ax
 
 
@@ -224,7 +225,7 @@ class FeatureTrack(Track):
 
     def add_genbank_features(
         self,
-        gbk_file: Union[str, Path],
+        gbk: Genbank,
         feature_type: str = "CDS",
         label_type: Optional[str] = None,
         labelsize: int = 15,
@@ -242,8 +243,8 @@ class FeatureTrack(Track):
 
         Parameters
         ----------
-        gbk_file : Union[str, Path]
-            Genbank file
+        gbk : Genbank
+            Genbank object
         feature_type : str, optional
             Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
         label_type : Optional[str], optional
@@ -275,7 +276,6 @@ class FeatureTrack(Track):
         Set small value for linewidth (e.g. 0.1), as a large linewidth
         may corrupt the display of feature.
         """
-        gbk = Genbank(gbk_file)
         target_features = gbk.extract_all_features(feature_type)
         for feature in target_features:
             start = feature.location.start

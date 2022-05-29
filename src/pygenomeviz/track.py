@@ -434,19 +434,14 @@ class TickTrack(Track):
         return f"{label} {self.unit}"
 
     @property
-    def right_padding(self) -> float:
-        """Right padding size"""
-        return self.size * 0.01
-
-    @property
     def xmin(self) -> float:
         """xmin"""
-        return self.size - self.scalebar_size - self.right_padding
+        return self.size - self.scalebar_size
 
     @property
     def xmax(self) -> float:
         """xmax"""
-        return self.size - self.right_padding
+        return self.size
 
     @property
     def xcenter(self) -> float:

@@ -1,4 +1,5 @@
 from functools import cached_property
+from io import TextIOWrapper
 from pathlib import Path
 from typing import Any, List, Optional, Union
 
@@ -12,20 +13,33 @@ class Genbank:
 
     def __init__(
         self,
-        gbk_file: Union[str, Path],
-        name: str = "",
+        gbk_source: Union[str, Path, TextIOWrapper],
+        name: Optional[str] = None,
     ):
         """
         Parameters
         ----------
-        gbk_file : Union[str, Path]
-            Genbank file
-        name : str, optional
-            name
+        gbk_source : Union[str, Path, TextIOWrapper]
+            Genbank file or source
+
+        name : Optional[str]
+            name (If None, `file name` or `record name` is set)
         """
-        self.gbk_file: Path = Path(gbk_file)
-        self.name: str = name if name != "" else self.gbk_file.with_suffix("").name
-        self._records: List[SeqRecord] = list(SeqIO.parse(gbk_file, "genbank"))
+        self._gbk_source = gbk_source
+        self._name = name
+        self._records: List[SeqRecord] = list(SeqIO.parse(gbk_source, "genbank"))
+
+    @property
+    def name(self) -> str:
+        """Name"""
+        if self._name is not None:
+            return self._name
+        if isinstance(self._gbk_source, (str, Path)):
+            return Path(self._gbk_source).with_suffix("").name
+        elif isinstance(self._gbk_source, TextIOWrapper):
+            return self._records[0].name
+        else:
+            raise NotImplementedError()
 
     @property
     def genome_length(self) -> int:

@@ -106,12 +106,34 @@ class GenomeViz:
         if err_msg:
             raise ValueError(err_msg)
 
+    def _get_track_offset(self, track: Track) -> int:
+        """Get track offset
+
+        Parameters
+        ----------
+        track : Track
+            Target track offset for alignment
+
+        Returns
+        -------
+        track_offset : int
+            Track offset
+        """
+        if self.align_type == "left":
+            return 0
+        elif self.align_type == "center":
+            return int((self.max_track_size - track.size) / 2)
+        elif self.align_type == "right":
+            return self.max_track_size - track.size
+        else:
+            raise NotImplementedError()
+
     @property
     def _track_name2offset(self) -> Dict[str, int]:
         """Track name & offset dict"""
         track_name2offset = {}
         for track in self.get_tracks(subtrack=True):
-            track_name2offset[track.name] = self.get_track_offset(track)
+            track_name2offset[track.name] = self._get_track_offset(track)
         return track_name2offset
 
     def _get_link_track(
@@ -341,28 +363,6 @@ class GenomeViz:
             raise ValueError(err_msg)
         return max([track.size for track in self.get_tracks()])
 
-    def get_track_offset(self, track: Track) -> int:
-        """Get track offset
-
-        Parameters
-        ----------
-        track : Track
-            Target track offset for alignment
-
-        Returns
-        -------
-        track_offset : int
-            Track offset
-        """
-        if self.align_type == "left":
-            return 0
-        elif self.align_type == "center":
-            return int((self.max_track_size - track.size) / 2)
-        elif self.align_type == "right":
-            return self.max_track_size - track.size
-        else:
-            raise NotImplementedError()
-
     def plotfig(self, dpi: int = 300) -> Figure:
         """Plot figure
 
@@ -404,7 +404,7 @@ class GenomeViz:
             ax: Axes = figure.add_subplot(
                 spec[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
             )
-            track_offset = self.get_track_offset(track)
+            track_offset = self._get_track_offset(track)
             track._ax, track._offset = ax, track_offset
             # Set 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():

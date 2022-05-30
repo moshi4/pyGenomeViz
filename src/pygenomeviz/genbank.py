@@ -1,8 +1,9 @@
 from functools import cached_property
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
+import numpy as np
 from Bio import SeqIO, SeqUtils
 from Bio.SeqFeature import FeatureLocation, Seq, SeqFeature
 from Bio.SeqRecord import SeqRecord
@@ -61,28 +62,38 @@ class Genbank:
         """Average GC content"""
         return SeqUtils.GC(self.genome_seq)
 
-    def gc_skew(self, window_size: int = 5000, step_size: int = 2000) -> List[float]:
+    def calc_gc_skew(
+        self,
+        window_size: Optional[int] = None,
+        step_size: Optional[int] = None,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Calculate GC skew in sliding window
 
         Parameters
         ----------
         window_size : int, optional
-            Window size
+            Window size (Default: `genome_size / 400`)
         step_size : int, optional
-            Step size
+            Step size (Default: `genome_size / 1000`)
 
         Returns
         -------
-        gc_skews : List[float]
-            GC skew value list
+        (pos_list, gc_skew_list) : Tuple[np.ndarray, np.ndarray]
+            Position list & GC skew list
         """
-        gc_skew_values = []
+        pos_list, gc_skew_list = [], []
         seq = self.genome_seq
+        if window_size is None:
+            window_size = int(len(seq) / 400)
+        if step_size is None:
+            step_size = int(len(seq) / 1000)
         for i in range(0, len(seq), step_size):
             start_pos = i - int(window_size / 2)
             start_pos = 0 if start_pos < 0 else start_pos
             end_pos = i + int(window_size / 2)
             end_pos = len(seq) if end_pos > len(seq) else end_pos
+            middle_pos = int((end_pos + start_pos) / 2)
+            pos_list.append(middle_pos)
 
             subseq = seq[start_pos:end_pos]
             g = subseq.count("G") + subseq.count("g")
@@ -91,35 +102,48 @@ class Genbank:
                 skew = (g - c) / float(g + c)
             except ZeroDivisionError:
                 skew = 0.0
-            gc_skew_values.append(skew)
-        return gc_skew_values
+            gc_skew_list.append(skew)
 
-    def gc_content(self, window_size: int = 5000, step_size: int = 2000) -> List[float]:
+        return (np.array(pos_list), np.array(gc_skew_list))
+
+    def calc_gc_content(
+        self,
+        window_size: Optional[int] = None,
+        step_size: Optional[int] = None,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Calculate GC content in sliding window
 
         Parameters
         ----------
         window_size : int, optional
-            Window size
+            Window size (Default: `genome_size / 400`)
         step_size : int, optional
-            Step size
+            Step size (Default: `genome_size / 1000`)
 
         Returns
         -------
-        gc_contents : List[float]
-            GC content value list
+        (pos_list, gc_content_list) : Tuple[np.ndarray, np.ndarray]
+            Position list & GC content list
         """
-        gc_content_values = []
+        pos_list, gc_content_list = [], []
         seq = self.genome_seq
+        if window_size is None:
+            window_size = int(len(seq) / 400)
+        if step_size is None:
+            step_size = int(len(seq) / 1000)
+        print(window_size, step_size)
         for i in range(0, len(seq), step_size):
             start_pos = i - int(window_size / 2)
             start_pos = 0 if start_pos < 0 else start_pos
             end_pos = i + int(window_size / 2)
             end_pos = len(seq) if end_pos > len(seq) else end_pos
+            middle_pos = int((end_pos + start_pos) / 2)
+            pos_list.append(middle_pos)
 
             subseq = seq[start_pos:end_pos]
-            gc_content_values.append(SeqUtils.GC(subseq))
-        return gc_content_values
+            gc_content_list.append(SeqUtils.GC(subseq))
+
+        return (np.array(pos_list), np.array(gc_content_list))
 
     def extract_all_features(
         self,

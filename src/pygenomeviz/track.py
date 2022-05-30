@@ -44,6 +44,7 @@ class Track:
         self.linewidth = linewidth
         self.spines = spines
         self.ratio = ratio
+        self._offset: Optional[int] = None
         self._ax: Optional[Axes] = None
 
     @property
@@ -77,18 +78,25 @@ class Track:
         }
 
     @property
+    def offset(self) -> int:
+        """Track alignment offset"""
+        if self._offset is None:
+            err_msg = "Can't access offset property before calling 'plotfig' method."
+            raise ValueError(err_msg)
+        return self._offset
+
+    @property
     def ax(self) -> Axes:
-        """Get track axes object
+        """Track axes
 
         Returns
         -------
         ax : Axes
-            Track axes
+            Track matplotlib axes object
 
         Notes
         -----
-        To get track axes object, execution of `plotfig` method
-        in the `GenomeViz` class is required in advance.
+        Can't access ax property before calling GenomeViz class `plotfig` method.
 
         Pre-defined property of Axes
         - xlim = (0, gv.max_track_size)

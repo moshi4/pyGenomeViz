@@ -363,8 +363,13 @@ class GenomeViz:
         else:
             raise NotImplementedError()
 
-    def plotfig(self) -> Figure:
+    def plotfig(self, dpi: int = 300) -> Figure:
         """Plot figure
+
+        Parameters
+        ----------
+        dpi : int, optional
+            DPI
 
         Returns
         -------
@@ -387,7 +392,7 @@ class GenomeViz:
 
         track_num = len(self.get_tracks(subtrack=True))
         figsize = (self.fig_width, self.fig_track_height * track_num)
-        figure: Figure = plt.figure(figsize=figsize, facecolor="white")
+        figure: Figure = plt.figure(figsize=figsize, facecolor="white", dpi=dpi)
 
         track_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
         spec = gridspec.GridSpec(
@@ -399,7 +404,8 @@ class GenomeViz:
             ax: Axes = figure.add_subplot(
                 spec[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
             )
-            track._ax = ax
+            track_offset = self.get_track_offset(track)
+            track._ax, track._offset = ax, track_offset
             # Set 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
@@ -410,7 +416,6 @@ class GenomeViz:
                 if track.labelsize != 0:
                     ax.text(-self.max_track_size * 0.01, 0, **track.label_params)
                 # Plot track scale line
-                track_offset = self.get_track_offset(track)
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, "black", linewidth=track.linewidth)
 
@@ -474,10 +479,10 @@ class GenomeViz:
         pad_inches : float, optional
             Padding inches
         """
-        figure = self.plotfig()
+        figure = self.plotfig(dpi=dpi)
         figure.savefig(
             fname=savefile,
-            dpi=dpi,
+            dpi="figure",
             pad_inches=pad_inches,
             bbox_inches="tight",
         )

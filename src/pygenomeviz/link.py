@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from matplotlib.colors import LinearSegmentedColormap, Normalize, is_color_like, to_hex
+from matplotlib.path import Path
 
 
 @dataclass
@@ -22,6 +23,7 @@ class Link:
     interpolation_value: Optional[float] = None
     vmin: float = 0
     vmax: float = 100
+    curve: bool = False
 
     def __post_init__(self):
         if not is_color_like(self.normal_color):
@@ -37,34 +39,54 @@ class Link:
                 err_msg += f"(value={self.interpolation_value})"
                 raise ValueError(err_msg)
 
-    def polygon_xy(
-        self, ymin: float = -1.0, ymax: float = 1.0
-    ) -> Tuple[
-        Tuple[float, float],
-        Tuple[float, float],
-        Tuple[float, float],
-        Tuple[float, float],
-    ]:
-        """Polygon coordinate for link plot
+    def path(self, ymin: float = -1.0, ymax: float = 1.0) -> Path:
+        """Link path
 
         Parameters
         ----------
         ymin : float, optional
-            Polygon min y coordinate
+            Min y coordinate
         ymax : float, optional
-            Polygon max y coordinate
+            Max y coordinate
 
         Returns
         -------
-        polygon_xy : tuple
-            Polygon xy coordinates
+        path : Path
+            Link path
         """
-        return (
-            (self.track_start2, ymin),
-            (self.track_end2, ymin),
-            (self.track_end1, ymax),
-            (self.track_start1, ymax),
-        )
+        if self.curve:
+            codes = [
+                Path.MOVETO,
+                Path.LINETO,
+                Path.CURVE4,
+                Path.CURVE4,
+                Path.LINETO,
+                Path.LINETO,
+                Path.CURVE4,
+                Path.CURVE4,
+                Path.LINETO,
+            ]
+            verts = (
+                (self.track_start2, ymin),
+                (self.track_end2, ymin),
+                (self.track_end2, 0),
+                (self.track_end1, 0),
+                (self.track_end1, ymax),
+                (self.track_start1, ymax),
+                (self.track_start1, 0),
+                (self.track_start2, 0),
+                (self.track_start2, ymin),
+            )
+        else:
+            codes = [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.LINETO]
+            verts = (
+                (self.track_start2, ymin),  # left-bottom
+                (self.track_end2, ymin),  # right-bottom
+                (self.track_end1, ymax),  # right-top
+                (self.track_start1, ymax),  # left-top
+                (self.track_start2, ymin),  # left-bottom
+            )
+        return Path(verts, codes)
 
     @property
     def color(self) -> str:

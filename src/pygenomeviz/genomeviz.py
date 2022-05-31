@@ -258,6 +258,7 @@ class GenomeViz:
         interpolation_value: Optional[float] = None,
         vmin: float = 0,
         vmax: float = 100,
+        curve: bool = False,
     ) -> None:
         """Add link data to link track
 
@@ -277,6 +278,8 @@ class GenomeViz:
             Min value for color interpolation
         vmax : float, optional
             Max value for color interpolation
+        curve : bool, optional
+            If True, bezier curve link is plotted
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         tracks = [t.name for t in self.get_tracks()]
@@ -299,6 +302,7 @@ class GenomeViz:
                 interpolation_value,
                 vmin,
                 vmax,
+                curve,
             )
         )
 
@@ -444,8 +448,8 @@ class GenomeViz:
                     link = link.add_offset(self._track_name2offset)
                     link_ymin = ylim[0] * self.link_size_ratio
                     link_ymax = ylim[1] * self.link_size_ratio
-                    xy = link.polygon_xy(link_ymin, link_ymax)
-                    p = patches.Polygon(xy=xy, fc=link.color, ec=link.color)
+                    path = link.path(link_ymin, link_ymax)
+                    p = patches.PathPatch(path, fc=link.color, ec=link.color)
                     ax.add_patch(p)
 
             elif isinstance(track, TickTrack):

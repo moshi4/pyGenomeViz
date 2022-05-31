@@ -42,7 +42,8 @@ class Genbank:
         self.max_range = self.full_genome_length if max_range is None else max_range
 
         if not 1 <= self.min_range <= self.max_range <= self.full_genome_length:
-            err_msg = f"{min_range=}, {max_range=} is invalid. Range must be "
+            err_msg = f"min_range={min_range}, max_range={max_range} is invalid. \n"
+            err_msg += "Range must be "
             err_msg += f"'1 <= min_range <= max_range <= {self.full_genome_length}'"
             raise ValueError(err_msg)
 

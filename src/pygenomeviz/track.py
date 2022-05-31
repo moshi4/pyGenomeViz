@@ -284,7 +284,7 @@ class FeatureTrack(Track):
         Set small value for linewidth (e.g. 0.1), as a large linewidth
         may corrupt the display of feature.
         """
-        target_features = gbk.extract_all_features(feature_type)
+        target_features = gbk.extract_features(feature_type)
         for feature in target_features:
             start = feature.location.start
             end = feature.location.end

@@ -39,12 +39,11 @@ class Genbank:
         self._records: List[SeqRecord] = list(SeqIO.parse(gbk_source, "genbank"))
         self.reverse = reverse
         self.min_range = 1 if min_range is None else min_range
-        self.max_range = self.genome_length if max_range is None else max_range
+        self.max_range = self.full_genome_length if max_range is None else max_range
 
-        if not 1 <= self.min_range <= self.max_range <= self.genome_length:
-            genome_length = self.genome_length
+        if not 1 <= self.min_range <= self.max_range <= self.full_genome_length:
             err_msg = f"{min_range=}, {max_range=} is invalid. Range must be "
-            err_msg += f"'1 <= min_range <= max_range <= {genome_length}'"
+            err_msg += f"'1 <= min_range <= max_range <= {self.full_genome_length}'"
             raise ValueError(err_msg)
 
     @property
@@ -68,41 +67,35 @@ class Genbank:
             return self._records
 
     @property
+    def full_genome_length(self) -> int:
+        """Full genome sequence length"""
+        return len(self.full_genome_seq)
+
+    @property
     def genome_length(self) -> int:
         """Genome sequence length"""
         return len(self.genome_seq)
 
     @property
-    def range_genome_length(self) -> int:
-        """Min-Max range genome length"""
-        return self.max_range - self.min_range + 1
+    def full_genome_seq(self) -> str:
+        """Genome sequence (join all contig sequences)"""
+        return "".join(str(r.seq) for r in self.records)
 
     @property
     def genome_seq(self) -> str:
         """Genome sequence (join all contig sequences)"""
-        return "".join(self.contig_seqs)
-
-    @property
-    def range_genome_seq(self) -> str:
-        """Range genome sequence (join all contig sequences)"""
-        return self.genome_seq[self.min_range - 1 : self.max_range]
-
-    @property
-    def contig_seqs(self) -> List[str]:
-        """Contig sequences"""
-        return [str(r.seq) for r in self.records]
+        seq = "".join(str(r.seq) for r in self.records)
+        return seq[self.min_range - 1 : self.max_range]
 
     @lru_cache(maxsize=None)
-    def calc_average_gc(self, use_range: bool = False) -> float:
+    def calc_average_gc(self) -> float:
         """Average GC content"""
-        seq = self.range_genome_seq if use_range else self.genome_seq
-        return SeqUtils.GC(seq)
+        return SeqUtils.GC(self.genome_seq)
 
     def calc_gc_skew(
         self,
         window_size: Optional[int] = None,
         step_size: Optional[int] = None,
-        use_range: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Calculate GC skew in sliding window
 
@@ -112,8 +105,6 @@ class Genbank:
             Window size (Default: `genome_size / 400`)
         step_size : int, optional
             Step size (Default: `genome_size / 1000`)
-        use_range : bool, optional
-            If True, calculate GC skew for range genome sequence
 
         Returns
         -------
@@ -121,7 +112,7 @@ class Genbank:
             Position list & GC skew list
         """
         pos_list, gc_skew_list = [], []
-        seq = self.range_genome_seq if use_range else self.genome_seq
+        seq = self.genome_seq
         if window_size is None:
             window_size = int(len(seq) / 400)
         if step_size is None:
@@ -149,7 +140,6 @@ class Genbank:
         self,
         window_size: Optional[int] = None,
         step_size: Optional[int] = None,
-        use_range: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Calculate GC content in sliding window
 
@@ -159,8 +149,6 @@ class Genbank:
             Window size (Default: `genome_size / 400`)
         step_size : int, optional
             Step size (Default: `genome_size / 1000`)
-        use_range : bool, optional
-            If True, calculate GC skew for range genome sequence
 
         Returns
         -------
@@ -168,7 +156,7 @@ class Genbank:
             Position list & GC content list
         """
         pos_list, gc_content_list = [], []
-        seq = self.range_genome_seq if use_range else self.genome_seq
+        seq = self.genome_seq
         if window_size is None:
             window_size = int(len(seq) / 400)
         if step_size is None:
@@ -186,10 +174,11 @@ class Genbank:
 
         return (np.array(pos_list), np.array(gc_content_list))
 
-    def extract_all_features(
+    def extract_features(
         self,
         feature_type: str = "CDS",
         target_strand: Optional[int] = None,
+        fix_position: bool = True,
     ) -> List[SeqFeature]:
         """Extract all features
 
@@ -199,6 +188,9 @@ class Genbank:
             Extract feature type
         target_strand : Optional[int], optional
             Extract target strand
+        fix_position : bool, optional
+            Fix feature start & end position by specified min_range parameter
+            (fixed_start = start - min_range, fixed_end = end - min_range)
 
         Returns
         -------
@@ -217,12 +209,16 @@ class Genbank:
                         continue
                 start = self._to_int(f.location.parts[0].start) + base_len
                 end = self._to_int(f.location.parts[-1].end) + base_len
-                # Exclude feature that straddle start position
-                if start > end:
+                # Restrict features in range
+                if not self.min_range <= start <= end <= self.max_range:
                     continue
                 # Extract only target strand feature
                 if target_strand is not None and f.strand != target_strand:
                     continue
+                # Fix start & end position by min_range
+                if fix_position:
+                    start -= self.min_range - 1
+                    end -= self.min_range - 1
 
                 extract_features.append(
                     SeqFeature(
@@ -235,49 +231,9 @@ class Genbank:
 
         return extract_features
 
-    def extract_range_features(
-        self,
-        feature_type: str = "CDS",
-        target_strand: Optional[int] = None,
-        fix_position: bool = False,
-    ) -> List[SeqFeature]:
-        """Extract range features
-
-        Parameters
-        ----------
-        feature_type : str, optional
-            Extract feature type
-        target_strand : Optional[int], optional
-            Extract target strand
-        fix_position : bool, optional
-            Fix feature start & end position by specified min_range parameter
-            (fixed_start = start - min_range, fixed_end = end - min_range)
-
-        Returns
-        -------
-        range_features : List[SeqFeature]
-            Extracted range features
-        """
-        range_features = []
-        for f in self.extract_all_features(feature_type, target_strand):
-            start, end = f.location.start, f.location.end
-            if isinstance(start, int) and isinstance(end, int):
-                if self.min_range <= start <= end <= self.max_range:
-                    if fix_position:
-                        fixed_start = start - self.min_range
-                        fixed_end = end - self.min_range
-                        location = FeatureLocation(fixed_start, fixed_end, f.strand)
-                        range_features.append(
-                            SeqFeature(location, f.type, qualifiers=f.qualifiers),
-                        )
-                    else:
-                        range_features.append(f)
-        return range_features
-
     def write_cds_fasta(
         self,
         fasta_outfile: Union[str, Path],
-        use_range: bool = False,
     ):
         """Write CDS protein features fasta file
 
@@ -285,13 +241,8 @@ class Genbank:
         ----------
         fasta_outfile : Union[str, Path]
             CDS fasta file
-        use_range : bool, optional
-            If True, write CDS in min-max range
         """
-        if use_range:
-            features = self.extract_range_features("CDS", None)
-        else:
-            features = self.extract_all_features("CDS", None)
+        features = self.extract_features("CDS", None, fix_position=False)
         cds_seq_records: List[SeqRecord] = []
         for idx, feature in enumerate(features, 1):
             qualifiers = feature.qualifiers
@@ -319,7 +270,6 @@ class Genbank:
     def write_genome_fasta(
         self,
         outfile: Union[str, Path],
-        use_range: bool = False,
     ) -> None:
         """Write genome fasta file
 
@@ -327,10 +277,8 @@ class Genbank:
         ----------
         outfile : Union[str, Path]
             Output genome fasta file
-        use_range : bool, optional
-            If True, write genome sequence in min-max range
         """
-        write_seq = self.range_genome_seq if use_range else self.genome_seq
+        write_seq = self.genome_seq
         with open(outfile, "w") as f:
             f.write(f">{self.name}\n{write_seq}\n")
 

@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "pygenomeviz"
+version = "0.0.4"
+description = "A genome visualization python package for comparative genomics"
+authors = ["moshi4"]
+license = "MIT"
+homepage = "https://github.com/moshi4/pyGenomeViz/"
+repository = "https://github.com/moshi4/pyGenomeViz/"
+readme = "README.md"
+keywords = [
+    "bioinformatics",
+    "genomics",
+    "matplotlib",
+    "visualization",
+    "comparative-genomics",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+include = ["tests"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=src --tb=line --cov-report=xml --cov-report=term"
+testpaths = ["tests"]
+
+[tool.poetry.scripts]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+matplotlib = "3.5.2"
+biopython = "^1.79"
+numpy = "^1.21"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+flake8 = "^4.0.1"
+pydocstyle = "^6.1.1"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+ipykernel = "^6.13.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

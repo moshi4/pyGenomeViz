@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from io import BytesIO
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -468,7 +467,7 @@ class GenomeViz:
 
     def savefig(
         self,
-        savefile: Union[str, Path, BytesIO],
+        savefile: Union[str, Path],
         dpi: int = 300,
         pad_inches: float = 0.5,
     ) -> None:
@@ -476,7 +475,7 @@ class GenomeViz:
 
         Parameters
         ----------
-        savefile : Union[str, Path, BytesIO]
+        savefile : Union[str, Path]
             Save file
         dpi : int, optional
             DPI

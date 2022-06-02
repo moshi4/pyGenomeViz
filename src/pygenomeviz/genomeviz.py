@@ -254,6 +254,7 @@ class GenomeViz:
         track_link2: Tuple[str, int, int],
         normal_color: str = "grey",
         inverted_color: str = "red",
+        alpha: float = 1.0,
         interpolation_value: Optional[float] = None,
         vmin: float = 0,
         vmax: float = 100,
@@ -271,6 +272,8 @@ class GenomeViz:
             Normal link color
         inverted_color : str, optional
             Inverted link color
+        alpha : float, optional
+            Color transparency
         interpolation_value : Optional[float], optional
             Value for color interpolation
         vmin : float, optional
@@ -298,6 +301,7 @@ class GenomeViz:
                 below_track_link[2],
                 normal_color,
                 inverted_color,
+                alpha,
                 interpolation_value,
                 vmin,
                 vmax,

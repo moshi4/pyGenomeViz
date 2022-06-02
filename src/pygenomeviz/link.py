@@ -20,6 +20,7 @@ class Link:
     track_end2: int
     normal_color: str = "grey"
     inverted_color: str = "red"
+    alpha: float = 1.0
     interpolation_value: Optional[float] = None
     vmin: float = 0
     vmax: float = 100
@@ -103,7 +104,7 @@ class Link:
             cmap = LinearSegmentedColormap.from_list("cmap", ("white", color))
             norm = Normalize(vmin=self.vmin, vmax=self.vmax)
             norm_value = norm(self.interpolation_value)
-            return to_hex(cmap(norm_value))
+            return to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
 
     @property
     def is_inverted(self) -> bool:

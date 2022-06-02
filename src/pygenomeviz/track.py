@@ -205,12 +205,6 @@ class FeatureTrack(Track):
             Feature label horizontal position (`left`|`center`|`right`)
         labelha : str, optional
             Feature label horizontal alignment (`left`|`center`|`right`)
-
-        Notes
-        -----
-        If linewidth is greater than 0, edgecolor is displayed.
-        Set small value for linewidth (e.g. 0.1), as a large linewidth
-        may corrupt the display of feature.
         """
         self.features.append(
             Feature(
@@ -242,7 +236,7 @@ class FeatureTrack(Track):
         facecolor: str = "orange",
         edgecolor: str = "black",
         linewidth: float = 0,
-        labelrotation: int = 0,
+        labelrotation: int = 30,
         labelvpos: str = "strand",
         labelhpos: str = "center",
         labelha: str = "left",
@@ -277,17 +271,11 @@ class FeatureTrack(Track):
             Feature label horizontal position (`left`|`center`|`right`)
         labelha : str, optional
             Feature label horizontal alignment (`left`|`center`|`right`)
-
-        Notes
-        -----
-        If linewidth is greater than 0, edgecolor is displayed.
-        Set small value for linewidth (e.g. 0.1), as a large linewidth
-        may corrupt the display of feature.
         """
         target_features = gbk.extract_features(feature_type)
         for feature in target_features:
-            start = feature.location.start
-            end = feature.location.end
+            start = int(str(feature.location.start))
+            end = int(str(feature.location.end))
             strand = feature.strand
             if label_type is None:
                 label = ""

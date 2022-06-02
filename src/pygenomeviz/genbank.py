@@ -180,8 +180,9 @@ class Genbank:
         feature_type: str = "CDS",
         target_strand: Optional[int] = None,
         fix_position: bool = True,
+        partial_range: bool = False,
     ) -> List[SeqFeature]:
-        """Extract all features
+        """Extract features
 
         Parameters
         ----------
@@ -191,14 +192,17 @@ class Genbank:
             Extract target strand
         fix_position : bool, optional
             Fix feature start & end position by specified min_range parameter
-            (fixed_start = start - min_range, fixed_end = end - min_range)
+            (fixed_start = start - min_range - 1, fixed_end = end - min_range - 1)
+        partial_range : bool, optional
+            If True, features that are partially included in range are also extracted
 
         Returns
         -------
-        all_features : List[SeqFeature]
-            Extracted all features
+        features : List[SeqFeature]
+            Extracted features
         """
         extract_features = []
+        min_range, max_range = self.min_range - 1, self.max_range
         base_len = 0
         for record in self.records:
             features = [f for f in record.features if f.type == feature_type]
@@ -211,15 +215,22 @@ class Genbank:
                 start = self._to_int(f.location.parts[0].start) + base_len
                 end = self._to_int(f.location.parts[-1].end) + base_len
                 # Restrict features in range
-                if not self.min_range <= start <= end <= self.max_range:
-                    continue
+                if partial_range:
+                    if (
+                        not min_range <= start <= max_range
+                        and not min_range <= end <= max_range
+                    ):
+                        continue
+                else:
+                    if not min_range <= start <= end <= max_range:
+                        continue
                 # Extract only target strand feature
                 if target_strand is not None and f.strand != target_strand:
                     continue
                 # Fix start & end position by min_range
                 if fix_position:
-                    start -= self.min_range - 1
-                    end -= self.min_range - 1
+                    start -= min_range
+                    end -= min_range
 
                 extract_features.append(
                     SeqFeature(

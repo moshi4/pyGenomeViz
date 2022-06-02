@@ -80,11 +80,11 @@ class Link:
         else:
             codes = [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.LINETO]
             verts = (
-                (self.track_start2, ymin),  # left-bottom
-                (self.track_end2, ymin),  # right-bottom
-                (self.track_end1, ymax),  # right-top
-                (self.track_start1, ymax),  # left-top
-                (self.track_start2, ymin),  # left-bottom
+                (self.track_start2, ymin),
+                (self.track_end2, ymin),
+                (self.track_end1, ymax),
+                (self.track_start1, ymax),
+                (self.track_start2, ymin),
             )
         return Path(verts, codes)
 

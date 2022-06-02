@@ -4,7 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from matplotlib.colors import LinearSegmentedColormap, Normalize, is_color_like, to_hex
+from matplotlib import colors
 from matplotlib.path import Path
 
 
@@ -27,10 +27,10 @@ class Link:
     curve: bool = False
 
     def __post_init__(self):
-        if not is_color_like(self.normal_color):
+        if not colors.is_color_like(self.normal_color):
             err_msg = f"'normal_color={self.normal_color}' is not color like."
             raise ValueError(err_msg)
-        if not is_color_like(self.inverted_color):
+        if not colors.is_color_like(self.inverted_color):
             err_msg = f"'inverted_color={self.inverted_color}' is not color like."
             raise ValueError(err_msg)
         if self.interpolation_value is not None:
@@ -99,12 +99,13 @@ class Link:
         """
         color = self.inverted_color if self.is_inverted else self.normal_color
         if self.interpolation_value is None:
-            return color
+            rgba = colors.to_rgba(color, alpha=self.alpha)
+            return colors.to_hex(rgba, keep_alpha=True)
         else:
-            cmap = LinearSegmentedColormap.from_list("cmap", ("white", color))
-            norm = Normalize(vmin=self.vmin, vmax=self.vmax)
+            cmap = colors.LinearSegmentedColormap.from_list("cmap", ("white", color))
+            norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
             norm_value = norm(self.interpolation_value)
-            return to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
+            return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
 
     @property
     def is_inverted(self) -> bool:

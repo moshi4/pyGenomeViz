@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
-from matplotlib import gridspec, patches
+from matplotlib import colors, gridspec, patches
+from matplotlib.colorbar import ColorbarBase
 from matplotlib.figure import Axes, Figure
 from matplotlib.ticker import MaxNLocator
 
@@ -524,3 +525,66 @@ class GenomeViz:
                         print(link)
             elif isinstance(track, TickTrack):
                 print()
+
+    def set_colorbar(
+        self,
+        figure: Figure,
+        bar_colors: List[str] = ["grey", "red"],
+        alpha: float = 1.0,
+        vmin: float = 0,
+        vmax: float = 100,
+        bar_height: float = 0.3,
+        bar_width: float = 0.01,
+        bar_bottom: float = 0.1,
+        bar_label: str = "",
+        bar_labelsize: float = 15,
+        tick_labelsize: float = 15,
+    ) -> None:
+        """Set colorbars to figure
+
+        Set colorbars for similarity links between genome tracks
+
+        Parameters
+        ----------
+        figure : Figure
+            Matplotlib figure
+        bar_colors : List[str], optional
+            Bar color list
+        alpha : float, optional
+            Color transparency
+        vmin : float, optional
+            Colorbar min value
+        vmax : float, optional
+            Colorbar max value
+        bar_height : float, optional
+            Colorbar height
+        bar_width : float, optional
+            Colorbar width
+        bar_bottom : float, optional
+            Colorbar bottom position
+        bar_label : str, optional
+            Colorbar label name
+        bar_labelsize : float, optional
+            Colorbar label size
+        tick_labelsize : float, optional
+            Colorbar tick label size
+        """
+        # Adjust subplot layout (Add right margin)
+        right_adjust = 0.90
+        figure.subplots_adjust(right=right_adjust)
+        # Plot colorbars
+        init_left = right_adjust + 0.05
+        for cnt, color in enumerate(bar_colors):
+            left = init_left + bar_width * cnt
+            cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
+            cmap = colors.LinearSegmentedColormap.from_list("cmap", ("white", color))
+            norm = colors.Normalize(vmin=vmin, vmax=vmax)
+            cb_props = {"orientation": "vertical", "ticks": []}
+            cb = ColorbarBase(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_props)
+            if cnt == len(bar_colors) - 1:
+                ticks = [vmin, vmax]
+                labels = [f"{t}%" for t in ticks]
+                cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
+                x, y = 2.0, (vmin + vmax) / 2
+                text_props = {"rotation": 90, "ha": "left", "va": "center"}
+                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_props)

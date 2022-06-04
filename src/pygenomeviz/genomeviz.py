@@ -490,7 +490,7 @@ class GenomeViz:
         figure = self.plotfig(dpi=dpi)
         figure.savefig(
             fname=savefile,
-            dpi="figure",
+            dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",
         )

@@ -67,15 +67,16 @@ class Link:
                 Path.CURVE4,
                 Path.LINETO,
             ]
+            control_ypos = ymax / 3
             verts = (
                 (self.track_start2, ymin),
                 (self.track_end2, ymin),
-                (self.track_end2, 0),
-                (self.track_end1, 0),
+                (self.track_end2, -control_ypos),
+                (self.track_end1, control_ypos),
                 (self.track_end1, ymax),
                 (self.track_start1, ymax),
-                (self.track_start1, 0),
-                (self.track_start2, 0),
+                (self.track_start1, control_ypos),
+                (self.track_start2, -control_ypos),
                 (self.track_start2, ymin),
             )
         else:

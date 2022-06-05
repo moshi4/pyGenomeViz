@@ -23,7 +23,11 @@ pyGenomeViz is a genome visualization python package for comparative genomics.
 
 ## Usage
 
-### Basic 01: Single Genome Track Visualization
+### Basic Usage
+
+The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
+
+#### Single Genome Track Visualization
 
 ```python
 from pygenomeviz import GenomeViz
@@ -40,7 +44,7 @@ for idx, cds in enumerate(cds_list, 1):
 fig = gv.plotfig(dpi=100)
 ```
 
-### Basic 02: Multiple Genome Track Visualization
+#### Multiple Genome Track & Link Visualization
 
 ```python
 from pygenomeviz import GenomeViz
@@ -72,8 +76,12 @@ gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="sky
 fig = gv.plotfig(dpi=100)
 ```
 
-### Practical 01: Multiple Genome Track Visualization
+### Practical Usage
 
-### Practical 02: Customized Annotation
+The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
+
+#### Genomes Visualization from Genbank files
+
+#### Customized Annotation
 
 ## Gallery

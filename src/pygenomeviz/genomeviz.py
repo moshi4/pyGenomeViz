@@ -239,7 +239,7 @@ class GenomeViz:
         feature_track = self.get_track(feature_track_name)
         if not isinstance(feature_track, FeatureTrack):
             err_msg = f"'{feature_track_name}' is not FeatureTrack."
-            raise ValueError()
+            raise ValueError(err_msg)
         subtrack_ratio = feature_track.ratio * ratio
         if subtrack_name in [t.name for t in self.get_tracks(subtrack=True)]:
             err_msg = f"track.name='{subtrack_name}' is already exists."
@@ -453,7 +453,7 @@ class GenomeViz:
                     link_ymin = ylim[0] * self.link_size_ratio
                     link_ymax = ylim[1] * self.link_size_ratio
                     path = link.path(link_ymin, link_ymax)
-                    p = patches.PathPatch(path, fc=link.color, ec=link.color)
+                    p = patches.PathPatch(path, fc=link.color, linewidth=0)
                     ax.add_patch(p)
 
             elif isinstance(track, TickTrack):
@@ -538,7 +538,7 @@ class GenomeViz:
         bar_bottom: float = 0.1,
         bar_label: str = "",
         bar_labelsize: float = 15,
-        tick_labelsize: float = 15,
+        tick_labelsize: float = 10,
     ) -> None:
         """Set colorbars to figure
 

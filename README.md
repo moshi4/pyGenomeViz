@@ -10,6 +10,8 @@
 ## Overview
 
 pyGenomeViz is a genome visualization python package for comparative genomics.
+It is implemented based on matplotlib, the most popular visualization library in python,
+and can easily and beautifully plot genomic features and comparison results.
 
 ## Installation
 
@@ -80,8 +82,23 @@ fig = gv.plotfig(dpi=100)
 
 The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
 
-#### Genomes Visualization from Genbank files
+#### Single Genome Track Visualization from Genbank file
 
-#### Customized Annotation
+```python
+from pygenomeviz import Genbank, GenomeViz, load_dataset
+```
 
-## Gallery
+#### Multiple Genome Track & Link Visualization from Genbank files
+
+```python
+from pygenomeviz import Genbank, GenomeViz, load_dataset
+```
+
+### Customization Tips
+
+Since pyGenomeViz is implemented based on matplotlib, users can easily customize
+the figure in the manner of matplotlib. Here are some tips for figure customization.
+
+- Add `GC content` & `GC skew` subtrack
+- Add annotation (Fill Box, ROI)
+- Add colorbar (Experimetal implementation)

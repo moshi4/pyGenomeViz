@@ -3,9 +3,12 @@ from __future__ import annotations
 import csv
 import os
 from dataclasses import dataclass
+from io import TextIOWrapper
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from urllib.request import urlretrieve
+
+from Bio import Entrez
 
 DATASETS = {
     "phage": [
@@ -99,3 +102,31 @@ class Link:
                 ident = float(row[6])
                 links.append(Link(rname, rstart, rend, qname, qstart, qend, ident))
         return links
+
+
+def fetch_genbank_from_accid(accid: str, email: Optional[str] = None) -> TextIOWrapper:
+    """Fetch genbank text from 'Accession ID'
+
+    Parameters
+    ----------
+    accid : str
+        Accession ID
+    email : str, optional
+        Email address to notify download limitation (Required for bulk download)
+
+    Returns
+    -------
+    TextIOWrapper
+        Genbank data
+
+    Examples
+    --------
+    >>> gbk_fetch_data = download_genbank_from_accid("JX128258.1")
+    """
+    Entrez.email = "" if email is None else email
+    return Entrez.efetch(
+        db="nucleotide",
+        id=accid,
+        rettype="gbwithparts",
+        retmode="text",
+    )

@@ -180,7 +180,7 @@ class Genbank:
         feature_type: str = "CDS",
         target_strand: Optional[int] = None,
         fix_position: bool = True,
-        partial_range: bool = False,
+        allow_partial: bool = True,
     ) -> List[SeqFeature]:
         """Extract features
 
@@ -193,7 +193,7 @@ class Genbank:
         fix_position : bool, optional
             Fix feature start & end position by specified min_range parameter
             (fixed_start = start - min_range - 1, fixed_end = end - min_range - 1)
-        partial_range : bool, optional
+        allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
 
         Returns
@@ -215,7 +215,7 @@ class Genbank:
                 start = self._to_int(f.location.parts[0].start) + base_len
                 end = self._to_int(f.location.parts[-1].end) + base_len
                 # Restrict features in range
-                if partial_range:
+                if allow_partial:
                     if (
                         not min_range <= start <= max_range
                         and not min_range <= end <= max_range

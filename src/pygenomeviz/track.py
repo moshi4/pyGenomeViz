@@ -230,6 +230,7 @@ class FeatureTrack(Track):
         gbk: Genbank,
         feature_type: str = "CDS",
         label_type: Optional[str] = None,
+        allow_partial: bool = True,
         labelsize: int = 15,
         labelcolor: str = "black",
         plotstyle: str = "bigarrow",
@@ -251,6 +252,8 @@ class FeatureTrack(Track):
             Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
         label_type : Optional[str], optional
             Label type (e.g. `gene`,`protein_id`,`product`,etc...)
+        allow_partial : bool, optional
+            If True, features that are partially included in range are also extracted
         labelsize : int, optional
             Feature label size
         labelcolor : str, optional
@@ -272,7 +275,7 @@ class FeatureTrack(Track):
         labelha : str, optional
             Feature label horizontal alignment (`left`|`center`|`right`)
         """
-        target_features = gbk.extract_features(feature_type)
+        target_features = gbk.extract_features(feature_type, None, True, allow_partial)
         for feature in target_features:
             start = int(str(feature.location.start))
             end = int(str(feature.location.end))

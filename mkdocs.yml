@@ -6,14 +6,15 @@ repo_url: https://github.com/moshi4/pyGenomeViz
 
 nav:
   - Home: index.md
+  - Getting Started: getting_started.md
   - API Docs:
       - GenomeViz: api-docs/genomeviz.md
       - FeatureTrack: api-docs/track.md
       - Genbank: api-docs/genbank.md
-  - Usage Examples:
-      - Basic Usage: usage-examples/basic_usage.ipynb
-      - Practical Usage: usage-examples/practical_usage.ipynb
-      - Customization Tips: usage-examples/customization_tips.ipynb
+  - Examples:
+      - Basic Example: examples/basic_example.ipynb
+      - Practical Example: examples/practical_example.ipynb
+      - Customization Tips: examples/customization_tips.ipynb
 
 theme:
     name: material # material, readthedocs
@@ -23,6 +24,13 @@ theme:
       - navigation.tabs
       - navigation.tabs.sticky
       # - navigation.sections
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 
 plugins:
     - search

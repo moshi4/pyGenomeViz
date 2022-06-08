@@ -1,17 +1,25 @@
-# Welcome to MkDocs
+# pyGenomeViz
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+![Python3](https://img.shields.io/badge/Language-Python3-steelblue)
+![OS](https://img.shields.io/badge/OS-_Windows_|_Mac_|_Linux-steelblue)
+![License](https://img.shields.io/badge/License-MIT-steelblue)
+[![Latest PyPI version](https://img.shields.io/pypi/v/pygenomeviz.svg)](https://pypi.python.org/pypi/pygenomeviz)
+[![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)  
 
-## Commands
+## Overview
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+pyGenomeViz is a genome visualization python package for comparative genomics implemented in matplotlib.
+This package is developed for the purpose of easily and beautifully plotting genomic
+features and sequence similarity comparison results across multiple genomes.
+It supports genome visualization of Genbank format file, and can be used to interactively create
+genome visualization plots on the jupyter notebook, or for integration into a genome analysis pipeline.
 
-## Project layout
+## Installation
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+**Install PyPI package:**
+
+    pip install pygenomeviz
+
+**Install bioconda package:**
+
+    conda install -c conda-forge -c bioconda pygenomeviz

@@ -5,13 +5,14 @@
 ![License](https://img.shields.io/badge/License-MIT-steelblue)
 [![Latest PyPI version](https://img.shields.io/pypi/v/pygenomeviz.svg)](https://pypi.python.org/pypi/pygenomeviz)
 [![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)  
-[![CI](https://github.com/moshi4/pygenomeviz/workflows/CI/badge.svg)](https://github.com/moshi4/pygenomeviz/actions/workflows/ci.yml)
 
 ## Overview
 
-pyGenomeViz is a genome visualization python package for comparative genomics.
-It is implemented based on matplotlib, the most popular visualization library in python,
-and can easily and beautifully plot genomic features and comparison results.
+pyGenomeViz is a genome visualization python package for comparative genomics implemented in matplotlib.
+This package is developed for the purpose of easily and beautifully plotting genomic
+features and sequence similarity comparison results across multiple genomes.
+It supports genome visualization of Genbank format file, and can be used to interactively create
+genome visualization plots on the jupyter notebook, or for integration into a genome analysis pipeline.
 
 ## Installation
 
@@ -23,9 +24,9 @@ and can easily and beautifully plot genomic features and comparison results.
 
     conda install -c conda-forge -c bioconda pygenomeviz
 
-## Usage
+## Examples
 
-### Basic Usage
+### Basic Example
 
 The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
 
@@ -78,7 +79,7 @@ gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="sky
 fig = gv.plotfig(dpi=100)
 ```
 
-### Practical Usage
+### Practical Example
 
 The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
 

@@ -3,7 +3,6 @@ name: Publish MkDocs
 on:
   push:
     branches: [main]
-    paths: ["src/**.py", "docs/**","mkdocs.yml"]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +18,9 @@ jobs:
           python-version: 3.9
 
       - name: Install MkDocs & Plugins
-        run: pip install mkdocs mkdocs-material mkdocs-jupyter mkdocstrings[python]
+        run: |
+          pip install .
+          pip install mkdocs mkdocs-material mkdocs-jupyter mkdocstrings[python]
 
       - name: Publish document
         run: mkdocs gh-deploy --force

@@ -1,0 +1,3 @@
+# Genbank Class
+
+::: pygenomeviz.genbank

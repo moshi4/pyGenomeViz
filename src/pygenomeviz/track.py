@@ -89,18 +89,14 @@ class Track:
     def ax(self) -> Axes:
         """Track axes
 
+        Can't access ax property before calling GenomeViz class `plotfig` method.
+
         Returns
         -------
         ax : Axes
             Track matplotlib axes object
-
-        Notes
-        -----
-        Can't access ax property before calling GenomeViz class `plotfig` method.
-
-        Pre-defined property of Axes
-        - xlim = (0, gv.max_track_size)
-        - ylim = (-1, 1)
+            - xlim = `(0, gv.max_track_size)`
+            - ylim = `(-1, 1)`
         """
         if self._ax is None:
             err_msg = "Can't access ax property before calling 'plotfig' method."

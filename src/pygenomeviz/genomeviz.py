@@ -58,14 +58,11 @@ class GenomeViz:
         tick_style : Optional[str], optional
             Tick style (`axis`|`bar`)
         plot_size_thr : float, optional
-            Plot size threshold
+            Plot feature size threshold.
+            If `plot_size_thr=0.0005` and `max_track_size=4.0Mb`, feature smaller than
+            `max_track_size * plot_size_thr=2.0Kb` are not plotted.
         tick_labelsize : int, optional
             Tick label size
-
-        Notes
-        -----
-        If `plot_size_thr=0.0005` and `max_track_size=4.0Mb`, features smaller than
-        `max_track_size * plot_size_thr=2.0Kb` are not plotted.
         """
         self.fig_width = fig_width
         self.fig_track_height = fig_track_height

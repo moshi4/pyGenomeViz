@@ -74,23 +74,23 @@ class Genbank:
 
     @property
     def genome_length(self) -> int:
-        """Genome sequence length"""
+        """Range genome sequence length"""
         return len(self.genome_seq)
 
     @property
     def full_genome_seq(self) -> str:
-        """Genome sequence (join all contig sequences)"""
+        """Full genome sequence"""
         return "".join(str(r.seq) for r in self.records)
 
     @property
     def genome_seq(self) -> str:
-        """Genome sequence (join all contig sequences)"""
+        """Range genome sequence"""
         seq = "".join(str(r.seq) for r in self.records)
         return seq[self.min_range - 1 : self.max_range]
 
     @lru_cache(maxsize=None)
-    def calc_average_gc(self) -> float:
-        """Average GC content"""
+    def calc_genome_gc_content(self) -> float:
+        """Calculate genome GC content"""
         return SeqUtils.GC(self.genome_seq)
 
     def calc_gc_skew(
@@ -109,7 +109,7 @@ class Genbank:
 
         Returns
         -------
-        (pos_list, gc_skew_list) : Tuple[np.ndarray, np.ndarray]
+        gc_skew_result_tuple : Tuple[np.ndarray, np.ndarray]
             Position list & GC skew list
         """
         pos_list, gc_skew_list = [], []
@@ -153,7 +153,7 @@ class Genbank:
 
         Returns
         -------
-        (pos_list, gc_content_list) : Tuple[np.ndarray, np.ndarray]
+        gc_content_result_tuple : Tuple[np.ndarray, np.ndarray]
             Position list & GC content list
         """
         pos_list, gc_content_list = [], []

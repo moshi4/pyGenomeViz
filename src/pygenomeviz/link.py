@@ -92,12 +92,7 @@ class Link:
 
     @property
     def color(self) -> str:
-        """Get conditional hexcolor code
-
-        Notes
-        -----
-        If `self.interpolation_value` is set, interpolated color is calculated.
-        """
+        """Get conditional hexcolor code"""
         color = self.inverted_color if self.is_inverted else self.normal_color
         if self.interpolation_value is None:
             rgba = colors.to_rgba(color, alpha=self.alpha)

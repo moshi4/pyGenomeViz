@@ -1,6 +1,5 @@
 site_name: pyGenomeViz
 site_description: A genome visualization python package for comparative genomics
-site_url: https://github.com/moshi4/pyGenomeViz
 repo_name: moshi4/pyGenomeViz
 repo_url: https://github.com/moshi4/pyGenomeViz
 

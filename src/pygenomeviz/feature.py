@@ -19,7 +19,7 @@ class Feature:
     facecolor: str = "orange"
     edgecolor: str = "black"
     linewidth: float = 0
-    labelrotation: int = 30
+    labelrotation: int = 45
     labelvpos: str = "strand"  # "top", "center", "bottom", "strand"
     labelhpos: str = "center"  # "left", "center", "right"
     labelha: str = "left"  # "left", "center", "right"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -11,6 +12,8 @@ from matplotlib.ticker import MaxNLocator
 
 from pygenomeviz.link import Link
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
+
+warnings.filterwarnings("ignore")
 
 
 class GenomeViz:
@@ -377,7 +380,12 @@ class GenomeViz:
 
         track_num = len(self.get_tracks(subtrack=True))
         figsize = (self.fig_width, self.fig_track_height * track_num)
-        figure: Figure = plt.figure(figsize=figsize, facecolor="white", dpi=dpi)
+        figure: Figure = plt.figure(
+            figsize=figsize,
+            facecolor="white",
+            dpi=dpi,
+            tight_layout=False if track_num < 3 else True,
+        )
 
         track_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
         spec = gridspec.GridSpec(
@@ -437,7 +445,6 @@ class GenomeViz:
                     ax.vlines(track.xmax, ymin, ymax, **common_opts)
                     ax.text(**track.scalebar_text_params)
 
-        figure.tight_layout()
         return figure
 
     def savefig(

@@ -437,6 +437,7 @@ class GenomeViz:
                     ax.vlines(track.xmax, ymin, ymax, **common_opts)
                     ax.text(**track.scalebar_text_params)
 
+        figure.tight_layout()
         return figure
 
     def savefig(

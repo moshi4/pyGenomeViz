@@ -24,6 +24,7 @@ class Feature:
     labelhpos: str = "center"  # "left", "center", "right"
     labelha: str = "left"  # "left", "center", "right"
     arrow_shaft_ratio: float = 0.5
+    size_ratio: float = 0.9
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -47,6 +48,16 @@ class Feature:
         if self.plotstyle not in ("bigarrow", "arrow", "bigbox", "box"):
             err_msg = f"'Style must be 'bigarrow|arrow|bigbox|box' ('{self.plotstyle}')"
             raise ValueError(err_msg)
+        # Check arrow shaft ratio
+        if not 0 <= self.arrow_shaft_ratio <= 1:
+            err_msg = "'arrow_shaft_ratio' must be '0 <= value <= 1' "
+            err_msg += f"(value={self.arrow_shaft_ratio})"
+            raise ValueError(err_msg)
+        # Check size ratio
+        if not 0 <= self.size_ratio <= 1:
+            err_msg = "'size_ratio' must be '0 <= value <= 1' "
+            err_msg += f"(value={self.size_ratio})"
+            raise ValueError(err_msg)
 
     @property
     def length(self) -> int:
@@ -57,10 +68,9 @@ class Feature:
         self,
         max_track_size: int,
         ylim: Tuple[float, float],
-        feature_size_ratio: float,
     ) -> Dict[str, Any]:
         """Feature object drawing parameters"""
-        ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
+        ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
         # x, y
         x = self.end if self.strand == -1 else self.start
         if self.plotstyle in ("bigarrow", "bigbox"):
@@ -108,9 +118,7 @@ class Feature:
             "linewidth": self.linewidth,
         }
 
-    def text_params(
-        self, ylim: Tuple[float, float], feature_size_ratio: float
-    ) -> Dict[str, Any]:
+    def text_params(self, ylim: Tuple[float, float]) -> Dict[str, Any]:
         """Feature text drawing parameters"""
         # x
         if self.labelhpos == "left":
@@ -131,7 +139,7 @@ class Feature:
             labelvpos = "bottom" if self.strand == -1 else "top"
 
         # labelva, y
-        ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
+        ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
         if labelvpos == "top":
             labelva = "bottom"
             y = ylim[1]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from matplotlib import colors
 from matplotlib.path import Path
@@ -25,6 +25,7 @@ class Link:
     vmin: float = 0
     vmax: float = 100
     curve: bool = False
+    size_ratio: float = 0.9
 
     def __post_init__(self):
         if not colors.is_color_like(self.normal_color):
@@ -33,6 +34,11 @@ class Link:
         if not colors.is_color_like(self.inverted_color):
             err_msg = f"'inverted_color={self.inverted_color}' is not color like."
             raise ValueError(err_msg)
+        # Check size ratio
+        if not 0 <= self.size_ratio <= 1:
+            err_msg = "'size_ratio' must be '0 <= value <= 1' "
+            err_msg += f"(value={self.size_ratio})"
+            raise ValueError(err_msg)
         if self.interpolation_value is not None:
             if not self.vmin <= self.interpolation_value <= self.vmax:
                 err_msg = "'Interpolation value must be "
@@ -40,21 +46,20 @@ class Link:
                 err_msg += f"(value={self.interpolation_value})"
                 raise ValueError(err_msg)
 
-    def path(self, ymin: float = -1.0, ymax: float = 1.0) -> Path:
+    def path(self, ylim: Tuple[float, float] = (-1.0, 1.0)) -> Path:
         """Link path
 
         Parameters
         ----------
-        ymin : float, optional
-            Min y coordinate
-        ymax : float, optional
-            Max y coordinate
+        ylim: Tuple[flaot, float], optional
+            Min-Max y coordinatess
 
         Returns
         -------
         path : Path
             Link path
         """
+        ymin, ymax = ylim[0] * self.size_ratio, ylim[1] * self.size_ratio
         if self.curve:
             codes = [
                 Path.MOVETO,

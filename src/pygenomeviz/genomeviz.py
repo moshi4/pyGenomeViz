@@ -21,8 +21,6 @@ class GenomeViz:
         fig_width: float = 15,
         fig_track_height: float = 1.0,
         align_type: str = "left",
-        feature_size_ratio: float = 0.9,
-        link_size_ratio: float = 0.9,
         feature_track_ratio: float = 1.0,
         link_track_ratio: float = 1.0,
         tick_track_ratio: float = 1.0,
@@ -40,10 +38,6 @@ class GenomeViz:
             Figure track height
         align_type : str, optional
             Track align type
-        feature_size_ratio : float, optional
-            Feature size ratio to track
-        link_size_ratio : float, optional
-            Link size ratio to track
         feature_track_ratio : float, optional
             Feature track ratio
         link_track_ratio : float, optional
@@ -65,8 +59,6 @@ class GenomeViz:
         self.fig_track_height = fig_track_height
         self.align_type = align_type
         self.track_spines = track_spines
-        self.feature_size_ratio = feature_size_ratio
-        self.link_size_ratio = link_size_ratio
         self.feature_track_ratio = feature_track_ratio
         self.link_track_ratio = link_track_ratio
         self.tick_track_ratio = tick_track_ratio
@@ -85,17 +77,6 @@ class GenomeViz:
 
         if self.tick_style is not None and self.tick_style not in ("axis", "bar"):
             err_msg = f"Invalid tick type '{self.tick_style}'."
-            raise ValueError(err_msg)
-
-        range_check_dict = {
-            "feature_size_ratio": self.feature_size_ratio,
-            "link_size_ratio": self.link_size_ratio,
-        }
-        err_msg = ""
-        for k, v in range_check_dict.items():
-            if not 0 <= v <= 1:
-                err_msg += f"'{k}' must be '0 <= value <= 1' (value={v})\n"
-        if err_msg:
             raise ValueError(err_msg)
 
     def _get_track_offset(self, track: Track) -> int:
@@ -252,6 +233,7 @@ class GenomeViz:
         vmin: float = 0,
         vmax: float = 100,
         curve: bool = False,
+        size_ratio: float = 0.9,
     ) -> None:
         """Add link data to link track
 
@@ -275,6 +257,8 @@ class GenomeViz:
             Max value for color interpolation
         curve : bool, optional
             If True, bezier curve link is plotted
+        size_ratio : float, optional
+            Link size ratio to track
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         tracks = [t.name for t in self.get_tracks()]
@@ -299,6 +283,7 @@ class GenomeViz:
                 vmin,
                 vmax,
                 curve,
+                size_ratio,
             )
         )
 
@@ -424,15 +409,11 @@ class GenomeViz:
                     if feature.length < self.max_track_size * self.plot_size_thr:
                         continue
                     # Plot feature object
-                    obj_params = feature.obj_params(
-                        self.max_track_size,
-                        ylim,
-                        self.feature_size_ratio,
-                    )
+                    obj_params = feature.obj_params(self.max_track_size, ylim)
                     ax.arrow(**obj_params)
                     # Plot feature text
                     if feature.labelsize != 0:
-                        ax.text(**feature.text_params(ylim, self.feature_size_ratio))
+                        ax.text(**feature.text_params(ylim))
 
             if isinstance(track, FeatureSubTrack):
                 # No specific plans to implementation at this time
@@ -441,10 +422,7 @@ class GenomeViz:
             elif isinstance(track, LinkTrack):
                 for link in track.links:
                     link = link.add_offset(self._track_name2offset)
-                    link_ymin = ylim[0] * self.link_size_ratio
-                    link_ymax = ylim[1] * self.link_size_ratio
-                    path = link.path(link_ymin, link_ymax)
-                    p = patches.PathPatch(path, fc=link.color, linewidth=0)
+                    p = patches.PathPatch(link.path(ylim), fc=link.color, linewidth=0)
                     ax.add_patch(p)
 
             elif isinstance(track, TickTrack):

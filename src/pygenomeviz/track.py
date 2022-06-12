@@ -168,6 +168,7 @@ class FeatureTrack(Track):
         labelhpos: str = "center",
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
+        size_ratio: float = 0.9,
     ) -> None:
         """Add feature to track
 
@@ -204,6 +205,8 @@ class FeatureTrack(Track):
             Feature label horizontal alignment (`left`|`center`|`right`)
         arrow_shaft_ratio : float, optional
             Feature arrow shaft ratio
+        size_ratio : float, optional
+            Feature size ratio to track
         """
         self.features.append(
             Feature(
@@ -222,6 +225,7 @@ class FeatureTrack(Track):
                 labelhpos,
                 labelha,
                 arrow_shaft_ratio,
+                size_ratio,
             )
         )
 
@@ -242,6 +246,7 @@ class FeatureTrack(Track):
         labelhpos: str = "center",
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
+        size_ratio: float = 0.9,
     ):
         """Add features from genbank record
 
@@ -277,6 +282,8 @@ class FeatureTrack(Track):
             Feature label horizontal alignment (`left`|`center`|`right`)
         arrow_shaft_ratio : float, optional
             Feature arrow shaft ratio
+        size_ratio : float, optional
+            Feature size ratio to track
         """
         target_features = gbk.extract_features(feature_type, None, True, allow_partial)
         for feature in target_features:
@@ -304,6 +311,7 @@ class FeatureTrack(Track):
                     labelhpos,
                     labelha,
                     arrow_shaft_ratio,
+                    size_ratio,
                 )
             )
 

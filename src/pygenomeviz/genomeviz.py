@@ -23,7 +23,6 @@ class GenomeViz:
         align_type: str = "left",
         feature_size_ratio: float = 0.9,
         link_size_ratio: float = 0.9,
-        arrow_shaft_ratio: float = 0.5,
         feature_track_ratio: float = 1.0,
         link_track_ratio: float = 1.0,
         tick_track_ratio: float = 1.0,
@@ -45,8 +44,6 @@ class GenomeViz:
             Feature size ratio to track
         link_size_ratio : float, optional
             Link size ratio to track
-        arrow_shaft_ratio : float, optional
-            Feature arrow shaft ratio
         feature_track_ratio : float, optional
             Feature track ratio
         link_track_ratio : float, optional
@@ -70,7 +67,6 @@ class GenomeViz:
         self.track_spines = track_spines
         self.feature_size_ratio = feature_size_ratio
         self.link_size_ratio = link_size_ratio
-        self.arrow_shaft_ratio = arrow_shaft_ratio
         self.feature_track_ratio = feature_track_ratio
         self.link_track_ratio = link_track_ratio
         self.tick_track_ratio = tick_track_ratio
@@ -94,7 +90,6 @@ class GenomeViz:
         range_check_dict = {
             "feature_size_ratio": self.feature_size_ratio,
             "link_size_ratio": self.link_size_ratio,
-            "arrow_shaft_ratio": self.arrow_shaft_ratio,
         }
         err_msg = ""
         for k, v in range_check_dict.items():
@@ -433,7 +428,6 @@ class GenomeViz:
                         self.max_track_size,
                         ylim,
                         self.feature_size_ratio,
-                        self.arrow_shaft_ratio,
                     )
                     ax.arrow(**obj_params)
                     # Plot feature text

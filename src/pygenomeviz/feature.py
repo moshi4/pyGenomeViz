@@ -23,6 +23,7 @@ class Feature:
     labelvpos: str = "strand"  # "top", "center", "bottom", "strand"
     labelhpos: str = "center"  # "left", "center", "right"
     labelha: str = "left"  # "left", "center", "right"
+    arrow_shaft_ratio: float = 0.5
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -57,7 +58,6 @@ class Feature:
         max_track_size: int,
         ylim: Tuple[float, float],
         feature_size_ratio: float,
-        arrow_shaft_ratio: float,
     ) -> Dict[str, Any]:
         """Feature object drawing parameters"""
         ylim = (ylim[0] * feature_size_ratio, ylim[1] * feature_size_ratio)
@@ -80,7 +80,7 @@ class Feature:
             head_width = max_width / 2
         # shaft_width
         if self.plotstyle in ("bigarrow", "arrow"):
-            shaft_width = head_width * arrow_shaft_ratio
+            shaft_width = head_width * self.arrow_shaft_ratio
         else:
             shaft_width = head_width
         # head length

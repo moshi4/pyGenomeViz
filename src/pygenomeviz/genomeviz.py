@@ -503,9 +503,10 @@ class GenomeViz:
         alpha: float = 1.0,
         vmin: float = 0,
         vmax: float = 100,
-        bar_height: float = 0.3,
+        bar_height: float = 0.2,
         bar_width: float = 0.01,
-        bar_bottom: float = 0.1,
+        bar_left: float = 1.01,
+        bar_bottom: float = 0.05,
         bar_label: str = "",
         bar_labelsize: float = 15,
         tick_labelsize: float = 10,
@@ -530,6 +531,8 @@ class GenomeViz:
             Colorbar height
         bar_width : float, optional
             Colorbar width
+        bar_left : float, optional
+            Colorbar left position
         bar_bottom : float, optional
             Colorbar bottom position
         bar_label : str, optional
@@ -539,13 +542,8 @@ class GenomeViz:
         tick_labelsize : float, optional
             Colorbar tick label size
         """
-        # Adjust subplot layout (Add right margin)
-        right_adjust = 0.90
-        figure.subplots_adjust(right=right_adjust)
-        # Plot colorbars
-        init_left = right_adjust + 0.05
         for cnt, color in enumerate(bar_colors):
-            left = init_left + bar_width * cnt
+            left = bar_left + bar_width * cnt
             cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
             cmap = colors.LinearSegmentedColormap.from_list("cmap", ("white", color))
             norm = colors.Normalize(vmin=vmin, vmax=vmax)

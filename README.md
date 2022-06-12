@@ -10,11 +10,15 @@
 
 pyGenomeViz is a genome visualization python package for comparative genomics implemented in matplotlib.
 This package is developed for the purpose of easily and beautifully plotting genomic
-features and sequence similarity comparison results across multiple genomes.
-It supports genome visualization of Genbank format file, and can be used to interactively create
-genome visualization plots on the jupyter notebook, or for integration into a genome analysis pipeline.
+features and sequence similarity comparison links between multiple genomes.
+It supports genome visualization of Genbank format file, and can be used to interactively plot
+genome visualization figure on jupyter notebook, or for integration into a genome analysis pipeline.
+
+For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
 
 ## Installation
+
+`Python 3.7 or later` is required for installation.
 
 **Install PyPI package:**
 
@@ -26,9 +30,9 @@ genome visualization plots on the jupyter notebook, or for integration into a ge
 
 ## Examples
 
-### Basic Example
+Jupyter notebooks containing code examples below is available [here](https://moshi4.github.io/pyGenomeViz/examples/basic_example/).
 
-The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
+### Basic Example
 
 #### Single Genome Track Visualization
 
@@ -46,6 +50,8 @@ for idx, cds in enumerate(cds_list, 1):
 
 fig = gv.plotfig(dpi=100)
 ```
+
+![example01.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example01.png)
 
 #### Multiple Genome Track & Link Visualization
 
@@ -79,21 +85,57 @@ gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="sky
 fig = gv.plotfig(dpi=100)
 ```
 
-### Practical Example
+![example02.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example02.png)
 
-The example codes shown here are also available from [jupyter notebook](https://github.com/moshi4/pyGenomeViz/blob/main/example/tutorial.ipynb).
+### Practical Example
 
 #### Single Genome Track Visualization from Genbank file
 
 ```python
 from pygenomeviz import Genbank, GenomeViz, load_dataset
+
+# Load single genbank file
+gbk_files, _ = load_dataset("phage")
+gbk = Genbank(gbk_files[0])
+
+# Visualize genbank features
+gv = GenomeViz()
+track = gv.add_feature_track(gbk.name, gbk.genome_length)
+track.add_genbank_features(gbk)
+
+fig = gv.plotfig(dpi=100)
 ```
+
+![example03.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example03.png)
 
 #### Multiple Genome Track & Link Visualization from Genbank files
 
 ```python
 from pygenomeviz import Genbank, GenomeViz, load_dataset
+
+gv = GenomeViz(
+    feature_track_ratio=0.5,
+    link_track_ratio=1.0,
+    tick_track_ratio=0.5,
+    tick_style="bar",
+    align_type="center",
+)
+
+gbk_files, links = load_dataset("phage")
+for gbk_file in gbk_files:
+    gbk = Genbank(gbk_file)
+    track = gv.add_feature_track(gbk.name, gbk.genome_length)
+    track.add_genbank_features(gbk)
+
+for link in links:
+    link_data1 = (link.ref_name, link.ref_start, link.ref_end)
+    link_data2 = (link.query_name, link.query_start, link.query_end)
+    gv.add_link(link_data1, link_data2, interpolation_value=link.identity, alpha=0.8, curve=True)
+
+fig = gv.plotfig(dpi=100)
 ```
+
+![example04.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example04.png)
 
 ### Customization Tips
 

@@ -1,19 +1,22 @@
 site_name: pyGenomeViz
 site_description: A genome visualization python package for comparative genomics
+site_author: moshi4
 repo_name: moshi4/pyGenomeViz
 repo_url: https://github.com/moshi4/pyGenomeViz
+edit_uri: ''
+use_directory_urls: true
 
 nav:
   - Home: index.md
-  - Getting Started: getting_started.md
-  - API Docs:
-      - GenomeViz: api-docs/genomeviz.md
-      - FeatureTrack: api-docs/track.md
-      - Genbank: api-docs/genbank.md
+  - Getting Started: getting_started.ipynb
   - Examples:
       - Basic Example: examples/basic_example.ipynb
       - Practical Example: examples/practical_example.ipynb
       - Customization Tips: examples/customization_tips.ipynb
+  - API Docs:
+      - GenomeViz: api-docs/genomeviz.md
+      - FeatureTrack: api-docs/track.md
+      - Genbank: api-docs/genbank.md
 
 theme:
     name: material # material, readthedocs

@@ -151,6 +151,7 @@ class GenomeViz:
         name: str,
         size: int,
         labelsize: int = 20,
+        labelmargin: float = 0.01,
         linewidth: int = 1,
     ) -> FeatureTrack:
         """Add feature track
@@ -163,6 +164,8 @@ class GenomeViz:
             Track size
         labelsize : int, optional
             Track label size
+        labelmargin : flaot, optional
+            Track label margin
         linewidth : int, optional
             Track line width
 
@@ -188,6 +191,7 @@ class GenomeViz:
             name,
             size,
             labelsize,
+            labelmargin,
             linewidth,
             self.track_spines,
             self.feature_track_ratio,
@@ -407,7 +411,8 @@ class GenomeViz:
             if isinstance(track, FeatureTrack):
                 # Plot track label
                 if track.labelsize != 0:
-                    ax.text(-self.max_track_size * 0.01, 0, **track.label_params)
+                    margin = -self.max_track_size * track.labelmargin
+                    ax.text(margin, 0, **track.label_params)
                 # Plot track scale line
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, "black", linewidth=track.linewidth)

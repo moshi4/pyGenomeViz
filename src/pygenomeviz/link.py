@@ -20,7 +20,7 @@ class Link:
     track_end2: int
     normal_color: str = "grey"
     inverted_color: str = "red"
-    alpha: float = 1.0
+    alpha: float = 0.8
     interpolation_value: Optional[float] = None
     vmin: float = 0
     vmax: float = 100

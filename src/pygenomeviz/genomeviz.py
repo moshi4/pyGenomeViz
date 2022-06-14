@@ -428,7 +428,7 @@ class GenomeViz:
                     if feature.labelsize != 0:
                         ax.text(**feature.text_params(ylim))
 
-            if isinstance(track, FeatureSubTrack):
+            elif isinstance(track, FeatureSubTrack):
                 # No specific plans to implementation at this time
                 pass
 
@@ -449,6 +449,9 @@ class GenomeViz:
                     ax.vlines(track.xmin, ymin, ymax, **common_opts)
                     ax.vlines(track.xmax, ymin, ymax, **common_opts)
                     ax.text(**track.scalebar_text_params)
+
+            else:
+                raise NotImplementedError()
 
         return figure
 

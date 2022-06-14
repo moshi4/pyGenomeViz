@@ -11,11 +11,34 @@ from urllib.request import urlretrieve
 from Bio import Entrez
 
 DATASETS = {
-    "phage": [
-        "JX128258.1.gbk",
-        "MH051335.1.gbk",
-        "MH816966.1.gbk",
-        "MK373776.1.gbk",
+    "escherichia_phage": [
+        "JX128258.gbk",
+        "MH051335.gbk",
+        "MK373776.gbk",
+        "MH816966.gbk",
+        "link.tsv",
+    ],
+    "erwinia_phage": [
+        "MT939486.gbk",
+        "MT939487.gbk",
+        "MT939488.gbk",
+        "LT960552.gbk",
+        "link.tsv",
+    ],
+    "enterobacteria_phage": [
+        "NC_019724.gbk",
+        "NC_024783.gbk",
+        "NC_016566.gbk",
+        "NC_013600.gbk",
+        "NC_031081.gbk",
+        "NC_028901.gbk",
+        "link.tsv",
+    ],
+    "escherichia_coli": [
+        "NC_000913.gbk",
+        "NC_002695.gbk",
+        "NC_011751.gbk",
+        "NC_011750.gbk",
         "link.tsv",
     ],
 }
@@ -27,10 +50,16 @@ def load_dataset(name: str) -> Tuple[List[Path], List[Link]]:
     Datasets are downloaded from https://github.com/moshi4/pygenomeviz-data
     and cached in local directory ('~/.cache/pygenomeviz').
 
+    List of dataset name
+    - `escherichia_phage`
+    - `erwinia_phage`
+    - `enterobacteria_phage`
+    - `escherichia_coli`
+
     Parameters
     ----------
     name : str
-        Dataset name ("phage")
+        Dataset name (e.g. `escherichia_phage`)
 
     Returns
     -------

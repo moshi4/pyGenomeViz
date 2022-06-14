@@ -355,7 +355,7 @@ class GenomeViz:
             raise ValueError(err_msg)
         return max([track.size for track in self.get_tracks()])
 
-    def plotfig(self, dpi: int = 300) -> Figure:
+    def plotfig(self, dpi: int = 100) -> Figure:
         """Plot figure
 
         Parameters
@@ -455,7 +455,7 @@ class GenomeViz:
     def savefig(
         self,
         savefile: Union[str, Path],
-        dpi: int = 300,
+        dpi: int = 100,
         pad_inches: float = 0.5,
     ) -> None:
         """Save figure to file

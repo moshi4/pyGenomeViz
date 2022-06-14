@@ -21,7 +21,7 @@ class Link:
     normal_color: str = "grey"
     inverted_color: str = "red"
     alpha: float = 0.8
-    interpolation_value: Optional[float] = None
+    v: Optional[float] = None
     vmin: float = 0
     vmax: float = 100
     curve: bool = False
@@ -39,11 +39,10 @@ class Link:
             err_msg = "'size_ratio' must be '0 <= value <= 1' "
             err_msg += f"(value={self.size_ratio})"
             raise ValueError(err_msg)
-        if self.interpolation_value is not None:
-            if not self.vmin <= self.interpolation_value <= self.vmax:
+        if self.v is not None:
+            if not self.vmin <= self.v <= self.vmax:
                 err_msg = "'Interpolation value must be "
-                err_msg += f"'{self.vmin} <= value <= {self.vmax}' "
-                err_msg += f"(value={self.interpolation_value})"
+                err_msg += f"'{self.vmin} <= value <= {self.vmax}' (value={self.v})"
                 raise ValueError(err_msg)
 
     def path(self, ylim: Tuple[float, float] = (-1.0, 1.0)) -> Path:
@@ -99,7 +98,7 @@ class Link:
     def color(self) -> str:
         """Get conditional hexcolor code"""
         color = self.inverted_color if self.is_inverted else self.normal_color
-        if self.interpolation_value is None:
+        if self.v is None:
             rgba = colors.to_rgba(color, alpha=self.alpha)
             return colors.to_hex(rgba, keep_alpha=True)
         else:
@@ -112,7 +111,7 @@ class Link:
             nearly_white = to_nearly_white(color)
             cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
             norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-            norm_value = norm(self.interpolation_value)
+            norm_value = norm(self.v)
             return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
 
     @property

@@ -236,7 +236,7 @@ class GenomeViz:
         normal_color: str = "grey",
         inverted_color: str = "red",
         alpha: float = 0.8,
-        interpolation_value: Optional[float] = None,
+        v: Optional[float] = None,
         vmin: float = 0,
         vmax: float = 100,
         curve: bool = False,
@@ -256,7 +256,7 @@ class GenomeViz:
             Inverted link color
         alpha : float, optional
             Color transparency
-        interpolation_value : Optional[float], optional
+        v : Optional[float], optional
             Value for color interpolation
         vmin : float, optional
             Min value for color interpolation
@@ -286,7 +286,7 @@ class GenomeViz:
                 normal_color,
                 inverted_color,
                 alpha,
-                interpolation_value,
+                v,
                 vmin,
                 vmax,
                 curve,

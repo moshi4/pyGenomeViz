@@ -241,6 +241,7 @@ class FeatureTrack(Track):
         gbk: Genbank,
         feature_type: str = "CDS",
         label_type: Optional[str] = None,
+        label_filter: Optional[List[str]] = None,
         allow_partial: bool = True,
         labelsize: int = 15,
         labelcolor: str = "black",
@@ -265,6 +266,9 @@ class FeatureTrack(Track):
             Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
         label_type : Optional[str], optional
             Label type (e.g. `gene`,`protein_id`,`product`,etc...)
+        label_filter : Optional[List[str]], optional
+            Label filter string list (e.g. `hypothetical`, `uncharacterized`)
+            If label contains target string, make it empty.
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
         labelsize : int, optional
@@ -301,6 +305,9 @@ class FeatureTrack(Track):
                 label = ""
             else:
                 label = feature.qualifiers.get(label_type, [""])[0]
+                if label_filter is not None:
+                    for filter_str in label_filter:
+                        label = "" if filter_str in label else label
             self.features.append(
                 Feature(
                     start,

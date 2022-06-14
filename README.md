@@ -48,7 +48,7 @@ for idx, cds in enumerate(cds_list, 1):
     start, end, strand = cds
     track.add_feature(start, end, strand, label=f"CDS{idx:02d}")
 
-fig = gv.plotfig(dpi=100)
+fig = gv.plotfig()
 ```
 
 ![example01.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example01.png)
@@ -82,7 +82,7 @@ gv.add_link(("genome 02", 350, 450), ("genome 03", 450, 350), normal_color="skyb
 gv.add_link(("genome 02", 900, 700), ("genome 03", 700, 500), normal_color="skyblue", inverted_color="lime")
 gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="skyblue", inverted_color="lime")
 
-fig = gv.plotfig(dpi=100)
+fig = gv.plotfig()
 ```
 
 ![example02.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example02.png)
@@ -95,7 +95,7 @@ fig = gv.plotfig(dpi=100)
 from pygenomeviz import Genbank, GenomeViz, load_dataset
 
 # Load single genbank file
-gbk_files, _ = load_dataset("phage")
+gbk_files, _ = load_dataset("escherichia_phage")
 gbk = Genbank(gbk_files[0])
 
 # Visualize genbank features
@@ -103,7 +103,7 @@ gv = GenomeViz()
 track = gv.add_feature_track(gbk.name, gbk.genome_length)
 track.add_genbank_features(gbk)
 
-fig = gv.plotfig(dpi=100)
+fig = gv.plotfig()
 ```
 
 ![example03.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example03.png)
@@ -121,7 +121,7 @@ gv = GenomeViz(
     align_type="center",
 )
 
-gbk_files, links = load_dataset("phage")
+gbk_files, links = load_dataset("escherichia_phage")
 for gbk_file in gbk_files:
     gbk = Genbank(gbk_file)
     track = gv.add_feature_track(gbk.name, gbk.genome_length)
@@ -130,9 +130,9 @@ for gbk_file in gbk_files:
 for link in links:
     link_data1 = (link.ref_name, link.ref_start, link.ref_end)
     link_data2 = (link.query_name, link.query_start, link.query_end)
-    gv.add_link(link_data1, link_data2, interpolation_value=link.identity, alpha=0.8, curve=True)
+    gv.add_link(link_data1, link_data2, interpolation_value=link.identity, curve=True)
 
-fig = gv.plotfig(dpi=100)
+fig = gv.plotfig()
 ```
 
 ![example04.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example04.png)

@@ -103,7 +103,14 @@ class Link:
             rgba = colors.to_rgba(color, alpha=self.alpha)
             return colors.to_hex(rgba, keep_alpha=True)
         else:
-            cmap = colors.LinearSegmentedColormap.from_list("cmap", ("white", color))
+
+            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
+                """Convert target color to nearly white"""
+                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                return colors.to_hex(cmap(nearly_value))
+
+            nearly_white = to_nearly_white(color)
+            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
             norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
             norm_value = norm(self.interpolation_value)
             return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)

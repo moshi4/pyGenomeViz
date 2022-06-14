@@ -557,7 +557,14 @@ class GenomeViz:
         for cnt, color in enumerate(bar_colors):
             left = bar_left + bar_width * cnt
             cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
-            cmap = colors.LinearSegmentedColormap.from_list("cmap", ("white", color))
+
+            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
+                """Convert target color to nearly white"""
+                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                return colors.to_hex(cmap(nearly_value))
+
+            nearly_white = to_nearly_white(color)
+            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
             norm = colors.Normalize(vmin=vmin, vmax=vmax)
             cb_props = {"orientation": "vertical", "ticks": []}
             cb = ColorbarBase(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_props)

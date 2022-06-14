@@ -212,8 +212,16 @@ class Genbank:
                     translation = f.qualifiers.get("translation", [None])[0]
                     if translation is None:
                         continue
-                start = self._to_int(f.location.parts[0].start) + base_len
-                end = self._to_int(f.location.parts[-1].end) + base_len
+                    if f.qualifiers.get("locus_tag", [""])[0] == "b2891":
+                        print(f.location.parts)
+                if f.strand == -1:
+                    # Handle rare case (complement & join)
+                    # Found in NC_00913 protein_id=NP_417367.1
+                    start = self._to_int(f.location.parts[-1].start) + base_len
+                    end = self._to_int(f.location.parts[0].end) + base_len
+                else:
+                    start = self._to_int(f.location.parts[0].start) + base_len
+                    end = self._to_int(f.location.parts[-1].end) + base_len
                 # Restrict features in range
                 if allow_partial:
                     if (

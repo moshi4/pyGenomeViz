@@ -18,8 +18,6 @@ class Track:
         name: str,
         size: int,
         labelsize: int = 0,
-        labelmargin: float = 0,
-        linewidth: int = 0,
         spines: bool = False,
         ratio: float = 1.0,
     ):
@@ -32,10 +30,6 @@ class Track:
             Track size
         labelsize : int, optional
             Track label size
-        labelmargin : float, optional
-            Track label margin
-        linewidth : int, optional
-            Track line width
         spines : bool, optional
             Display track spines
         ratio : float, optional
@@ -44,8 +38,6 @@ class Track:
         self.name = name
         self.size = size
         self.labelsize = labelsize
-        self.labelmargin = labelmargin
-        self.linewidth = linewidth
         self.spines = spines
         self.ratio = ratio
         self._offset: Optional[int] = None
@@ -118,6 +110,7 @@ class FeatureTrack(Track):
         labelsize: int = 20,
         labelmargin: float = 0.01,
         linewidth: int = 1,
+        linecolor: str = "black",
         spines: bool = False,
         ratio: float = 1.0,
     ):
@@ -134,12 +127,17 @@ class FeatureTrack(Track):
             Track label margin
         linewidth : int, optional
             Track line width
+        linecolor : str, optional
+            Track line color
         spines : bool, optional
             Display track spines
         ratio : float, optional
             Track height ratio
         """
-        super().__init__(name, size, labelsize, labelmargin, linewidth, spines, ratio)
+        super().__init__(name, size, labelsize, spines, ratio)
+        self.labelmargin = labelmargin
+        self.linewidth = linewidth
+        self.linecolor = linecolor
         self.features: List[Feature] = []
         self.subtracks: List[FeatureSubTrack] = []
 
@@ -334,7 +332,7 @@ class FeatureSubTrack(Track):
     """FeatureSubTrack Class"""
 
     def __init__(self, name: str, size: int, spines: bool = False, ratio: float = 1.0):
-        super().__init__(name, size, 0, 0, 0, spines, ratio)
+        super().__init__(name, size, 0, spines, ratio)
 
 
 class LinkTrack(Track):
@@ -351,7 +349,7 @@ class LinkTrack(Track):
         ratio : float, optional
             Track height ratio
         """
-        super().__init__(name, 0, 0, 0, 0, spines, ratio)
+        super().__init__(name, 0, 0, spines, ratio)
         self.links: List[Link] = []
 
     def add_link(self, link: Link) -> None:
@@ -390,7 +388,7 @@ class TickTrack(Track):
         tick_style : str, optional
             Tick style (`axis`|`bar`)
         """
-        super().__init__("tick", size, labelsize, 0, 0, spines, ratio)
+        super().__init__("tick", size, labelsize, spines, ratio)
         self.tick_style = tick_style
 
     @property

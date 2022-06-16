@@ -28,6 +28,7 @@ class Link:
     size_ratio: float = 0.9
 
     def __post_init__(self):
+        # Check color string
         if not colors.is_color_like(self.normal_color):
             err_msg = f"'normal_color={self.normal_color}' is not color like."
             raise ValueError(err_msg)
@@ -39,6 +40,7 @@ class Link:
             err_msg = "'size_ratio' must be '0 <= value <= 1' "
             err_msg += f"(value={self.size_ratio})"
             raise ValueError(err_msg)
+        # Check range of interpolation value
         if self.v is not None:
             if not self.vmin <= self.v <= self.vmax:
                 err_msg = "'Interpolation value must be "

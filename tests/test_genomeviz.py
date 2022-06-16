@@ -88,7 +88,7 @@ def test_escherichia_phage_dataset(tmp_path: Path):
     assert fig_outfile.exists()
 
 
-def test_eriwinia_phage_dataset(tmp_path: Path):
+def test_erwinia_phage_dataset(tmp_path: Path):
     """Test with 'erwinia phage' dataset"""
     gv = GenomeViz(
         fig_track_height=0.8,

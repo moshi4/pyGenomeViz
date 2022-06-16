@@ -14,10 +14,11 @@ This package is developed for the purpose of easily and beautifully plotting gen
 features and sequence similarity comparison links between multiple genomes.
 It supports genome visualization of Genbank format file, and can be used to interactively plot
 genome visualization figure on jupyter notebook, or for integration into a genome analysis pipeline.  
+
 For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
 
 ![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)  
-**Fig.1 Four *Eriwinia phage* genome comparison result**
+**Fig.1 Four *Erwinia phage* genome comparison result**
 
 ![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)  
 **Fig.2 Six *Enterobacteria phage* genome comparison result**

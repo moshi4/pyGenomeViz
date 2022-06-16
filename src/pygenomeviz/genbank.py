@@ -1,3 +1,6 @@
+import bz2
+import gzip
+import zipfile
 from functools import lru_cache
 from io import TextIOWrapper
 from pathlib import Path
@@ -25,6 +28,7 @@ class Genbank:
         ----------
         gbk_source : Union[str, Path, TextIOWrapper]
             Genbank file or source
+            (`.gz`, `.bz2`, `.zip` format file is automatically uncompressed)
         name : Optional[str]
             name (If None, `file name` or `record name` is set)
         reverse : bool, optional
@@ -36,7 +40,7 @@ class Genbank:
         """
         self._gbk_source = gbk_source
         self._name = name
-        self._records: List[SeqRecord] = list(SeqIO.parse(gbk_source, "genbank"))
+        self._records = self._parse_gbk_source(gbk_source)
         self.reverse = reverse
         self.min_range = 1 if min_range is None else min_range
         self.max_range = self.full_genome_length if max_range is None else max_range
@@ -47,13 +51,47 @@ class Genbank:
             err_msg += f"'1 <= min_range <= max_range <= {self.full_genome_length}'"
             raise ValueError(err_msg)
 
+    def _parse_gbk_source(
+        self, gbk_source: Union[str, Path, TextIOWrapper]
+    ) -> List[SeqRecord]:
+        """Parse genbank source
+
+        Parameters
+        ----------
+        gbk_source : Union[str, Path, TextIOWrapper]
+            Genbank file or source
+
+        Returns
+        -------
+        List[SeqRecord]
+            Genbank SeqRecords
+        """
+        # Parse compressed file
+        if isinstance(gbk_source, (str, Path)):
+            if Path(gbk_source).suffix == ".gz":
+                with gzip.open(gbk_source, mode="rt") as f:
+                    return list(SeqIO.parse(f, "genbank"))
+            elif Path(gbk_source).suffix == ".bz2":
+                with bz2.open(gbk_source, mode="rt") as f:
+                    return list(SeqIO.parse(f, "genbank"))
+            elif Path(gbk_source).suffix == ".zip":
+                with zipfile.ZipFile(gbk_source) as zip:
+                    with zip.open(zip.namelist()[0]) as f:
+                        return list(SeqIO.parse(TextIOWrapper(f), "genbank"))
+        # Parse no compressed file or TextIOWrapper
+        return list(SeqIO.parse(gbk_source, "genbank"))
+
     @property
     def name(self) -> str:
         """Name"""
         if self._name is not None:
             return self._name
         if isinstance(self._gbk_source, (str, Path)):
-            return Path(self._gbk_source).with_suffix("").name
+            gbk_file = Path(self._gbk_source)
+            if gbk_file.suffix in (".gz", ".bz2", ".zip"):
+                return gbk_file.with_suffix("").with_suffix("").name
+            else:
+                return gbk_file.with_suffix("").name
         elif isinstance(self._gbk_source, TextIOWrapper):
             return self._records[0].name
         else:

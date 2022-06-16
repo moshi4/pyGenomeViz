@@ -2,10 +2,10 @@ name: CI
 on:
   push:
     branches: [main, develop]
-    paths: ["src/**", "tests/**"]
+    paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
   pull_request:
     branches: [main, develop]
-    paths: ["src/**", "tests/**"]
+    paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
   workflow_dispatch:
 
 jobs:

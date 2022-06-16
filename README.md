@@ -4,7 +4,8 @@
 ![OS](https://img.shields.io/badge/OS-_Windows_|_Mac_|_Linux-steelblue)
 ![License](https://img.shields.io/badge/License-MIT-steelblue)
 [![Latest PyPI version](https://img.shields.io/pypi/v/pygenomeviz.svg)](https://pypi.python.org/pypi/pygenomeviz)
-[![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)  
+[![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)
+[![CI](https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml/badge.svg)](https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml)
 
 ## Overview
 
@@ -12,9 +13,14 @@ pyGenomeViz is a genome visualization python package for comparative genomics im
 This package is developed for the purpose of easily and beautifully plotting genomic
 features and sequence similarity comparison links between multiple genomes.
 It supports genome visualization of Genbank format file, and can be used to interactively plot
-genome visualization figure on jupyter notebook, or for integration into a genome analysis pipeline.
-
+genome visualization figure on jupyter notebook, or for integration into a genome analysis pipeline.  
 For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
+
+![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)  
+**Fig.1 Four *Eriwinia phage* genome comparison result**
+
+![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)  
+**Fig.2 Six *Enterobacteria phage* genome comparison result**
 
 ## Installation
 
@@ -146,6 +152,9 @@ the figure in the manner of matplotlib. Here are some tips for figure customizat
 - Add annotation label & fillbox
 - Add colorbar for links identity
 
+<details>
+<summary>Code</summary>
+
 ```python
 from pygenomeviz import Genbank, GenomeViz, load_dataset
 
@@ -209,12 +218,17 @@ gv.set_colorbar(fig, vmin=min_identity)
 fig.savefig("example05.png", bbox_inches="tight")
 ```
 
+</details>
+
 ![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)
 
 #### Customization Tips 02
 
 - Add legends
 - Add colorbar for links identity
+
+<details>
+<summary>Code</summary>
 
 ```python
 from matplotlib.lines import Line2D
@@ -268,5 +282,7 @@ gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmi
 
 fig.savefig("example06.png", bbox_inches="tight")
 ```
+
+</details>
 
 ![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)

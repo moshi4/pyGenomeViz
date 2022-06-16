@@ -12,8 +12,8 @@ nav:
   - Examples:
       - Basic Example: examples/basic_example.ipynb
       - Practical Example: examples/practical_example.ipynb
-      - Gallery Example: examples/gallery_example.ipynb
       - Customization Tips: examples/customization_tips.ipynb
+      - Gallery Example: examples/gallery_example.ipynb
   - API Docs:
       - GenomeViz: api-docs/genomeviz.md
       - FeatureTrack: api-docs/track.md

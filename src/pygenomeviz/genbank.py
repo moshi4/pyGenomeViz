@@ -141,7 +141,7 @@ class Genbank:
         Parameters
         ----------
         window_size : int, optional
-            Window size (Default: `genome_size / 400`)
+            Window size (Default: `genome_size / 500`)
         step_size : int, optional
             Step size (Default: `genome_size / 1000`)
 
@@ -153,7 +153,7 @@ class Genbank:
         pos_list, gc_skew_list = [], []
         seq = self.genome_seq
         if window_size is None:
-            window_size = int(len(seq) / 400)
+            window_size = int(len(seq) / 500)
         if step_size is None:
             step_size = int(len(seq) / 1000)
         for i in range(0, len(seq), step_size):
@@ -185,7 +185,7 @@ class Genbank:
         Parameters
         ----------
         window_size : int, optional
-            Window size (Default: `genome_size / 400`)
+            Window size (Default: `genome_size / 500`)
         step_size : int, optional
             Step size (Default: `genome_size / 1000`)
 
@@ -197,7 +197,7 @@ class Genbank:
         pos_list, gc_content_list = [], []
         seq = self.genome_seq
         if window_size is None:
-            window_size = int(len(seq) / 400)
+            window_size = int(len(seq) / 500)
         if step_size is None:
             step_size = int(len(seq) / 1000)
         for i in range(0, len(seq), step_size):

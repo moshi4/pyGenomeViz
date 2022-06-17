@@ -1,0 +1,31 @@
+name: Publish to PyPI
+on:
+  release:
+    types: [released]
+
+jobs:
+  publish_to_pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    env:
+      PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+      - name: Build
+        run: poetry build
+
+      - name: Publish
+        run: poetry publish -u $PYPI_USERNAME -p $PYPI_PASSWORD

@@ -12,8 +12,9 @@
 pyGenomeViz is a genome visualization python package for comparative genomics implemented in matplotlib.
 This package is developed for the purpose of easily and beautifully plotting genomic
 features and sequence similarity comparison links between multiple genomes.
-It supports genome visualization of Genbank format file, and can be used to interactively plot
-genome visualization figure on jupyter notebook, or for integration into a genome analysis pipeline.  
+It supports genome visualization of Genbank format file and can be saved figure in various formats (JPG/PNG/SVG/PDF).
+User can use pyGenomeViz for interactive genome visualization figure plotting on jupyter notebook,
+or automatic genome visualization figure plotting in genome analysis scripts/pipelines.
 
 For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
 
@@ -84,10 +85,10 @@ gv.add_link(("genome 01", 150, 300), ("genome 02", 50, 200))
 gv.add_link(("genome 01", 700, 500), ("genome 02", 900, 700))
 gv.add_link(("genome 01", 750, 950), ("genome 02", 1150, 950))
 # Add links between "genome 02" and "genome 03"
-gv.add_link(("genome 02", 50, 200), ("genome 03", 150, 300), normal_color="skyblue", inverted_color="lime")
-gv.add_link(("genome 02", 350, 450), ("genome 03", 450, 350), normal_color="skyblue", inverted_color="lime")
-gv.add_link(("genome 02", 900, 700), ("genome 03", 700, 500), normal_color="skyblue", inverted_color="lime")
-gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="skyblue", inverted_color="lime")
+gv.add_link(("genome 02", 50, 200), ("genome 03", 150, 300), normal_color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 02", 350, 450), ("genome 03", 450, 350), normal_color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 02", 900, 700), ("genome 03", 700, 500), normal_color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="skyblue", inverted_color="lime", curve=True)
 
 gv.savefig("example02.png")
 ```

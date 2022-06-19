@@ -316,7 +316,7 @@ class GenomeViz:
             track_name2track[track.name] = track
         if track_name not in track_name2track.keys():
             err_msg = f"track.name='{track_name}' is not found."
-            raise KeyError(err_msg)
+            raise ValueError(err_msg)
         return track_name2track[track_name]
 
     def get_tracks(self, subtrack: bool = False) -> List[Track]:

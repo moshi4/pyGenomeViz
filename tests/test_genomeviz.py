@@ -173,6 +173,52 @@ def test_enterobacteria_phage_dataset(tmp_path: Path):
     fig.savefig(fig_outfile, dpi=300, bbox_inches="tight", pad_inches=0.5)
 
 
+def test_get_track_error():
+    """Test get_track error"""
+    gv = GenomeViz()
+    with pytest.raises(ValueError) as e:
+        gv.get_track("test")
+    assert str(e.value).startswith("track.name='test' is not found.")
+
+
+def test_top_track_error():
+    """Test top track property access error"""
+    gv = GenomeViz()
+    with pytest.raises(ValueError) as e:
+        gv.top_track
+    assert str(e.value).startswith("No track found.")
+
+
+def test_max_track_size_error():
+    """Test max track size property access error"""
+    gv = GenomeViz()
+    with pytest.raises(ValueError) as e:
+        gv.max_track_size
+    assert str(e.value).startswith("No track found.")
+
+
+def test_track_name_duplication_error():
+    """Test track name duplication case"""
+    gv = GenomeViz()
+    dup_name, size = "duplication track", 1000
+    gv.add_feature_track(dup_name, size)
+    with pytest.raises(ValueError):
+        gv.add_feature_track(dup_name, size)
+
+
+def test_add_link_for_no_adjacent_tracks():
+    """Test add link to no adjacent feature tracks"""
+    gv = GenomeViz()
+    track_name1, track_name2, track_name3 = "track01", "track02", "track03"
+    gv.add_feature_track(track_name1, 1000)
+    gv.add_feature_track(track_name2, 1100)
+    gv.add_feature_track(track_name3, 1200)
+
+    gv.add_link((track_name1, 100, 200), (track_name2, 200, 300))
+    with pytest.raises(ValueError):
+        gv.add_link((track_name1, 100, 200), (track_name3, 200, 300))
+
+
 def test_top_track():
     """Test top track"""
     gv = GenomeViz()

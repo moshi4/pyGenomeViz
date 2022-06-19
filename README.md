@@ -166,12 +166,13 @@ gv = GenomeViz(
     feature_track_ratio=0.5,
     tick_track_ratio=0.3,
     tick_style="axis",
+    tick_labelsize=10,
 )
 
 gbk_files, links = load_dataset("erwinia_phage")
 gbk_list = [Genbank(gbk_file) for gbk_file in gbk_files]
 for gbk in gbk_list:
-    track = gv.add_feature_track(gbk.name, gbk.genome_length)
+    track = gv.add_feature_track(gbk.name, gbk.genome_length, labelsize=15)
     track.add_genbank_features(gbk, plotstyle="arrow")
 
 min_identity = int(min(link.identity for link in links))

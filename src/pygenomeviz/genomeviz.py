@@ -375,10 +375,11 @@ class GenomeViz:
         if len(self.get_tracks()) == 0:
             raise ValueError("No tracks are defined for plotting figure.")
         self._tracks = [t for t in self.get_tracks() if not isinstance(t, TickTrack)]
+        max_track_size = self.max_track_size
         if self.tick_style is not None:
             self._tracks.append(
                 TickTrack(
-                    self.max_track_size,
+                    max_track_size,
                     self.tick_labelsize,
                     self.track_spines,
                     self.tick_track_ratio,
@@ -401,7 +402,7 @@ class GenomeViz:
         )
         for idx, track in enumerate(self.get_tracks(subtrack=True)):
             # Create new track subplot
-            xlim, ylim = (0, self.max_track_size), track.ylim
+            xlim, ylim = (0, max_track_size), track.ylim
             ax: Axes = figure.add_subplot(
                 spec[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
             )
@@ -415,7 +416,7 @@ class GenomeViz:
             if isinstance(track, FeatureTrack):
                 # Plot track label
                 if track.labelsize != 0:
-                    margin = -self.max_track_size * track.labelmargin
+                    margin = -max_track_size * track.labelmargin
                     ax.text(margin, 0, **track.label_params)
                 # Plot track scale line
                 xmin, xmax = track_offset, track.size + track_offset
@@ -423,13 +424,13 @@ class GenomeViz:
 
                 for feature in [f + track_offset for f in track.features]:
                     # Don't draw too small feature (To reduce drawing time)
-                    if feature.length < self.max_track_size * self.plot_size_thr:
+                    if feature.length < max_track_size * self.plot_size_thr:
                         continue
                     # Plot feature object
-                    obj_params = feature.obj_params(self.max_track_size, ylim)
+                    obj_params = feature.obj_params(max_track_size, ylim)
                     ax.arrow(**obj_params)
                     # Plot feature text
-                    if feature.labelsize != 0:
+                    if feature.label != "" or feature.labelsize != 0:
                         ax.text(**feature.text_params(ylim))
 
             elif isinstance(track, FeatureSubTrack):

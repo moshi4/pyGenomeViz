@@ -70,9 +70,112 @@ class Feature:
         return self.end - self.start + 1
 
     @property
-    def _is_bigstyle(self) -> bool:
-        """Check plotstyle is big or not"""
+    def is_bigstyle(self) -> bool:
+        """Check plotstyle is 'big~~~' or not"""
         return self.plotstyle.startswith("big")
+
+    @property
+    def patch_kwargs(self) -> Dict[str, Any]:
+        """Patch keyword arguments dict"""
+        return {
+            "fc": self.facecolor,
+            "ec": self.edgecolor,
+            "lw": self.linewidth,
+            "zorder": 5 if self.is_bigstyle else -5,
+        }
+
+    def box_patch(
+        self, start: int, end: int, ylim: Tuple[float, float], ratio=1.0
+    ) -> Rectangle:
+        """Box patch"""
+        # x, y
+        x = start
+        if self.is_bigstyle or self.strand == -1:
+            y = ylim[0]
+        else:
+            y = 0
+        y *= ratio
+        # width, height
+        width = end - start + 1
+        if self.is_bigstyle:
+            height = ylim[1] - ylim[0]
+        else:
+            height = ylim[1]
+        height *= ratio
+
+        return Rectangle((x, y), width, height, **self.patch_kwargs)
+
+    def arrow_patch(
+        self, start: int, end: int, ylim: Tuple[float, float], max_track_size: int
+    ) -> FancyArrow:
+        """Arrow patch"""
+        # x, y
+        x = end if self.strand == -1 else start
+        if self.is_bigstyle:
+            y = 0
+        else:
+            if self.strand == -1:
+                y = ylim[0] / 2
+            else:
+                y = ylim[1] / 2
+        # dx, dy
+        length = end - start + 1
+        dx, dy = length * self.strand, 0
+        # head width
+        max_width = ylim[1] - ylim[0]
+        head_width = max_width
+        if self.is_bigstyle:
+            head_width = max_width
+        else:
+            head_width = max_width / 2
+        # shaft_width
+        shaft_width = head_width * self.arrow_shaft_ratio
+        # head length
+        head_length = max_track_size * 0.015
+        if abs(self.length) < head_length:
+            head_length = abs(self.length)
+
+        return FancyArrow(
+            x,
+            y,
+            dx,
+            dy,
+            width=shaft_width,
+            length_includes_head=True,
+            head_width=head_width,
+            head_length=head_length,
+            **self.patch_kwargs,
+        )
+
+    def rbox_patch(
+        self, start: int, end: int, ylim: Tuple[float, float], max_track_size: int
+    ) -> PathPatch:
+        """Rounded box patch"""
+        length = end - start + 1
+        r_size = max_track_size * 0.005
+        if length <= 4 * r_size:
+            r_size = length * 0.25
+
+        xmin, xmax = start, end
+        if self.is_bigstyle:
+            ymin, ymax, ycenter = ylim[0], ylim[1], 0
+        else:
+            if self.strand == -1:
+                ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
+            else:
+                ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
+
+        path_data = [
+            (Path.MOVETO, (xmin + r_size, ymax)),
+            (Path.LINETO, (xmax - r_size, ymax)),
+            (Path.CURVE3, (xmax + r_size, ycenter)),
+            (Path.CURVE3, (xmax - r_size, ymin)),
+            (Path.LINETO, (xmin + r_size, ymin)),
+            (Path.CURVE3, (xmin - r_size, ycenter)),
+            (Path.CURVE3, (xmin + r_size, ymax)),
+        ]
+        codes, verts = zip(*path_data)
+        return PathPatch(Path(verts, codes), **self.patch_kwargs)
 
     def patch(
         self,
@@ -81,92 +184,15 @@ class Feature:
     ) -> Patch:
         """Feature patch"""
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
-        patch_kwargs = {
-            "fc": self.facecolor,
-            "ec": self.edgecolor,
-            "lw": self.linewidth,
-            "zorder": 5 if self.plotstyle.startswith("big") else -5,
-        }
 
         if self.plotstyle in ("bigbox", "box"):
-            # x, y
-            x = self.start
-            if self._is_bigstyle or self.strand == -1:
-                y = ylim[0]
-            else:
-                y = 0
-            # width, height
-            width = self.length
-            if self._is_bigstyle:
-                height = ylim[1] - ylim[0]
-            else:
-                height = ylim[1]
-
-            return Rectangle((x, y), width, height, **patch_kwargs)
+            return self.box_patch(self.start, self.end, ylim)
 
         elif self.plotstyle in ("bigarrow", "arrow"):
-            # x, y
-            x = self.end if self.strand == -1 else self.start
-            if self._is_bigstyle:
-                y = 0
-            else:
-                if self.strand == -1:
-                    y = ylim[0] / 2
-                else:
-                    y = ylim[1] / 2
-            # dx, dy
-            dx, dy = self.length * self.strand, 0
-
-            # head width
-            max_width = ylim[1] - ylim[0]
-            head_width = max_width
-            if self._is_bigstyle:
-                head_width = max_width
-            else:
-                head_width = max_width / 2
-            # shaft_width
-            shaft_width = head_width * self.arrow_shaft_ratio
-            # head length
-            head_length = max_track_size * 0.015
-            if abs(self.length) < head_length:
-                head_length = abs(self.length)
-
-            return FancyArrow(
-                x,
-                y,
-                dx,
-                dy,
-                width=shaft_width,
-                length_includes_head=True,
-                head_width=head_width,
-                head_length=head_length,
-                **patch_kwargs,
-            )
+            return self.arrow_patch(self.start, self.end, ylim, max_track_size)
 
         elif self.plotstyle in ("bigrbox", "rbox"):
-            r_size = max_track_size * 0.005
-            if self.length <= 4 * r_size:
-                r_size = self.length * 0.25
-
-            xmin, xmax = self.start, self.end
-            if self._is_bigstyle:
-                ymin, ymax, ycenter = ylim[0], ylim[1], 0
-            else:
-                if self.strand == -1:
-                    ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
-                else:
-                    ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
-            path_data = [
-                (Path.MOVETO, (xmin + r_size, ymax)),
-                (Path.LINETO, (xmax - r_size, ymax)),
-                (Path.CURVE3, (xmax + r_size, ycenter)),
-                (Path.CURVE3, (xmax - r_size, ymin)),
-                (Path.LINETO, (xmin + r_size, ymin)),
-                (Path.CURVE3, (xmin - r_size, ycenter)),
-                (Path.CURVE3, (xmin + r_size, ymax)),
-            ]
-            codes, verts = zip(*path_data)
-            return PathPatch(Path(verts, codes), **patch_kwargs)
+            return self.rbox_patch(self.start, self.end, ylim, max_track_size)
 
         else:
             raise NotImplementedError()
@@ -201,7 +227,7 @@ class Feature:
             y = ylim[0]
         else:  # "center"
             labelva = "center"
-            if self.plotstyle in ("bigarrow", "bigbox"):
+            if self.is_bigstyle:
                 y = 0
             else:
                 y = (abs(ylim[0]) / 2) * self.strand

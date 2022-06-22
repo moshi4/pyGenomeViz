@@ -4,6 +4,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Dict, Tuple
 
+from matplotlib.patches import FancyArrow, Patch
+
 
 @dataclass
 class Feature:
@@ -64,12 +66,12 @@ class Feature:
         """Feature length"""
         return self.end - self.start + 1
 
-    def obj_params(
+    def patch(
         self,
         max_track_size: int,
         ylim: Tuple[float, float],
-    ) -> Dict[str, Any]:
-        """Feature object drawing parameters"""
+    ) -> Patch:
+        """Feature patch"""
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
         # x, y
         x = self.end if self.strand == -1 else self.start
@@ -100,23 +102,23 @@ class Feature:
             head_length = max_track_size * 0.015
             if abs(self.length) < head_length:
                 head_length = abs(self.length)
-        # zorder
+        # zordergg
         zorder = 5 if self.plotstyle in ("bigarrow", "bigbox") else -5
 
-        return {
-            "x": x,
-            "y": y,
-            "dx": dx,
-            "dy": dy,
-            "width": shaft_width,
-            "head_width": head_width,
-            "head_length": head_length,
-            "fc": self.facecolor,
-            "ec": self.edgecolor,
-            "length_includes_head": True,
-            "zorder": zorder,
-            "linewidth": self.linewidth,
-        }
+        return FancyArrow(
+            x,
+            y,
+            dx,
+            dy,
+            width=shaft_width,
+            length_includes_head=True,
+            head_width=head_width,
+            head_length=head_length,
+            fc=self.facecolor,
+            ec=self.edgecolor,
+            linewidth=self.linewidth,
+            zorder=zorder,
+        )
 
     def text_params(self, ylim: Tuple[float, float]) -> Dict[str, Any]:
         """Feature text drawing parameters"""

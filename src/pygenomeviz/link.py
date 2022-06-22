@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
 from matplotlib import colors
+from matplotlib.patches import PathPatch
 from matplotlib.path import Path
 
 
@@ -47,8 +48,8 @@ class Link:
                 err_msg += f"'{self.vmin} <= value <= {self.vmax}' (value={self.v})"
                 raise ValueError(err_msg)
 
-    def path(self, ylim: Tuple[float, float] = (-1.0, 1.0)) -> Path:
-        """Link path
+    def patch(self, ylim: Tuple[float, float] = (-1.0, 1.0)) -> PathPatch:
+        """Link path patch
 
         Parameters
         ----------
@@ -57,44 +58,33 @@ class Link:
 
         Returns
         -------
-        path : Path
-            Link path
+        patch : PathPatch
+            Link path patch
         """
         ymin, ymax = ylim[0] * self.size_ratio, ylim[1] * self.size_ratio
         if self.curve:
-            codes = [
-                Path.MOVETO,
-                Path.LINETO,
-                Path.CURVE4,
-                Path.CURVE4,
-                Path.LINETO,
-                Path.LINETO,
-                Path.CURVE4,
-                Path.CURVE4,
-                Path.LINETO,
-            ]
             ctl_y_point1, ctl_y_point2 = ymax / 3, ymin / 3
-            verts = (
-                (self.track_start2, ymin),
-                (self.track_end2, ymin),
-                (self.track_end2, ctl_y_point2),
-                (self.track_end1, ctl_y_point1),
-                (self.track_end1, ymax),
-                (self.track_start1, ymax),
-                (self.track_start1, ctl_y_point1),
-                (self.track_start2, ctl_y_point2),
-                (self.track_start2, ymin),
-            )
+            path_data = [
+                (Path.MOVETO, (self.track_start2, ymin)),
+                (Path.LINETO, (self.track_end2, ymin)),
+                (Path.CURVE4, (self.track_end2, ctl_y_point2)),
+                (Path.CURVE4, (self.track_end1, ctl_y_point1)),
+                (Path.LINETO, (self.track_end1, ymax)),
+                (Path.LINETO, (self.track_start1, ymax)),
+                (Path.CURVE4, (self.track_start1, ctl_y_point1)),
+                (Path.CURVE4, (self.track_start2, ctl_y_point2)),
+                (Path.LINETO, (self.track_start2, ymin)),
+            ]
         else:
-            codes = [Path.MOVETO, Path.LINETO, Path.LINETO, Path.LINETO, Path.LINETO]
-            verts = (
-                (self.track_start2, ymin),
-                (self.track_end2, ymin),
-                (self.track_end1, ymax),
-                (self.track_start1, ymax),
-                (self.track_start2, ymin),
-            )
-        return Path(verts, codes)
+            path_data = [
+                (Path.MOVETO, (self.track_start2, ymin)),
+                (Path.LINETO, (self.track_end2, ymin)),
+                (Path.LINETO, (self.track_end1, ymax)),
+                (Path.LINETO, (self.track_start1, ymax)),
+                (Path.LINETO, (self.track_start2, ymin)),
+            ]
+        codes, verts = zip(*path_data)
+        return PathPatch(Path(verts, codes), fc=self.color, lw=0)
 
     @property
     def color(self) -> str:

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
-from matplotlib import colors, gridspec, patches
+from matplotlib import colors, gridspec
 from matplotlib.colorbar import ColorbarBase
 from matplotlib.figure import Axes, Figure
 from matplotlib.ticker import MaxNLocator
@@ -439,8 +439,7 @@ class GenomeViz:
             elif isinstance(track, LinkTrack):
                 for link in track.links:
                     link = link.add_offset(self._track_name2offset)
-                    p = patches.PathPatch(link.path(ylim), fc=link.color, linewidth=0)
-                    ax.add_patch(p)
+                    ax.add_patch(link.patch(ylim))
 
             elif isinstance(track, TickTrack):
                 if self.tick_style == "axis":

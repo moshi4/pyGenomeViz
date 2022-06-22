@@ -192,7 +192,7 @@ class FeatureTrack(Track):
         labelcolor : str, optional
             Feature label color
         plotstyle : str, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`)
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
         facecolor : str, optional
             Feature facecolor
         edgecolor : str, optional
@@ -274,7 +274,7 @@ class FeatureTrack(Track):
         labelcolor : str, optional
             Feature label color
         plotstyle : str, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`)
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
         facecolor : str, optional
             Feature facecolor
         edgecolor : str, optional

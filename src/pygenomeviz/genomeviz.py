@@ -427,7 +427,8 @@ class GenomeViz:
                     if feature.length < max_track_size * self.plot_size_thr:
                         continue
                     # Plot feature object
-                    ax.add_patch(feature.patch(max_track_size, ylim))
+                    for patch in feature.patches(max_track_size, ylim):
+                        ax.add_patch(patch)
                     # Plot feature text
                     if feature.label != "" or feature.labelsize != 0:
                         ax.text(**feature.text_params(ylim))

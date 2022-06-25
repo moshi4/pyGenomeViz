@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from matplotlib.figure import Axes
 
-from pygenomeviz.feature import Feature
+from pygenomeviz.feature import ExonFeature, Feature
 from pygenomeviz.genbank import Genbank
 from pygenomeviz.link import Link
 
@@ -174,7 +174,6 @@ class FeatureTrack(Track):
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
-        exon_regions: Optional[List[Tuple[int, int]]] = None,
     ) -> None:
         """Add feature to track
 
@@ -213,8 +212,6 @@ class FeatureTrack(Track):
             Feature arrow shaft ratio
         size_ratio : float, optional
             Feature size ratio to track
-        exon_regions : Optional[List[Tuple[int, int]]], optional
-            Exon regions list
         """
         self.features.append(
             Feature(
@@ -234,7 +231,84 @@ class FeatureTrack(Track):
                 labelha,
                 arrow_shaft_ratio,
                 size_ratio,
+            )
+        )
+
+    def add_exon_feature(
+        self,
+        exon_regions: List[Tuple[int, int]],
+        strand: int,
+        label: str = "",
+        labelsize: int = 15,
+        labelcolor: str = "black",
+        plotstyle: str = "bigarrow",
+        facecolor: str = "orange",
+        edgecolor: str = "black",
+        linewidth: float = 0,
+        labelrotation: int = 45,
+        labelvpos: str = "strand",
+        labelhpos: str = "center",
+        labelha: str = "left",
+        arrow_shaft_ratio: float = 0.5,
+        size_ratio: float = 0.9,
+        exon_labels: Optional[List[str]] = None,
+    ) -> None:
+        """Add exon feature to track
+
+        Parameters
+        ----------
+        exon_regions : List[Tuple[int, int]]
+            Exon feature start-end postion list
+        strand : int
+            Feature strand
+        label : str, optional
+            Feature label
+        labelsize : int, optional
+            Feature label size
+        labelcolor : str, optional
+            Feature label color
+        plotstyle : str, optional
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
+        facecolor : str, optional
+            Feature facecolor
+        edgecolor : str, optional
+            Feature edgecolor
+        linewidth : float, optional
+            Feature edge linewidth
+        labelrotation : int, optional
+            Feature label rotation
+        labelvpos : str, optional
+            Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+            If 'strand' is set, 'top' or 'bottom' is auto selected by strand.
+        labelhpos : str, optional
+            Feature label horizontal position (`left`|`center`|`right`)
+        labelha : str, optional
+            Feature label horizontal alignment (`left`|`center`|`right`)
+        arrow_shaft_ratio : float, optional
+            Feature arrow shaft ratio
+        size_ratio : float, optional
+            Feature size ratio to track
+        exon_labels: Optional[List[str]], optional
+            Exon labels
+        """
+        self.features.append(
+            ExonFeature(
                 exon_regions,
+                strand,
+                label,
+                labelsize,
+                labelcolor,
+                plotstyle,
+                facecolor,
+                edgecolor,
+                linewidth,
+                labelrotation,
+                labelvpos,
+                labelhpos,
+                labelha,
+                arrow_shaft_ratio,
+                size_ratio,
+                exon_labels,
             )
         )
 

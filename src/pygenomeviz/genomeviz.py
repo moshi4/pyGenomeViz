@@ -423,15 +423,12 @@ class GenomeViz:
                 ax.hlines(0, xmin, xmax, track.linecolor, linewidth=track.linewidth)
 
                 for feature in [f + track_offset for f in track.features]:
-                    # Don't draw too small feature (To reduce drawing time)
+                    # Don't plot too small feature (To reduce drawing time)
                     if feature.length < max_track_size * self.plot_size_thr:
                         continue
-                    # Plot feature object
-                    for patch in feature.patches(max_track_size, ylim):
-                        ax.add_patch(patch)
-                    # Plot feature text
-                    if feature.label != "" or feature.labelsize != 0:
-                        ax.text(**feature.text_params(ylim))
+                    # Plot feature patch & label text
+                    feature.plot_feature(ax, max_track_size, ylim)
+                    feature.plot_label(ax, ylim)
 
             elif isinstance(track, FeatureSubTrack):
                 # No specific plans to implementation at this time

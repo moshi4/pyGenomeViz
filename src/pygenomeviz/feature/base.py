@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Tuple
 
-from matplotlib.patches import FancyArrow, Patch, PathPatch, Rectangle
+from matplotlib.figure import Axes
+from matplotlib.patches import FancyArrow, PathPatch, Rectangle
 from matplotlib.path import Path
 
 
@@ -28,7 +27,6 @@ class Feature:
     labelha: str = "left"  # "left", "center", "right"
     arrow_shaft_ratio: float = 0.5
     size_ratio: float = 0.9
-    exon_regions: Optional[List[Tuple[int, int]]] = None
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -64,14 +62,48 @@ class Feature:
             err_msg = "'size_ratio' must be '0 <= value <= 1' "
             err_msg += f"(value={self.size_ratio})"
             raise ValueError(err_msg)
-        # Check exon regions
-        if self.exon_regions is not None:
-            if len(self.exon_regions) < 2:
-                raise ValueError()
-            start_exon_loc = self.exon_regions[0][0]
-            end_exon_loc = self.exon_regions[-1][-1]
-            if self.start != start_exon_loc or self.end != end_exon_loc:
-                raise ValueError()
+
+    def plot_feature(
+        self, ax: Axes, max_track_size: int, ylim: Tuple[float, float]
+    ) -> None:
+        """Plot feature
+
+        Parameters
+        ----------
+        ax : Axes
+            Matplotlib axes object to be plotted
+        max_track_size : int
+            Max track size
+        ylim : Tuple[float, float]
+            Y-axis limit
+        """
+        ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
+        start, end = self.start - 1, self.end - 1
+
+        if self.plotstyle in ("bigbox", "box"):
+            p = self._box_patch(start, end, ylim)
+        elif self.plotstyle in ("bigarrow", "arrow"):
+            p = self._arrow_patch(start, end, ylim, max_track_size)
+        elif self.plotstyle in ("bigrbox", "rbox"):
+            p = self._rbox_patch(start, end, ylim, max_track_size)
+        else:
+            raise ValueError(f"'{self.plotstyle}' is invalid plotstyle.")
+
+        ax.add_patch(p)
+
+    def plot_label(self, ax: Axes, ylim: Tuple[float, float]) -> None:
+        """Plot label
+
+        Parameters
+        ----------
+        ax : Axes
+            Matplotlib axes object to be plotted
+        ylim : Tuple[float, float]
+            Y-axis limit
+        """
+        if self.label != "" and self.labelsize != 0:
+            start, end = self.start - 1, self.end
+            ax.text(**self._label_kwargs(start, end, self.label, ylim))
 
     @property
     def length(self) -> int:
@@ -83,48 +115,68 @@ class Feature:
         """Check plotstyle is 'big~~~' or not"""
         return self.plotstyle.startswith("big")
 
-    @property
-    def patch_kwargs(self) -> Dict[str, Any]:
-        """Patch keyword arguments dict"""
-        return {
-            "fc": self.facecolor,
-            "ec": self.edgecolor,
-            "lw": self.linewidth,
-            "zorder": 5 if self.is_bigstyle else -5,
-        }
+    def _box_patch(self, start: int, end: int, ylim: Tuple[float, float]) -> Rectangle:
+        """Box patch
 
-    def box_patch(
-        self, start: int, end: int, ylim: Tuple[float, float], ratio=1.0
-    ) -> Rectangle:
-        """Box patch"""
+        Parameters
+        ----------
+        start : int
+            Start position
+        end : int
+            End position
+        ylim : Tuple[float, float]
+            Y-axis limit
+
+        Returns
+        -------
+        box_patch : Rectangle
+            Box patch
+        """
         # x, y
         x = start
         if self.is_bigstyle or self.strand == -1:
             y = ylim[0]
         else:
             y = 0
-        y *= ratio
         # width, height
         width = end - start + 1
         if self.is_bigstyle:
             height = ylim[1] - ylim[0]
         else:
             height = ylim[1]
-        height *= ratio
 
-        return Rectangle((x, y), width, height, **self.patch_kwargs)
+        return Rectangle((x, y), width, height, **self._patch_kwargs())
 
-    def arrow_patch(
+    def _arrow_patch(
         self,
         start: int,
         end: int,
         ylim: Tuple[float, float],
         max_track_size: int,
-        exon_box: bool = False,
+        no_head_length: bool = False,
     ) -> FancyArrow:
-        """Arrow patch"""
+        """Arrow patch
+
+        Parameters
+        ----------
+        start : int
+            Start position
+        end : int
+            End position
+        ylim : Tuple[float, float]
+            Y-axis limit
+        max_track_size : int
+            Max track size (Use for head length calculation)
+        no_head_length : bool, optional
+            If True, set head length as 0
+
+        Returns
+        -------
+        arrow_patch : FancyArrow
+            Arrow patch
+        """
         # x, y
-        x = end if self.strand == -1 else start
+        x = end + 1 if self.strand == -1 else start
         if self.is_bigstyle:
             y = 0
         else:
@@ -146,11 +198,12 @@ class Feature:
         shaft_width = head_width * self.arrow_shaft_ratio
         # head length
         head_length = max_track_size * 0.015
-        if abs(self.length) < head_length:
-            head_length = abs(self.length)
+        if length < head_length:
+            head_length = length
 
-        if exon_box:
+        if no_head_length:
             head_length = 0
+            head_width = shaft_width
 
         return FancyArrow(
             x,
@@ -161,19 +214,36 @@ class Feature:
             length_includes_head=True,
             head_width=head_width,
             head_length=head_length,
-            **self.patch_kwargs,
+            **self._patch_kwargs(),
         )
 
-    def rbox_patch(
+    def _rbox_patch(
         self, start: int, end: int, ylim: Tuple[float, float], max_track_size: int
     ) -> PathPatch:
-        """Rounded box patch"""
+        """Rounded box patch
+
+        Parameters
+        ----------
+        start : int
+            Start position
+        end : int
+            End position
+        ylim : Tuple[float, float]
+            Y-axis limit
+        max_track_size : int
+            Max track size (Use for rounded size calculation)
+
+        Returns
+        -------
+        rbox_patch : PathPatch
+            Rounded box patch
+        """
         length = end - start + 1
         r_size = max_track_size * 0.005
         if length <= 4 * r_size:
             r_size = length * 0.25
 
-        xmin, xmax = start, end
+        xmin, xmax = start, end + 1
         if self.is_bigstyle:
             ymin, ymax, ycenter = ylim[0], ylim[1], 0
         else:
@@ -192,93 +262,51 @@ class Feature:
             (Path.CURVE3, (xmin + r_size, ymax)),
         ]
         codes, verts = zip(*path_data)
-        return PathPatch(Path(verts, codes), **self.patch_kwargs)
+        return PathPatch(Path(verts, codes), **self._patch_kwargs())
 
-    def intron_patch(
-        self, start: int, end: int, ylim: Tuple[float, float]
-    ) -> PathPatch:
-        """Intron patch"""
-        xmin, xmax, xcenter = start, end, (start + end) / 2
-        if self.is_bigstyle:
-            ymin, ymax, ycenter = ylim[0], ylim[1], 0
-        else:
-            if self.strand == -1:
-                ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
-            else:
-                ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
-        ytop = ymin if self.strand == -1 else ymax
+    def _patch_kwargs(self) -> Dict[str, Any]:
+        """Patch keyword arguments dict
 
-        path_data = [
-            (Path.MOVETO, (xmin, ycenter)),
-            (Path.LINETO, (xcenter, ytop)),
-            (Path.LINETO, (xmax, ycenter)),
-        ]
-        codes, verts = zip(*path_data)
-        return PathPatch(Path(verts, codes), lw=1, fill=False, zorder=5)
+        Returns
+        -------
+        patch_kwargs : Dict[str, Any]
+            Patch keyword arguments dict
+        """
+        return {
+            "fc": self.facecolor,
+            "ec": self.edgecolor,
+            "lw": self.linewidth,
+            "zorder": 5 if self.is_bigstyle else -5,
+        }
 
-    @property
-    def intron_regions(self) -> List[Tuple[int, int]]:
-        """Intron regions"""
-        intron_regions = []
-        if self.exon_regions is None:
-            return intron_regions
-        for i in range(0, len(self.exon_regions) - 1):
-            intron_start = self.exon_regions[i][1] + 1
-            intron_end = self.exon_regions[i + 1][0] - 1
-            intron_regions.append((intron_start, intron_end))
-        return intron_regions
+    def _label_kwargs(
+        self, start: int, end: int, label: str, ylim: Tuple[float, float]
+    ) -> Dict[str, Any]:
+        """Label keyword arguments dict
 
-    def patches(
-        self,
-        max_track_size: int,
-        ylim: Tuple[float, float],
-    ) -> List[Patch]:
-        """Feature patch"""
-        ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
+        Parameters
+        ----------
+        start : int
+            Start position
+        end : int
+            End position
+        label : str
+            Label
+        ylim : Tuple[float, float]
+            Y-axis limit
 
-        if self.exon_regions is not None:
-            patches = []
-            exon_regions = self.exon_regions[:: self.strand]
-            for idx, (exon_start, exon_end) in enumerate(exon_regions, 1):
-                if self.plotstyle in ("bigbox", "box"):
-                    p = self.box_patch(exon_start, exon_end, ylim)
-                elif self.plotstyle in ("bigarrow", "arrow"):
-                    exon_box = False if idx == len(exon_regions) else True
-                    p = self.arrow_patch(
-                        exon_start, exon_end, ylim, max_track_size, exon_box
-                    )
-                elif self.plotstyle in ("bigrbox", "rbox"):
-                    p = self.rbox_patch(exon_start, exon_end, ylim, max_track_size)
-                else:
-                    raise NotImplementedError()
-                patches.append(p)
-
-            for (intron_start, intron_end) in self.intron_regions:
-                patches.append(self.intron_patch(intron_start, intron_end, ylim))
-
-            return patches
-
-        if self.plotstyle in ("bigbox", "box"):
-            return [self.box_patch(self.start, self.end, ylim)]
-
-        elif self.plotstyle in ("bigarrow", "arrow"):
-            return [self.arrow_patch(self.start, self.end, ylim, max_track_size)]
-
-        elif self.plotstyle in ("bigrbox", "rbox"):
-            return [self.rbox_patch(self.start, self.end, ylim, max_track_size)]
-
-        else:
-            raise NotImplementedError()
-
-    def text_params(self, ylim: Tuple[float, float]) -> Dict[str, Any]:
-        """Feature text drawing parameters"""
+        Returns
+        -------
+        label_kwargs : Dict[str, Any]
+            Label keyword arguments dict
+        """
         # x
         if self.labelhpos == "left":
-            x = self.start
+            x = start
         elif self.labelhpos == "right":
-            x = self.end
+            x = end
         else:  # "center"
-            x = (self.start + self.end) / 2
+            x = (start + end) / 2
 
         # labelrotation
         labelrotation = self.labelrotation
@@ -308,7 +336,7 @@ class Feature:
         return {
             "x": x,
             "y": y,
-            "s": self.label,
+            "s": label,
             "color": self.labelcolor,
             "fontsize": self.labelsize,
             "rotation": labelrotation,
@@ -320,13 +348,6 @@ class Feature:
 
     def __add__(self, offset: int):
         feature = deepcopy(self)
-        # Add offset to start & end
         feature.start += offset
         feature.end += offset
-        # Add offset to exon regions
-        if feature.exon_regions is not None:
-            exon_regions = []
-            for (exon_start, exon_end) in feature.exon_regions:
-                exon_regions.append((exon_start + offset, exon_end + offset))
-            feature.exon_regions = exon_regions
         return feature

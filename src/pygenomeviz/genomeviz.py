@@ -437,7 +437,7 @@ class GenomeViz:
             elif isinstance(track, LinkTrack):
                 for link in track.links:
                     link = link.add_offset(self._track_name2offset)
-                    ax.add_patch(link.patch(ylim))
+                    link.plot_link(ax, ylim)
 
             elif isinstance(track, TickTrack):
                 if self.tick_style == "axis":

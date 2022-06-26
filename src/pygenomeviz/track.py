@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from matplotlib.figure import Axes
 
@@ -317,7 +317,7 @@ class FeatureTrack(Track):
         gbk: Genbank,
         feature_type: str = "CDS",
         label_type: Optional[str] = None,
-        label_filter: Optional[List[str]] = None,
+        label_filter_func: Optional[Callable[[str], bool]] = None,
         allow_partial: bool = True,
         labelsize: int = 15,
         labelcolor: str = "black",
@@ -342,9 +342,9 @@ class FeatureTrack(Track):
             Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
         label_type : Optional[str], optional
             Label type (e.g. `gene`,`protein_id`,`product`,etc...)
-        label_filter : Optional[List[str]], optional
-            Label filter string list (e.g. `hypothetical`, `uncharacterized`)
-            If label contains target string, make it empty.
+        label_filter_func : Optional[Callable[[str], bool]], optional
+            Label filter function. If function returns True, label is not displayed.
+            Useful for filtering out unwanted label displays such as `hypothetical ~~~`.
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
         labelsize : int, optional
@@ -381,9 +381,9 @@ class FeatureTrack(Track):
                 label = ""
             else:
                 label = feature.qualifiers.get(label_type, [""])[0]
-                if label_filter is not None:
-                    for filter_str in label_filter:
-                        label = "" if filter_str in label else label
+                if label_filter_func is not None and label_filter_func(label):
+                    label = ""
+
             self.features.append(
                 Feature(
                     start,

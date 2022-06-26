@@ -136,7 +136,7 @@ def test_enterobacteria_phage_dataset(tmp_path: Path):
         track.add_genbank_features(
             gbk,
             label_type="product" if idx == 0 else None,  # Labeling only top track
-            label_filter=["hypothetical"],  # Ignore 'hypothetical ~~~' label
+            label_filter_func=lambda s: s.startswith("hypothetical"),
             labelsize=8,
             labelvpos="top",
             facecolor="skyblue",

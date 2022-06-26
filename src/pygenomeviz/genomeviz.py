@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 from matplotlib import colors, gridspec
@@ -245,6 +245,7 @@ class GenomeViz:
         vmax: float = 100,
         curve: bool = False,
         size_ratio: float = 0.9,
+        patch_kws: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add link data to link track
 
@@ -270,6 +271,10 @@ class GenomeViz:
             If True, bezier curve link is plotted
         size_ratio : float, optional
             Link size ratio to track
+        patch_kws : Optional[Dict[str, Any]], optional
+            Optional keyword arguments to pass to link Patch object.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
+            for detailed parameters.
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         tracks = [t.name for t in self.get_tracks()]
@@ -295,6 +300,7 @@ class GenomeViz:
                 vmax,
                 curve,
                 size_ratio,
+                patch_kws,
             )
         )
 

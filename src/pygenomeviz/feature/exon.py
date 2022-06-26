@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from matplotlib.figure import Axes
 from matplotlib.patches import PathPatch
@@ -28,9 +28,12 @@ class ExonFeature(Feature):
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
         exon_labels: Optional[List[str]] = None,
+        patch_kws: Optional[Dict[str, Any]] = None,
+        intron_patch_kws: Optional[Dict[str, Any]] = None,
     ):
         self.exon_regions = exon_regions
         self.exon_labels = exon_labels
+        self.intron_patch_kws = {} if intron_patch_kws is None else intron_patch_kws
         self._check_exon_regions()
         super().__init__(
             exon_regions[0][0],  # start
@@ -49,6 +52,7 @@ class ExonFeature(Feature):
             labelha,
             arrow_shaft_ratio,
             size_ratio,
+            patch_kws,
         )
 
         if exon_labels is not None and len(exon_regions) != len(exon_labels):
@@ -71,6 +75,12 @@ class ExonFeature(Feature):
         """
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
 
+        # Plot intron feature
+        for (start, end) in self.intron_regions:
+            p = self._intron_patch(start - 1, end, ylim)
+            ax.add_patch(p)
+
+        # Plot exon feature
         exon_regions = self.exon_regions[:: self.strand]
         for idx, (start, end) in enumerate(exon_regions, 1):
             start, end = start - 1, end - 1
@@ -83,10 +93,6 @@ class ExonFeature(Feature):
                 p = self._rbox_patch(start, end, ylim, max_track_size)
             else:
                 raise ValueError(f"'{self.plotstyle}' is invalid plotstyle.")
-            ax.add_patch(p)
-
-        for (start, end) in self.intron_regions:
-            p = self._intron_patch(start - 1, end, ylim)
             ax.add_patch(p)
 
     def plot_label(self, ax: Axes, ylim: Tuple[float, float]) -> None:
@@ -166,8 +172,22 @@ class ExonFeature(Feature):
             (Path.LINETO, (xmax, ycenter)),
         ]
         codes, verts = zip(*path_data)
-        # TODO: Add user defined kwargs params
-        return PathPatch(Path(verts, codes), lw=1, fill=False, zorder=5)
+        return PathPatch(Path(verts, codes), **self._intron_patch_kwargs())
+
+    def _intron_patch_kwargs(self) -> Dict[str, Any]:
+        """Intron patch keyword arguments dict
+
+        Returns
+        -------
+        intron_patch_kwargs : Dict[str, Any]
+            Intron patch keyword arguments dict
+        """
+        return {
+            "lw": 1,
+            "fill": False,
+            "zorder": 5 if self.is_bigstyle else -5,
+            **self.intron_patch_kws,
+        }
 
     def __add__(self, offset: int):
         feature = deepcopy(self)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from matplotlib import colors
 from matplotlib.figure import Axes
@@ -28,6 +28,7 @@ class Link:
     vmax: float = 100
     curve: bool = False
     size_ratio: float = 0.9
+    patch_kws: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         # Check color string
@@ -84,7 +85,22 @@ class Link:
                 (Path.LINETO, (start2, ymin)),
             ]
         codes, verts = zip(*path_data)
-        ax.add_patch(PathPatch(Path(verts, codes), fc=self.color, lw=0))
+        ax.add_patch(PathPatch(Path(verts, codes), **self._patch_kwargs()))
+
+    def _patch_kwargs(self) -> Dict[str, Any]:
+        """Patch keyword arguments dict
+
+        Returns
+        -------
+        patch_kwargs : Dict[str, Any]
+            Patch keyword arguments dict
+        """
+        patch_kws = {} if self.patch_kws is None else self.patch_kws
+        return {
+            "fc": self.color,
+            "lw": 0,
+            **patch_kws,
+        }
 
     @property
     def color(self) -> str:

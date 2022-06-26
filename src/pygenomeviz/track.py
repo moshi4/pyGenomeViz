@@ -174,6 +174,7 @@ class FeatureTrack(Track):
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
+        patch_kws: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add feature to track
 
@@ -212,6 +213,10 @@ class FeatureTrack(Track):
             Feature arrow shaft ratio
         size_ratio : float, optional
             Feature size ratio to track
+        patch_kws : Optional[Dict[str, Any]], optional
+            Optional keyword arguments to pass to feature Patch object.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
+            for detailed parameters.
         """
         self.features.append(
             Feature(
@@ -231,6 +236,7 @@ class FeatureTrack(Track):
                 labelha,
                 arrow_shaft_ratio,
                 size_ratio,
+                patch_kws,
             )
         )
 
@@ -252,6 +258,8 @@ class FeatureTrack(Track):
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
         exon_labels: Optional[List[str]] = None,
+        patch_kws: Optional[Dict[str, Any]] = None,
+        intron_patch_kws: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add exon feature to track
 
@@ -290,6 +298,12 @@ class FeatureTrack(Track):
             Feature size ratio to track
         exon_labels: Optional[List[str]], optional
             Exon labels
+        patch_kws : Optional[Dict[str, Any]], optional
+            Optional keyword arguments to pass to exon feature Patch object.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
+            for detailed parameters.
+        intron_patch_kws : Optional[Dict[str, Any]], optional
+            Optional keyword arguments to pass to intron feature Patch object.
         """
         self.features.append(
             ExonFeature(
@@ -309,6 +323,8 @@ class FeatureTrack(Track):
                 arrow_shaft_ratio,
                 size_ratio,
                 exon_labels,
+                patch_kws,
+                intron_patch_kws,
             )
         )
 
@@ -331,6 +347,7 @@ class FeatureTrack(Track):
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
+        patch_kws: Optional[Dict[str, Any]] = None,
     ):
         """Add features from genbank record
 
@@ -371,6 +388,10 @@ class FeatureTrack(Track):
             Feature arrow shaft ratio
         size_ratio : float, optional
             Feature size ratio to track
+        patch_kws : Optional[Dict[str, Any]], optional
+            Optional keyword arguments to pass to feature Patch object.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
+            for detailed parameters.
         """
         target_features = gbk.extract_features(feature_type, None, True, allow_partial)
         for feature in target_features:
@@ -402,6 +423,7 @@ class FeatureTrack(Track):
                     labelha,
                     arrow_shaft_ratio,
                     size_ratio,
+                    patch_kws,
                 )
             )
 

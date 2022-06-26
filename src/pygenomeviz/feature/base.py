@@ -1,6 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from matplotlib.figure import Axes
 from matplotlib.patches import FancyArrow, PathPatch, Rectangle
@@ -27,6 +27,7 @@ class Feature:
     labelha: str = "left"  # "left", "center", "right"
     arrow_shaft_ratio: float = 0.5
     size_ratio: float = 0.9
+    patch_kws: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -272,11 +273,13 @@ class Feature:
         patch_kwargs : Dict[str, Any]
             Patch keyword arguments dict
         """
+        patch_kws = {} if self.patch_kws is None else self.patch_kws
         return {
             "fc": self.facecolor,
             "ec": self.edgecolor,
             "lw": self.linewidth,
             "zorder": 5 if self.is_bigstyle else -5,
+            **patch_kws,
         }
 
     def _label_kwargs(

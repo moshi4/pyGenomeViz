@@ -185,6 +185,7 @@ class ExonFeature(Feature):
         return {
             "lw": 1,
             "fill": False,
+            "clip_on": False,
             "zorder": 5 if self.is_bigstyle else -5,
             **self.intron_patch_kws,
         }

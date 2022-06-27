@@ -160,7 +160,7 @@ class FeatureTrack(Track):
         self,
         start: int,
         end: int,
-        strand: int,
+        strand: int = 1,
         label: str = "",
         labelsize: int = 15,
         labelcolor: str = "black",
@@ -173,7 +173,7 @@ class FeatureTrack(Track):
         labelhpos: str = "center",
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
-        size_ratio: float = 0.9,
+        size_ratio: float = 1.0,
         patch_kws: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add feature to track
@@ -184,7 +184,7 @@ class FeatureTrack(Track):
             Featrue start position
         end : int
             Feature end position
-        strand : int
+        strand : int, optional
             Feature strand
         label : str, optional
             Feature label
@@ -243,7 +243,7 @@ class FeatureTrack(Track):
     def add_exon_feature(
         self,
         exon_regions: List[Tuple[int, int]],
-        strand: int,
+        strand: int = 1,
         label: str = "",
         labelsize: int = 15,
         labelcolor: str = "black",
@@ -256,7 +256,7 @@ class FeatureTrack(Track):
         labelhpos: str = "center",
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
-        size_ratio: float = 0.9,
+        size_ratio: float = 1.0,
         exon_labels: Optional[List[str]] = None,
         patch_kws: Optional[Dict[str, Any]] = None,
         intron_patch_kws: Optional[Dict[str, Any]] = None,
@@ -267,7 +267,7 @@ class FeatureTrack(Track):
         ----------
         exon_regions : List[Tuple[int, int]]
             Exon feature start-end postion list
-        strand : int
+        strand : int, optional
             Feature strand
         label : str, optional
             Feature label
@@ -346,7 +346,7 @@ class FeatureTrack(Track):
         labelhpos: str = "center",
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
-        size_ratio: float = 0.9,
+        size_ratio: float = 1.0,
         patch_kws: Optional[Dict[str, Any]] = None,
     ):
         """Add features from genbank record
@@ -432,6 +432,18 @@ class FeatureSubTrack(Track):
     """FeatureSubTrack Class"""
 
     def __init__(self, name: str, size: int, spines: bool = False, ratio: float = 1.0):
+        """
+        Parameters
+        ----------
+        name : str
+            Sub track name
+        size : int
+            Sub track size
+        spines : bool, optional
+            Display track spines
+        ratio : float, optional
+            Sub track height ratio
+        """
         super().__init__(name, size, 0, spines, ratio)
 
 

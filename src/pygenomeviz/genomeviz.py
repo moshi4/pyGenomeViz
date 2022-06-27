@@ -39,8 +39,9 @@ class GenomeViz:
             Figure width
         fig_track_height : float, optional
             Figure track height
+            (Figure height = `track number` * `fig track height`)
         align_type : str, optional
-            Track align type
+            Track align type (`left`|`center`|`height`)
         feature_track_ratio : float, optional
             Feature track ratio
         link_track_ratio : float, optional
@@ -153,7 +154,7 @@ class GenomeViz:
         labelsize: int = 20,
         labelmargin: float = 0.01,
         linewidth: int = 1,
-        linecolor: str = "black",
+        linecolor: str = "grey",
     ) -> FeatureTrack:
         """Add feature track
 
@@ -244,7 +245,7 @@ class GenomeViz:
         vmin: float = 0,
         vmax: float = 100,
         curve: bool = False,
-        size_ratio: float = 0.9,
+        size_ratio: float = 1.0,
         patch_kws: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Add link data to link track

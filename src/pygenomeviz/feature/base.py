@@ -278,6 +278,7 @@ class Feature:
             "fc": self.facecolor,
             "ec": self.edgecolor,
             "lw": self.linewidth,
+            "clip_on": False,
             "zorder": 5 if self.is_bigstyle else -5,
             **patch_kws,
         }

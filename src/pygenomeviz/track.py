@@ -218,6 +218,12 @@ class FeatureTrack(Track):
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
             for detailed parameters.
         """
+        # Check if start & end positions are within appropriate track range
+        if not 0 <= start <= end <= self.size:
+            err_msg = f"start-end must be '0 <= start <= end <= {self.size}' "
+            err_msg += f"(start={start}, end={end})"
+            raise ValueError(err_msg)
+
         self.features.append(
             Feature(
                 start,
@@ -305,6 +311,13 @@ class FeatureTrack(Track):
         intron_patch_kws : Optional[Dict[str, Any]], optional
             Optional keyword arguments to pass to intron feature Patch object.
         """
+        # Check if start & end positions are within appropriate track range
+        for (exon_start, exon_end) in exon_regions:
+            if not 0 <= exon_start <= exon_end <= self.size:
+                err_msg = f"Exon start-end must be '0 <= start <= end <= {self.size}' "
+                err_msg += f"(exon_regions={exon_regions})"
+                raise ValueError(err_msg)
+
         self.features.append(
             ExonFeature(
                 exon_regions,

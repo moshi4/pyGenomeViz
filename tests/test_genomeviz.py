@@ -28,22 +28,28 @@ def test_manual_dataset(tmp_path: Path):
     )
 
     gv = GenomeViz()
+    cnt = 0
     for genome in genome_list:
         name, size, cds_list = genome["name"], genome["size"], genome["cds_list"]
         track = gv.add_feature_track(name, size)
-        for idx, cds in enumerate(cds_list, 1):
-            plotstyle = random.choice(("bigarrow", "arrow", "bigbox", "box"))
-            labelvpos = random.choice(("top", "center", "bottom", "strand"))
-            labelhpos = random.choice(("left", "center", "right"))
-            labelha = random.choice(("left", "center", "right"))
+        plotstyles = ("bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox")
+        labelvpos_list = ("top", "center", "bottom", "strand")
+        labelhpos_list = ("left", "center", "right")
+        labelha_list = ("left", "center", "right")
+        for cds in cds_list:
+            plotstyle = plotstyles[cnt % len(plotstyles)]
+            labelvpos = labelvpos_list[cnt % len(labelvpos_list)]
+            labelhpos = labelhpos_list[cnt % len(labelhpos_list)]
+            labelha = labelha_list[cnt % len(labelha_list)]
             track.add_feature(
                 *cds,
-                label=f"gene{idx:02d}",
+                label=f"gene{cnt:02d}",
                 plotstyle=plotstyle,
                 labelvpos=labelvpos,
                 labelhpos=labelhpos,
                 labelha=labelha,
             )
+            cnt += 1
 
     gv.add_link(("genome 01", 150, 300), ("genome 02", 50, 200))
     gv.add_link(("genome 01", 700, 500), ("genome 02", 900, 700))
@@ -171,6 +177,26 @@ def test_enterobacteria_phage_dataset(tmp_path: Path):
     )
     fig_outfile = tmp_path / "enterobacteria_phage.svg"
     fig.savefig(fig_outfile, dpi=300, bbox_inches="tight", pad_inches=0.5)
+    assert fig_outfile.exists()
+
+
+def test_add_exon_feature(tmp_path: Path):
+    """Test add exon feature"""
+    exon_regions = [(1, 210), (301, 480), (591, 800), (851, 1000), (1031, 1300)]
+    exon_labels = [str(i) for i in range(len(exon_regions))]
+
+    gv = GenomeViz(fig_track_height=0.3, link_track_ratio=0.3)
+    plotstyles = ("bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox")
+    for plotstyle in plotstyles:
+        for strand in (1, -1):
+            size = exon_regions[-1][-1]
+            track = gv.add_feature_track(name=f"{plotstyle} ({strand})", size=size)
+            track.add_exon_feature(
+                exon_regions, strand, plotstyle=plotstyle, exon_labels=exon_labels
+            )
+    fig_outfile = tmp_path / "exon_feature.svg"
+    gv.savefig(fig_outfile)
+    assert fig_outfile.exists()
 
 
 def test_get_track_error():

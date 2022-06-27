@@ -1,3 +1,4 @@
+import pytest
 from pygenomeviz.link import Link
 
 
@@ -26,3 +27,42 @@ def test_add_offset():
     # Check offset added new instance is changed
     assert offset_link.track_start1 == 201 and offset_link.track_end1 == 300
     assert offset_link.track_start2 == 351 and offset_link.track_end2 == 450
+
+
+def test_color_string_error():
+    """Test color string error"""
+    link1, link2 = ("link1", 1, 100), ("link2", 101, 200)
+    # Case1. normal color is not color like string
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, normal_color="test")
+    # Case2. normal color is not color like string
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, inverted_color="test")
+
+
+def test_size_ratio_error():
+    """Test size ratio error"""
+    link1, link2 = ("link1", 1, 100), ("link2", 101, 200)
+    # Case1. size_ratio < 0
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, size_ratio=-1)
+    # Case2. size_ratio > 1
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, size_ratio=2)
+
+
+def test_interpolation_value_error():
+    """Test interpolation value error"""
+    link1, link2 = ("link1", 1, 100), ("link2", 101, 200)
+    # Case1. vmin < 0
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, v=50, vmin=-100)
+    # Case2. vmax > 100
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, v=50, vmax=200)
+    # Case3. v < vmin
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, v=50, vmin=60)
+    # Case4. v > vmax
+    with pytest.raises(ValueError):
+        Link(*link1, *link2, v=90, vmax=80)

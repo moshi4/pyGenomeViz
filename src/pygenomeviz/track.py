@@ -346,7 +346,7 @@ class FeatureTrack(Track):
         gbk: Genbank,
         feature_type: str = "CDS",
         label_type: Optional[str] = None,
-        label_filter_func: Optional[Callable[[str], bool]] = None,
+        label_handle_func: Optional[Callable[[str], str]] = None,
         allow_partial: bool = True,
         labelsize: int = 15,
         labelcolor: str = "black",
@@ -372,9 +372,10 @@ class FeatureTrack(Track):
             Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
         label_type : Optional[str], optional
             Label type (e.g. `gene`,`protein_id`,`product`,etc...)
-        label_filter_func : Optional[Callable[[str], bool]], optional
-            Label filter function. If function returns True, label is not displayed.
-            Useful for filtering out unwanted label displays such as `hypothetical ~~~`.
+        label_handle_func : Optional[Callable[[str], str]], optional
+            Labels are handled by user defined function.
+            Useful for filtering out unnecesary labels such as `hypothetical ~~~`,
+            omitting labels with long characters, etc.
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
         labelsize : int, optional
@@ -415,8 +416,8 @@ class FeatureTrack(Track):
                 label = ""
             else:
                 label = feature.qualifiers.get(label_type, [""])[0]
-                if label_filter_func is not None and label_filter_func(label):
-                    label = ""
+                if label_handle_func is not None:
+                    label = label_handle_func(label)
 
             self.features.append(
                 Feature(

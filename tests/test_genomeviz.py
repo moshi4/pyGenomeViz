@@ -225,9 +225,22 @@ def test_top_track():
     top_track_name, top_track_size = "Top Track", 1000
     gv.add_feature_track(top_track_name, top_track_size)
     gv.add_feature_track("track02", 1200)
+    gv.add_feature_track("track03", 1100)
 
     assert gv.top_track.name == top_track_name
     assert gv.top_track.size == top_track_size
+
+
+def test_bottom_track():
+    """Test top track"""
+    gv = GenomeViz()
+    bottom_track_name, bottom_track_size = "Bottom Track", 1100
+    gv.add_feature_track("track01", 1000)
+    gv.add_feature_track("track02", 1200)
+    gv.add_feature_track(bottom_track_name, bottom_track_size)
+
+    assert gv.bottom_track.name == bottom_track_name
+    assert gv.bottom_track.size == bottom_track_size
 
 
 def test_add_feature_subtrack():

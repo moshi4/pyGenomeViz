@@ -359,6 +359,15 @@ class GenomeViz:
         return feature_tracks[0]
 
     @property
+    def bottom_track(self) -> FeatureTrack:
+        """Bottom track"""
+        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+        if len(feature_tracks) == 0:
+            err_msg = "No track found. Can't access 'bottom_track' property."
+            raise ValueError(err_msg)
+        return feature_tracks[-1]
+
+    @property
     def max_track_size(self) -> int:
         """Max track size"""
         if len(self.get_tracks()) == 0:

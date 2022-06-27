@@ -45,9 +45,10 @@ class Link:
             raise ValueError(err_msg)
         # Check range of interpolation value
         if self.v is not None:
-            if not self.vmin <= self.v <= self.vmax:
+            if not 0 <= self.vmin <= self.v <= self.vmax <= 100:
                 err_msg = "'Interpolation value must be "
-                err_msg += f"'{self.vmin} <= value <= {self.vmax}' (value={self.v})"
+                err_msg += "'0 <= vmin <= value <= vmax <= 100' "
+                err_msg += f" (value={self.v}, vmin={self.vmin}, vmax={self.vmax})"
                 raise ValueError(err_msg)
 
     def plot_link(self, ax: Axes, ylim: Tuple[float, float] = (-1.0, 1.0)) -> None:

@@ -17,27 +17,33 @@ def test_is_inverted():
 
 def test_add_offset():
     """Test add offset to link"""
-    link_name1, link_name2 = "link1", "link2"
-    link = Link(link_name1, 1, 100, link_name2, 101, 200)
-    offset_link = link.add_offset({link_name1: 200, link_name2: 250})
+    name1, start1, end1, offset1 = "link1", 1, 100, 200
+    name2, start2, end2, offset2 = "link2", 101, 200, 250
+    link = Link(name1, start1, end1, name2, start2, end2)
+    offset_link = link.add_offset({name1: offset1, name2: offset2})
 
     # Check original instance is not changed
-    assert link.track_start1 == 1 and link.track_end1 == 100
-    assert link.track_start2 == 101 and link.track_end2 == 200
+    assert link.track_start1 == start1
+    assert link.track_end1 == end1
+    assert link.track_start2 == start2
+    assert link.track_end2 == end2
     # Check offset added new instance is changed
-    assert offset_link.track_start1 == 201 and offset_link.track_end1 == 300
-    assert offset_link.track_start2 == 351 and offset_link.track_end2 == 450
+    assert offset_link.track_start1 == start1 + offset1
+    assert offset_link.track_end1 == end1 + offset1
+    assert offset_link.track_start2 == start2 + offset2
+    assert offset_link.track_end2 == end2 + offset2
 
 
 def test_color_string_error():
     """Test color string error"""
     link1, link2 = ("link1", 1, 100), ("link2", 101, 200)
+    invalid_color = "nocolor"
     # Case1. normal color is not color like string
     with pytest.raises(ValueError):
-        Link(*link1, *link2, normal_color="test")
+        Link(*link1, *link2, normal_color=invalid_color)
     # Case2. normal color is not color like string
     with pytest.raises(ValueError):
-        Link(*link1, *link2, inverted_color="test")
+        Link(*link1, *link2, inverted_color=invalid_color)
 
 
 def test_size_ratio_error():

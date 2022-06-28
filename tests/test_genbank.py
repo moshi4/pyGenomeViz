@@ -25,19 +25,21 @@ def test_range_param(gbk_file: Path):
     """Test range parameter result"""
     min_range, max_range = 10001, 30000
     gbk = Genbank(gbk_file, min_range=min_range, max_range=max_range)
+    expected_length = max_range - min_range + 1
 
-    assert gbk.full_genome_length != gbk.genome_length == 20000
+    assert gbk.full_genome_length != gbk.genome_length == expected_length
     assert gbk.full_genome_seq[min_range - 1 : max_range] == gbk.genome_seq
 
 
 def test_range_error_param(gbk_file: Path):
     """Test range error parameter"""
+    min_out_range, max_out_range = -100, 1000000
     # Case1. min_range < 0
     with pytest.raises(ValueError):
-        Genbank(gbk_file, min_range=-100, max_range=10000)
+        Genbank(gbk_file, min_range=min_out_range, max_range=10000)
     # Case2. max_range > genome_length
     with pytest.raises(ValueError):
-        Genbank(gbk_file, min_range=100, max_range=1000000)
+        Genbank(gbk_file, min_range=100, max_range=max_out_range)
 
 
 def test_calc_genome_gc_content(gbk_file: Path):

@@ -264,9 +264,16 @@ class Genbank:
                         not min_range <= start <= max_range
                         and not min_range <= end <= max_range
                     ):
+                        # Ignore completely out of range features
                         continue
+                    # If partially within range, fix position to within range
+                    if start <= min_range <= end <= max_range:
+                        start = min_range
+                    if min_range <= start <= max_range <= end:
+                        end = max_range
                 else:
                     if not min_range <= start <= end <= max_range:
+                        # Ignore out of range features
                         continue
                 # Extract only target strand feature
                 if target_strand is not None and f.strand != target_strand:
@@ -290,6 +297,7 @@ class Genbank:
     def write_cds_fasta(
         self,
         fasta_outfile: Union[str, Path],
+        allow_partial: bool = False,
     ):
         """Write CDS protein features fasta file
 
@@ -298,7 +306,7 @@ class Genbank:
         fasta_outfile : Union[str, Path]
             CDS fasta file
         """
-        features = self.extract_features("CDS", None, fix_position=False)
+        features = self.extract_features("CDS", None, False, allow_partial)
         cds_seq_records: List[SeqRecord] = []
         for idx, feature in enumerate(features, 1):
             qualifiers = feature.qualifiers

@@ -28,11 +28,13 @@ class ExonFeature(Feature):
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
         exon_labels: Optional[List[str]] = None,
+        exon_label_kws: Optional[Dict[str, Any]] = None,
         patch_kws: Optional[Dict[str, Any]] = None,
         intron_patch_kws: Optional[Dict[str, Any]] = None,
     ):
         self.exon_regions = exon_regions
         self.exon_labels = exon_labels
+        self.exon_label_kws = {} if exon_label_kws is None else exon_label_kws
         self.intron_patch_kws = {} if intron_patch_kws is None else intron_patch_kws
         self._check_exon_regions()
         super().__init__(
@@ -110,7 +112,9 @@ class ExonFeature(Feature):
             for (start, end), label in zip(self.exon_regions, self.exon_labels):
                 if label != "" and self.labelsize != 0:
                     start = start - 1
-                    ax.text(**self._label_kwargs(start, end, label, ylim))
+                    label_kwargs = self._label_kwargs(start, end, label, ylim)
+                    label_kwargs.update(self.exon_label_kws)
+                    ax.text(**label_kwargs)
 
     @property
     def intron_regions(self) -> List[Tuple[int, int]]:

@@ -264,6 +264,7 @@ class FeatureTrack(Track):
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
         exon_labels: Optional[List[str]] = None,
+        exon_label_kws: Optional[Dict[str, Any]] = None,
         patch_kws: Optional[Dict[str, Any]] = None,
         intron_patch_kws: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -303,7 +304,12 @@ class FeatureTrack(Track):
         size_ratio : float, optional
             Feature size ratio to track
         exon_labels: Optional[List[str]], optional
-            Exon labels
+            Exon labels. Array length must be same as `exon_regions`.
+        exon_label_kws : Optional[Dict[str, Any]], optional
+            Optional keyword arguments to pass to Axes.text method for exon label.
+            Use this option when plotting both Feature & Exon labels.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html
+            for detailed parameters.
         patch_kws : Optional[Dict[str, Any]], optional
             Optional keyword arguments to pass to exon feature Patch object.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
@@ -336,6 +342,7 @@ class FeatureTrack(Track):
                 arrow_shaft_ratio,
                 size_ratio,
                 exon_labels,
+                exon_label_kws,
                 patch_kws,
                 intron_patch_kws,
             )

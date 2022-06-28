@@ -44,7 +44,7 @@ DATASETS = {
 }
 
 
-def load_dataset(name: str) -> Tuple[List[Path], List[Link]]:
+def load_dataset(name: str, overwrite: bool = False) -> Tuple[List[Path], List[Link]]:
     """Load pygenomeviz example dataset
 
     Datasets are downloaded from https://github.com/moshi4/pygenomeviz-data
@@ -60,6 +60,9 @@ def load_dataset(name: str) -> Tuple[List[Path], List[Link]]:
     ----------
     name : str
         Dataset name (e.g. `escherichia_phage`)
+
+    overwrite : bool
+        If True, overwrite cached dataset
 
     Returns
     -------
@@ -87,7 +90,7 @@ def load_dataset(name: str) -> Tuple[List[Path], List[Link]]:
     for filename in DATASETS[name]:
         file_url = target_url + filename
         file_path = target_cache_dir / filename
-        if not file_path.exists():
+        if overwrite or not file_path.exists():
             urlretrieve(file_url, file_path)
         if file_path.suffix in (".gb", ".gbk", ".gbff"):
             gbk_files.append(file_path)

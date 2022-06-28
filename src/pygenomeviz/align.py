@@ -10,7 +10,7 @@ import subprocess as sp
 import sys
 from dataclasses import astuple, dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import ClassVar, List, Optional, Tuple, Union
 
 from pygenomeviz import Genbank
 
@@ -46,7 +46,7 @@ class Align:
         self.maptype = maptype.lower()
         self.process_num = self._max_process_num if process_num is None else process_num
 
-        if self.check_installation():
+        if not self.check_installation():
             err_msg = "ERROR: Genome alignment by MUMmer is not available "
             err_msg += "in this environment. Please check MUMmer installation."
             print(err_msg)
@@ -196,27 +196,22 @@ class AlignCoord:
     identity: float
     ref_name: str
     query_name: str
+    header_list: ClassVar[List[str]] = [
+        "REF_START",
+        "REF_END",
+        "QUERY_START",
+        "QUERY_END",
+        "REF_LENGTH",
+        "QUERY_LENGTH",
+        "IDENTITY",
+        "REF_NAME",
+        "QUERY_NAME",
+    ]
 
     @property
     def as_tsv_format(self) -> str:
         """TSV format text"""
         return "\t".join([str(v) for v in astuple(self)])
-
-    @property
-    def header(self) -> str:
-        """Header text"""
-        header_list = (
-            "REF_START",
-            "REF_END",
-            "QUERY_START",
-            "QUERY_END",
-            "REF_LENGTH",
-            "QUERY_LENGTH",
-            "IDENTITY",
-            "REF_NAME",
-            "QUERY_NAME",
-        )
-        return "\t".join(header_list)
 
     @staticmethod
     def parse(

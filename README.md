@@ -119,7 +119,7 @@ gv.savefig("example03.png")
 
 ### Practical Example
 
-#### Single Genome Track from Genbank file
+#### Single Track from Genbank file
 
 ```python
 from pygenomeviz import Genbank, GenomeViz, load_dataset
@@ -240,7 +240,7 @@ gc_skew_ax.text(gv.top_track.offset, 0, "GC skew ", ha="right", va="center", col
 # Set coloarbar for link
 gv.set_colorbar(fig, vmin=min_identity)
 
-fig.savefig("example06.png")
+fig.savefig("example06.png", bbox_inches="tight")
 ```
 
 </details>
@@ -305,7 +305,7 @@ fig.legend(handles=handles, frameon=True, bbox_to_anchor=(1, 0.8), loc="upper le
 # Set colorbar for link
 gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmin=min_identity, bar_height=0.15, bar_label="Identity", bar_labelsize=10)
 
-fig.savefig("example07.png")
+fig.savefig("example07.png", bbox_inches="tight")
 ```
 
 </details>

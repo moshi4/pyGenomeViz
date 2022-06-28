@@ -9,7 +9,7 @@
 
 ## Overview
 
-pyGenomeViz is a genome visualization python package for comparative genomics implemented in matplotlib.
+pyGenomeViz is a genome visualization python package for comparative genomics implemented based on matplotlib.
 This package is developed for the purpose of easily and beautifully plotting genomic
 features and sequence similarity comparison links between multiple genomes.
 It supports genome visualization of Genbank format file and can be saved figure in various formats (JPG/PNG/SVG/PDF).
@@ -18,10 +18,10 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 
 For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
 
-![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)  
+![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)  
 **Fig.1 Four *Erwinia phage* genome comparison result**
 
-![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)  
+![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)  
 **Fig.2 Six *Enterobacteria phage* genome comparison result**
 
 ## Installation
@@ -38,11 +38,11 @@ For more information, please see full documentation [here](https://moshi4.github
 
 ## Examples
 
-Jupyter notebooks containing code examples below is available [here](https://moshi4.github.io/pyGenomeViz/examples/basic_example/).
+Jupyter notebooks containing code examples below is available [here](https://moshi4.github.io/pyGenomeViz/getting_started/).
 
 ### Basic Example
 
-#### Single Genome Track
+#### Single Track
 
 ```python
 from pygenomeviz import GenomeViz
@@ -61,7 +61,7 @@ gv.savefig("example01.png")
 
 ![example01.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example01.png)
 
-#### Multiple Genome Tracks & Links
+#### Multiple Tracks & Links
 
 ```python
 from pygenomeviz import GenomeViz
@@ -95,6 +95,28 @@ gv.savefig("example02.png")
 
 ![example02.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example02.png)
 
+#### Exon Features
+
+```python
+from pygenomeviz import GenomeViz
+
+exon_regions1 = [(1, 210), (301, 480), (591, 800), (851, 1000), (1031, 1300)]
+exon_regions2 = [(1501, 1710), (2001, 2480), (2591, 2800)]
+exon_regions3 = [(3001, 3300), (3401, 3690), (3801, 4100), (4201, 4610)]
+
+gv = GenomeViz()
+track = gv.add_feature_track(name=f"Exon Features", size=5000)
+track.add_exon_feature(exon_regions1, strand=1, plotstyle="box", label="box", labelrotation=0, labelha="center")
+track.add_exon_feature(exon_regions2, strand=-1, plotstyle="arrow", label="arrow", labelrotation=0, labelha="center", facecolor="darkgrey", intron_patch_kws={"ec": "red"})
+
+exon_labels = [f"exon{i+1}" for i in range(len(exon_regions3))]
+track.add_exon_feature(exon_regions3, strand=1, plotstyle="bigarrow", label="bigarrow", facecolor="lime", linewidth=1, exon_labels=exon_labels, labelrotation=0, labelha="center", exon_label_kws={"y": 0, "va": "center", "color": "blue"})
+
+gv.savefig("example03.png")
+```
+
+![example03.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example03.png)
+
 ### Practical Example
 
 #### Single Genome Track from Genbank file
@@ -109,12 +131,12 @@ gv = GenomeViz()
 track = gv.add_feature_track(gbk.name, gbk.genome_length)
 track.add_genbank_features(gbk)
 
-gv.savefig("example03.png")
+gv.savefig("example04.png")
 ```
 
-![example03.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example03.png)
+![example04.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example04.png)
 
-#### Multiple Genome Tracks & Links from Genbank files
+#### Multiple Tracks & Links from Genbank files
 
 ```python
 from pygenomeviz import Genbank, GenomeViz, load_dataset
@@ -138,10 +160,10 @@ for link in links:
     link_data2 = (link.query_name, link.query_start, link.query_end)
     gv.add_link(link_data1, link_data2, v=link.identity, curve=True)
 
-gv.savefig("example04.png")
+gv.savefig("example05.png")
 ```
 
-![example04.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example04.png)
+![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)
 
 ### Customization Tips
 
@@ -218,12 +240,12 @@ gc_skew_ax.text(gv.top_track.offset, 0, "GC skew ", ha="right", va="center", col
 # Set coloarbar for link
 gv.set_colorbar(fig, vmin=min_identity)
 
-fig.savefig("example05.png", bbox_inches="tight")
+fig.savefig("example06.png")
 ```
 
 </details>
 
-![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)
+![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)
 
 #### Customization Tips 02
 
@@ -256,7 +278,7 @@ for idx, gbk_file in enumerate(gbk_files):
     track.add_genbank_features(
         gbk,
         label_type="product" if idx == 0 else None,  # Labeling only top track
-        label_filter=["hypothetical"],  # Ignore 'hypothetical ~~~' label
+        label_handle_func=lambda s: "" if s.startswith("hypothetical") else s,  # Ignore 'hypothetical ~~~' label
         labelsize=8,
         labelvpos="top",
         facecolor="skyblue",
@@ -283,9 +305,9 @@ fig.legend(handles=handles, frameon=True, bbox_to_anchor=(1, 0.8), loc="upper le
 # Set colorbar for link
 gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmin=min_identity, bar_height=0.15, bar_label="Identity", bar_labelsize=10)
 
-fig.savefig("example06.png", bbox_inches="tight")
+fig.savefig("example07.png")
 ```
 
 </details>
 
-![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)
+![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)

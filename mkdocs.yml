@@ -37,7 +37,8 @@ markdown_extensions:
 
 plugins:
     - search
-    - mkdocs-jupyter
+    - mkdocs-jupyter:
+        execute: False
     - mkdocstrings:
         handlers:
           python:

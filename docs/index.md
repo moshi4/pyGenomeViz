@@ -8,7 +8,7 @@
 
 ## Overview
 
-pyGenomeViz is a genome visualization python package for comparative genomics implemented in matplotlib.
+pyGenomeViz is a genome visualization python package for comparative genomics implemented based on matplotlib.
 This package is developed for the purpose of easily and beautifully plotting genomic
 features and sequence similarity comparison links between multiple genomes.
 It supports genome visualization of Genbank format file and can be saved figure in various formats (JPG/PNG/SVG/PDF).

@@ -5,4 +5,5 @@
       heading_level: 3
       members:
         - add_feature
+        - add_exon_feature
         - add_genbank_features

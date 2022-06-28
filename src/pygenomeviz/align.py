@@ -214,6 +214,22 @@ class AlignCoord:
         return "\t".join([str(v) for v in astuple(self)])
 
     @staticmethod
+    def write(align_coords: List[AlignCoord], outfile: Union[str, Path]) -> None:
+        """Write alignment results as tsv format file
+
+        Parameters
+        ----------
+        align_coords : List[AlignCoord]
+            Alignment coords
+        outfile : Union[str, Path]
+            Output file path
+        """
+        with open(outfile, "w") as f:
+            header = "\t".join(AlignCoord.header_list)
+            output = "\n".join([ac.as_tsv_format for ac in align_coords])
+            f.write(header + "\n" + output)
+
+    @staticmethod
     def parse(
         coords_tsv_file: Union[str, Path],
         seqtype: str,

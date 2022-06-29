@@ -323,7 +323,7 @@ class Feature:
             labelvpos = "bottom" if self.strand == -1 else "top"
 
         # labelva, y
-        label_margin = 0.05
+        label_margin = 0.1
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
         if labelvpos == "top":
             labelva = "bottom"
@@ -338,6 +338,9 @@ class Feature:
             else:
                 y = (abs(ylim[0]) / 2) * self.strand
 
+        # labelrotation=90, labelha="center", rotation_mode="default" is best
+        rotation_mode = "default" if self.labelrotation == 90 else "anchor"
+
         return {
             "x": x,
             "y": y,
@@ -348,7 +351,7 @@ class Feature:
             "ha": self.labelha,
             "va": labelva,
             "zorder": 10,
-            "rotation_mode": "anchor",
+            "rotation_mode": rotation_mode,
         }
 
     def __add__(self, offset: int):

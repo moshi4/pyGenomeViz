@@ -34,7 +34,7 @@ class Genbank:
         reverse : bool, optional
             Reverse genome or not
         min_range : Optional[int], optional
-            Min range to be extracted (Default: `1`)
+            Min range to be extracted (Default: `0`)
         max_range : Optional[int], optional
             Max range to be extracted (Default: `genome length`)
         """
@@ -42,13 +42,13 @@ class Genbank:
         self._name = name
         self._records = self._parse_gbk_source(gbk_source)
         self.reverse = reverse
-        self.min_range = 1 if min_range is None else min_range
+        self.min_range = 0 if min_range is None else min_range
         self.max_range = self.full_genome_length if max_range is None else max_range
 
-        if not 1 <= self.min_range <= self.max_range <= self.full_genome_length:
+        if not 0 <= self.min_range <= self.max_range <= self.full_genome_length:
             err_msg = f"min_range={min_range}, max_range={max_range} is invalid. \n"
             err_msg += "Range must be "
-            err_msg += f"'1 <= min_range <= max_range <= {self.full_genome_length}'"
+            err_msg += f"'0 <= min_range <= max_range <= {self.full_genome_length}'"
             raise ValueError(err_msg)
 
     def _parse_gbk_source(
@@ -124,7 +124,7 @@ class Genbank:
     def genome_seq(self) -> str:
         """Range genome sequence"""
         seq = "".join(str(r.seq) for r in self.records)
-        return seq[self.min_range - 1 : self.max_range]
+        return seq[self.min_range : self.max_range]
 
     @lru_cache(maxsize=None)
     def calc_genome_gc_content(self) -> float:
@@ -230,7 +230,7 @@ class Genbank:
             Extract target strand
         fix_position : bool, optional
             Fix feature start & end position by specified min_range parameter
-            (fixed_start = start - min_range - 1, fixed_end = end - min_range - 1)
+            (fixed_start = start - min_range, fixed_end = end - min_range)
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
 
@@ -240,7 +240,7 @@ class Genbank:
             Extracted features
         """
         extract_features = []
-        min_range, max_range = self.min_range - 1, self.max_range
+        min_range, max_range = self.min_range, self.max_range
         base_len = 0
         for record in self.records:
             features = [f for f in record.features if f.type == feature_type]

@@ -23,12 +23,12 @@ def test_reverse_param(gbk_file: Path):
 
 def test_range_param(gbk_file: Path):
     """Test range parameter result"""
-    min_range, max_range = 10001, 30000
+    min_range, max_range = 10000, 30000
     gbk = Genbank(gbk_file, min_range=min_range, max_range=max_range)
-    expected_length = max_range - min_range + 1
+    expected_length = max_range - min_range
 
     assert gbk.full_genome_length != gbk.genome_length == expected_length
-    assert gbk.full_genome_seq[min_range - 1 : max_range] == gbk.genome_seq
+    assert gbk.full_genome_seq[min_range:max_range] == gbk.genome_seq
 
 
 def test_range_error_param(gbk_file: Path):

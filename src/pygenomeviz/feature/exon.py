@@ -79,13 +79,12 @@ class ExonFeature(Feature):
 
         # Plot intron feature
         for (start, end) in self.intron_regions:
-            p = self._intron_patch(start - 1, end, ylim)
+            p = self._intron_patch(start, end, ylim)
             ax.add_patch(p)
 
         # Plot exon feature
         exon_regions = self.exon_regions[:: self.strand]
         for idx, (start, end) in enumerate(exon_regions, 1):
-            start, end = start - 1, end - 1
             if self.plotstyle in ("bigbox", "box"):
                 p = self._box_patch(start, end, ylim)
             elif self.plotstyle in ("bigarrow", "arrow"):
@@ -111,7 +110,6 @@ class ExonFeature(Feature):
         if self.exon_labels is not None:
             for (start, end), label in zip(self.exon_regions, self.exon_labels):
                 if label != "" and self.labelsize != 0:
-                    start = start - 1
                     label_kwargs = self._label_kwargs(start, end, label, ylim)
                     label_kwargs.update(self.exon_label_kws)
                     ax.text(**label_kwargs)
@@ -122,8 +120,8 @@ class ExonFeature(Feature):
         intron_regions = []
         if len(self.exon_regions) > 1:
             for i in range(0, len(self.exon_regions) - 1):
-                intron_start = self.exon_regions[i][1] + 1
-                intron_end = self.exon_regions[i + 1][0] - 1
+                intron_start = self.exon_regions[i][1]
+                intron_end = self.exon_regions[i + 1][0]
                 if intron_end < intron_start:
                     continue
                 intron_regions.append((intron_start, intron_end))
@@ -133,10 +131,10 @@ class ExonFeature(Feature):
         """Check exon_regions values are properly set"""
         max_pos_record = None
         for (exon_start, exon_end) in self.exon_regions:
-            if exon_start > exon_end:
-                err_msg = "Exon start-end value must be 'start <= end'."
+            if exon_start >= exon_end:
+                err_msg = "Exon start-end value must be 'start < end'."
                 raise ValueError(err_msg)
-            if max_pos_record is not None and exon_start <= max_pos_record:
+            if max_pos_record is not None and exon_start < max_pos_record:
                 err_msg = "Set exon regions in ascending order of genomic position."
                 raise ValueError(err_msg)
             max_pos_record = exon_end

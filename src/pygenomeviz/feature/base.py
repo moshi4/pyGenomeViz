@@ -79,7 +79,7 @@ class Feature:
             Y-axis limit
         """
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
-        start, end = self.start - 1, self.end - 1
+        start, end = self.start, self.end
 
         if self.plotstyle in ("bigbox", "box"):
             p = self._box_patch(start, end, ylim)
@@ -103,13 +103,13 @@ class Feature:
             Y-axis limit
         """
         if self.label != "" and self.labelsize != 0:
-            start, end = self.start - 1, self.end
+            start, end = self.start, self.end
             ax.text(**self._label_kwargs(start, end, self.label, ylim))
 
     @property
     def length(self) -> int:
         """Feature length"""
-        return self.end - self.start + 1
+        return self.end - self.start
 
     @property
     def is_bigstyle(self) -> bool:
@@ -140,7 +140,7 @@ class Feature:
         else:
             y = 0
         # width, height
-        width = end - start + 1
+        width = end - start
         if self.is_bigstyle:
             height = ylim[1] - ylim[0]
         else:
@@ -177,7 +177,7 @@ class Feature:
             Arrow patch
         """
         # x, y
-        x = end + 1 if self.strand == -1 else start
+        x = end if self.strand == -1 else start
         if self.is_bigstyle:
             y = 0
         else:
@@ -186,7 +186,7 @@ class Feature:
             else:
                 y = ylim[1] / 2
         # dx, dy
-        length = end - start + 1
+        length = end - start
         dx, dy = length * self.strand, 0
         # head width
         max_width = ylim[1] - ylim[0]
@@ -239,12 +239,12 @@ class Feature:
         rbox_patch : PathPatch
             Rounded box patch
         """
-        length = end - start + 1
+        length = end - start
         r_size = max_track_size * 0.005
         if length <= 4 * r_size:
             r_size = length * 0.25
 
-        xmin, xmax = start, end + 1
+        xmin, xmax = start, end
         if self.is_bigstyle:
             ymin, ymax, ycenter = ylim[0], ylim[1], 0
         else:

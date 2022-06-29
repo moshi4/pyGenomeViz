@@ -155,8 +155,12 @@ class GenomeViz:
         labelmargin: float = 0.01,
         linewidth: int = 1,
         linecolor: str = "grey",
+        link_track_ratio: Optional[float] = None,
     ) -> FeatureTrack:
         """Add feature track
+
+        Add feature track, and also add link track between feature tracks
+        if other feature tracks already exist.
 
         Parameters
         ----------
@@ -172,6 +176,9 @@ class GenomeViz:
             Track line width
         linecolor : str, optional
             Track line color
+        link_track_ratio : Optional[float], optional
+            Link track ratio. By default, the link_track_ratio value set
+            when GenomeViz was instantiated is used.
 
         Returns
         -------
@@ -184,11 +191,10 @@ class GenomeViz:
             raise ValueError(err_msg)
         # Add link track between feature tracks
         if len(self.get_tracks()) > 0:
-            link_track = LinkTrack(
-                f"{self._tracks[-1].name}-{name}",
-                self.track_spines,
-                self.link_track_ratio,
-            )
+            if link_track_ratio is None:
+                link_track_ratio = self.link_track_ratio
+            link_track_name = f"{self._tracks[-1].name}-{name}"
+            link_track = LinkTrack(link_track_name, self.track_spines, link_track_ratio)
             self._tracks.append(link_track)
         # Add feature track
         feature_track = FeatureTrack(

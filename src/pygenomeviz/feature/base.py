@@ -323,13 +323,14 @@ class Feature:
             labelvpos = "bottom" if self.strand == -1 else "top"
 
         # labelva, y
+        label_margin = 0.05
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
         if labelvpos == "top":
             labelva = "bottom"
-            y = ylim[1]
+            y = ylim[1] + label_margin
         elif labelvpos == "bottom":
             labelva = "top"
-            y = ylim[0]
+            y = ylim[0] - label_margin
         else:  # "center"
             labelva = "center"
             if self.is_bigstyle:

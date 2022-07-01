@@ -100,9 +100,9 @@ gv.savefig("example02.png")
 ```python
 from pygenomeviz import GenomeViz
 
-exon_regions1 = [(1, 210), (301, 480), (591, 800), (851, 1000), (1031, 1300)]
-exon_regions2 = [(1501, 1710), (2001, 2480), (2591, 2800)]
-exon_regions3 = [(3001, 3300), (3401, 3690), (3801, 4100), (4201, 4610)]
+exon_regions1 = [(0, 210), (300, 480), (590, 800), (850, 1000), (1030, 1300)]
+exon_regions2 = [(1500, 1710), (2000, 2480), (2590, 2800)]
+exon_regions3 = [(3000, 3300), (3400, 3690), (3800, 4100), (4200, 4620)]
 
 gv = GenomeViz()
 track = gv.add_feature_track(name=f"Exon Features", size=5000)
@@ -204,8 +204,8 @@ for link in links:
     gv.add_link(link_data1, link_data2, v=link.identity, vmin=min_identity)
 
 # Add subtracks to top track for plotting 'GC content' & 'GC skew'
-gv.add_feature_subtrack(gv.top_track.name, "gc_content", ratio=0.7)
-gv.add_feature_subtrack(gv.top_track.name, "gc_skew", ratio=0.7)
+gv.top_track.add_subtrack(ratio=0.7)
+gv.top_track.add_subtrack(ratio=0.7)
 
 fig = gv.plotfig()
 
@@ -221,7 +221,7 @@ x, y = (start, start, end, end), (1, -1, -1, 1)
 top_track.ax.fill(x, y, fc="lime", linewidth=0, alpha=0.1, zorder=-10)
 
 # Plot GC content for top track
-gc_content_ax = gv.top_track.subtracks[0].ax  # or, gv.get_track("gc_content").ax
+gc_content_ax = gv.top_track.subtracks[0].ax
 pos_list, gc_content_list = gbk_list[0].calc_gc_content()
 gc_content_ax.set_ylim(bottom=0, top=max(gc_content_list))
 pos_list += gv.top_track.offset  # Offset is required if align_type is not 'left'
@@ -229,7 +229,7 @@ gc_content_ax.fill_between(pos_list, gc_content_list, alpha=0.2, color="blue")
 gc_content_ax.text(gv.top_track.offset, max(gc_content_list) / 2, "GC(%) ", ha="right", va="center", color="blue")
 
 # Plot GC skew for top track
-gc_skew_ax = gv.top_track.subtracks[1].ax  # or, gv.get_track("gc_skew").ax
+gc_skew_ax = gv.top_track.subtracks[1].ax
 pos_list, gc_skew_list = gbk_list[0].calc_gc_skew()
 gc_skew_abs_max = max(abs(gc_skew_list))
 gc_skew_ax.set_ylim(bottom=-gc_skew_abs_max, top=gc_skew_abs_max)

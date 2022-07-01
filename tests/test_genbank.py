@@ -53,12 +53,12 @@ def test_calc_gc_skew(gbk_file: Path):
     gbk = Genbank(gbk_file)
     # Default parameter
     pos_list, gc_skew_list = gbk.calc_gc_skew(None, None)
-    expected_count = math.ceil(gbk.genome_length / int(gbk.genome_length / 1000))
+    expected_count = math.ceil(gbk.genome_length / int(gbk.genome_length / 1000)) + 1
     assert len(pos_list) == len(gc_skew_list) == expected_count
     # User setting parameter
     window_size, step_size = 500, 250
     pos_list, gc_skew_list = gbk.calc_gc_skew(window_size, step_size)
-    expected_count = math.ceil(gbk.genome_length / step_size)
+    expected_count = math.ceil(gbk.genome_length / step_size) + 1
     assert len(pos_list) == len(gc_skew_list) == expected_count
 
 
@@ -67,12 +67,12 @@ def test_calc_gc_content(gbk_file: Path):
     gbk = Genbank(gbk_file)
     # Default parameter
     pos_list, gc_content_list = gbk.calc_gc_content(None, None)
-    expected_count = math.ceil(gbk.genome_length / int(gbk.genome_length / 1000))
+    expected_count = math.ceil(gbk.genome_length / int(gbk.genome_length / 1000)) + 1
     assert len(pos_list) == len(gc_content_list) == expected_count
     # User setting parameter
     window_size, step_size = 500, 250
     pos_list, gc_content_list = gbk.calc_gc_content(window_size, step_size)
-    expected_count = math.ceil(gbk.genome_length / step_size)
+    expected_count = math.ceil(gbk.genome_length / step_size) + 1
     assert len(pos_list) == len(gc_content_list) == expected_count
 
 

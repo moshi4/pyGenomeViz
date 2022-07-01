@@ -156,15 +156,14 @@ class Genbank:
             window_size = int(len(seq) / 500)
         if step_size is None:
             step_size = int(len(seq) / 1000)
-        for i in range(0, len(seq), step_size):
-            start_pos = i - int(window_size / 2)
-            start_pos = 0 if start_pos < 0 else start_pos
-            end_pos = i + int(window_size / 2)
-            end_pos = len(seq) if end_pos > len(seq) else end_pos
-            middle_pos = int((end_pos + start_pos) / 2)
-            pos_list.append(middle_pos)
+        pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
+        for pos in pos_list:
+            window_start_pos = pos - int(window_size / 2)
+            window_end_pos = pos + int(window_size / 2)
+            window_start_pos = 0 if window_start_pos < 0 else window_start_pos
+            window_end_pos = len(seq) if window_end_pos > len(seq) else window_end_pos
 
-            subseq = seq[start_pos:end_pos]
+            subseq = seq[window_start_pos:window_end_pos]
             g = subseq.count("G") + subseq.count("g")
             c = subseq.count("C") + subseq.count("c")
             try:
@@ -200,15 +199,14 @@ class Genbank:
             window_size = int(len(seq) / 500)
         if step_size is None:
             step_size = int(len(seq) / 1000)
-        for i in range(0, len(seq), step_size):
-            start_pos = i - int(window_size / 2)
-            start_pos = 0 if start_pos < 0 else start_pos
-            end_pos = i + int(window_size / 2)
-            end_pos = len(seq) if end_pos > len(seq) else end_pos
-            middle_pos = int((end_pos + start_pos) / 2)
-            pos_list.append(middle_pos)
+        pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
+        for pos in pos_list:
+            window_start_pos = pos - int(window_size / 2)
+            window_end_pos = pos + int(window_size / 2)
+            window_start_pos = 0 if window_start_pos < 0 else window_start_pos
+            window_end_pos = len(seq) if window_end_pos > len(seq) else window_end_pos
 
-            subseq = seq[start_pos:end_pos]
+            subseq = seq[window_start_pos:window_end_pos]
             gc_content_list.append(SeqUtils.GC(subseq))
 
         return (np.array(pos_list), np.array(gc_content_list))

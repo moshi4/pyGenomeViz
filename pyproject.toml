@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygenomeviz"
-version = "0.1.0"
+version = "0.1.1"
 description = "A genome visualization python package for comparative genomics"
 authors = ["moshi4"]
 license = "MIT"

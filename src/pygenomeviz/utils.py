@@ -5,10 +5,12 @@ import os
 from dataclasses import dataclass
 from io import TextIOWrapper
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 from urllib.request import urlretrieve
 
+import matplotlib.pyplot as plt
 from Bio import Entrez
+from matplotlib.colors import to_hex
 
 DATASETS = {
     "escherichia_phage": [
@@ -44,11 +46,15 @@ DATASETS = {
 }
 
 
-def load_dataset(name: str, overwrite: bool = False) -> Tuple[List[Path], List[Link]]:
+def load_dataset(
+    name: str,
+    cache_dir: Optional[Union[str, Path]] = None,
+    overwrite_cache: bool = False,
+) -> Tuple[List[Path], List[DatasetLink]]:
     """Load pygenomeviz example dataset
 
-    Datasets are downloaded from https://github.com/moshi4/pygenomeviz-data
-    and cached in local directory ('~/.cache/pygenomeviz').
+    Download and load datasets from https://github.com/moshi4/pygenomeviz-data
+    and cache datasets in local directory ('~/.cache/pygenomeviz/').
 
     List of dataset name
     - `escherichia_phage`
@@ -61,13 +67,16 @@ def load_dataset(name: str, overwrite: bool = False) -> Tuple[List[Path], List[L
     name : str
         Dataset name (e.g. `escherichia_phage`)
 
-    overwrite : bool
+    cache_dir : Optional[Union[str, Path]], optional
+        Cache directory (Default: `~/.cache/pygenomeviz/`)
+
+    overwrite_cache : bool
         If True, overwrite cached dataset
 
     Returns
     -------
-    gbk_files, links : Tuple[List[Path], List[Link]]
-        Genbank files, Links
+    gbk_files, links : Tuple[List[Path], List[DatasetLink]]
+        Genbank files, DatasetLink list
     """
     # Check specified name dataset exists or not
     if name not in DATASETS.keys():
@@ -75,10 +84,13 @@ def load_dataset(name: str, overwrite: bool = False) -> Tuple[List[Path], List[L
         raise ValueError(err_msg)
 
     # Dataset cache local directory
-    package_name = __name__.split(".")[0]
-    cache_base_dir = Path.home() / ".cache" / package_name
-    target_cache_dir = cache_base_dir / name
-    os.makedirs(target_cache_dir, exist_ok=True)
+    if cache_dir is None:
+        package_name = __name__.split(".")[0]
+        cache_base_dir = Path.home() / ".cache" / package_name
+        cache_dir = cache_base_dir / name
+        os.makedirs(cache_dir, exist_ok=True)
+    else:
+        cache_dir = Path(cache_dir)
 
     # Dataset GitHub URL
     base_url = "https://raw.githubusercontent.com/moshi4/pygenomeviz-data/master/"
@@ -86,22 +98,24 @@ def load_dataset(name: str, overwrite: bool = False) -> Tuple[List[Path], List[L
 
     # Download & cache dataset
     gbk_files: List[Path] = []
-    links: List[Link] = []
+    links: List[DatasetLink] = []
     for filename in DATASETS[name]:
         file_url = target_url + filename
-        file_path = target_cache_dir / filename
-        if overwrite or not file_path.exists():
+        file_path = cache_dir / filename
+        if overwrite_cache or not file_path.exists():
             urlretrieve(file_url, file_path)
         if file_path.suffix in (".gb", ".gbk", ".gbff"):
             gbk_files.append(file_path)
         else:
-            links = Link.load(file_path)
+            links = DatasetLink.load(file_path)
 
     return gbk_files, links
 
 
 @dataclass
-class Link:
+class DatasetLink:
+    """Dataset Link DataClass (Only used in load_dataset() function)"""
+
     ref_name: str
     ref_start: int
     ref_end: int
@@ -111,33 +125,35 @@ class Link:
     identity: float
 
     @staticmethod
-    def load(link_file: Path) -> List[Link]:
-        """Load genome-to-genome link file
+    def load(link_file: Path) -> List[DatasetLink]:
+        """Load pyGenomeViz dataset link file
 
         Parameters
         ----------
         link_file : Path
-            Genome-to-genome link file
+            pyGenomeViz dataset link file
 
         Returns
         -------
-        links : List[Link]
-            Link list
+        links : List[DatasetLink]
+            DatasetLink list
         """
         with open(link_file) as f:
             reader = csv.reader(f, delimiter="\t")
             next(reader)
-            links: List[Link] = []
+            links: List[DatasetLink] = []
             for row in reader:
                 rname, rstart, rend = row[7], int(row[0]), int(row[1])
                 qname, qstart, qend = row[8], int(row[2]), int(row[3])
                 ident = float(row[6])
-                links.append(Link(rname, rstart, rend, qname, qstart, qend, ident))
+                links.append(
+                    DatasetLink(rname, rstart, rend, qname, qstart, qend, ident)
+                )
         return links
 
 
-def fetch_genbank_from_accid(accid: str, email: Optional[str] = None) -> TextIOWrapper:
-    """Fetch genbank text from 'Accession ID'
+def fetch_genbank_by_accid(accid: str, email: Optional[str] = None) -> TextIOWrapper:
+    """Fetch genbank text by 'Accession ID'
 
     Parameters
     ----------
@@ -154,6 +170,7 @@ def fetch_genbank_from_accid(accid: str, email: Optional[str] = None) -> TextIOW
     Examples
     --------
     >>> gbk_fetch_data = download_genbank_from_accid("JX128258.1")
+    >>> gbk = Genbank(gbk_fetch_data)
     """
     Entrez.email = "" if email is None else email
     return Entrez.efetch(
@@ -162,3 +179,38 @@ def fetch_genbank_from_accid(accid: str, email: Optional[str] = None) -> TextIOW
         rettype="gbwithparts",
         retmode="text",
     )
+
+
+class ColorCycler:
+    """Color Cycler Class"""
+
+    counter = 0
+    cmap = plt.get_cmap("tab10")
+
+    def __new__(cls, n: Optional[int] = None) -> str:
+        """Get hexcolor cyclically from cmap by counter or user specified number
+
+        Parameters
+        ----------
+        n : Optional[int], optional
+            Number for color cycle. If None, counter class variable is used.
+
+        Returns
+        -------
+        hexcolor : str
+            Cyclic hexcolor string
+        """
+        if n is None:
+            n = cls.counter
+            cls.counter += 1
+        return to_hex(cls.cmap(n % cls.cmap.N), keep_alpha=True)
+
+    @classmethod
+    def reset_cycle(cls) -> None:
+        """Reset cycle counter"""
+        cls.counter = 0
+
+    @classmethod
+    def set_cmap(cls, name: str) -> None:
+        """Set colormap (Default: `tab10`)"""
+        cls.cmap = plt.get_cmap(name)

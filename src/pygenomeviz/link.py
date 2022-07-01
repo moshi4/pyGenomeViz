@@ -62,8 +62,8 @@ class Link:
             Min-Max y coordinatess
         """
         ymin, ymax = ylim[0] * self.size_ratio, ylim[1] * self.size_ratio
-        start1, end1 = self.track_start1 - 1, self.track_end1
-        start2, end2 = self.track_start2 - 1, self.track_end2
+        start1, end1 = self.track_start1, self.track_end1
+        start2, end2 = self.track_start2, self.track_end2
         if self.curve:
             ctl_y_point1, ctl_y_point2 = ymax / 3, ymin / 3
             path_data = [

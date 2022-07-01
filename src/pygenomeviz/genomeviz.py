@@ -357,7 +357,7 @@ class GenomeViz:
 
     @property
     def top_track(self) -> FeatureTrack:
-        """Top track"""
+        """Top feature track"""
         feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
         if len(feature_tracks) == 0:
             err_msg = "No track found. Can't access 'top_track' property."
@@ -366,7 +366,7 @@ class GenomeViz:
 
     @property
     def bottom_track(self) -> FeatureTrack:
-        """Bottom track"""
+        """Bottom feature track"""
         feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
         if len(feature_tracks) == 0:
             err_msg = "No track found. Can't access 'bottom_track' property."
@@ -396,6 +396,8 @@ class GenomeViz:
         """
         if len(self.get_tracks()) == 0:
             raise ValueError("No tracks are defined for plotting figure.")
+
+        # Set tick track if required
         self._tracks = [t for t in self.get_tracks() if not isinstance(t, TickTrack)]
         max_track_size = self.max_track_size
         if self.tick_style is not None:
@@ -409,19 +411,21 @@ class GenomeViz:
                 )
             )
 
+        # Set figure
         track_num = len(self.get_tracks(subtrack=True))
         figsize = (self.fig_width, self.fig_track_height * track_num)
+        tight_layout = False if track_num < 3 else True
         figure: Figure = plt.figure(
-            figsize=figsize,
-            facecolor="white",
-            dpi=dpi,
-            tight_layout=False if track_num < 3 else True,
+            figsize=figsize, facecolor="white", dpi=dpi, tight_layout=tight_layout
         )
 
-        track_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
+        # Set gridspec
+        height_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
         spec = gridspec.GridSpec(
-            nrows=track_num, ncols=1, height_ratios=track_ratios, hspace=0
+            nrows=track_num, ncols=1, height_ratios=height_ratios, hspace=0
         )
+
+        # Plot each track
         for idx, track in enumerate(self.get_tracks(subtrack=True)):
             # Create new track subplot
             xlim, ylim = (0, max_track_size), track.ylim

@@ -41,7 +41,7 @@ def test_color_string_error():
     # Case1. normal color is not color like string
     with pytest.raises(ValueError):
         Link(*link1, *link2, normal_color=invalid_color)
-    # Case2. normal color is not color like string
+    # Case2. inverted color is not color like string
     with pytest.raises(ValueError):
         Link(*link1, *link2, inverted_color=invalid_color)
 

@@ -156,6 +156,22 @@ class FeatureTrack(Track):
             "va": "center",
         }
 
+    def add_subtrack(self, ratio: float = 1.0) -> None:
+        """Add subtrack to feature track
+
+        Parameters
+        ----------
+        ratio : float, optional
+            Subtrack size ratio to feature track
+        """
+        subtrack_ratio = self.ratio * ratio
+        subtrack_idx = len(self.subtracks) + 1
+        subtrack_name = f"{self.name}_subtrack{subtrack_idx}"
+        subtrack = FeatureSubTrack(
+            subtrack_name, self.size, self.spines, subtrack_ratio
+        )
+        self.subtracks.append(subtrack)
+
     def add_feature(
         self,
         start: int,

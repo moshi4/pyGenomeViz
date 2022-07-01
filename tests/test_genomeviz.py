@@ -269,21 +269,6 @@ def test_bottom_track():
     assert gv.bottom_track.size == bottom_track_size
 
 
-def test_add_feature_subtrack():
-    """Test add feature subtrack"""
-    gv = GenomeViz()
-    top_track_name, top_track_size = "Top Track", 1000
-    gv.add_feature_track(top_track_name, top_track_size)
-    gv.add_feature_track("track02", 1200)
-
-    gv.add_feature_subtrack(top_track_name, "subtrack01")
-    gv.add_feature_subtrack(top_track_name, "subtrack02")
-
-    assert len(gv.top_track.subtracks) == 2
-    assert gv.top_track.subtracks[0].name == "subtrack01"
-    assert gv.top_track.subtracks[1].name == "subtrack02"
-
-
 def test_ax_property():
     """Test ax property access"""
     gv = GenomeViz()

@@ -2,6 +2,22 @@ import pytest
 from pygenomeviz.track import FeatureTrack
 
 
+def test_add_subtrack():
+    """Test add subtrack"""
+    track_name, track_size = "feature track", 1000
+    track = FeatureTrack(track_name, track_size)
+    track.add_subtrack()
+    track.add_subtrack(ratio=0.7)
+
+    assert len(track.subtracks) == 2
+    assert track.subtracks[0].name == f"{track_name}_subtrack1"
+    assert track.subtracks[0].size == track_size
+    assert track.subtracks[0].ratio == 1.0
+    assert track.subtracks[1].name == f"{track_name}_subtrack2"
+    assert track.subtracks[1].size == track_size
+    assert track.subtracks[1].ratio == 0.7
+
+
 def test_add_feature_range_error():
     """Test add feature range check"""
     track_name, track_size = "test", 1000

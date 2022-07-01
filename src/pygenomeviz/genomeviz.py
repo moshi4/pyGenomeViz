@@ -210,36 +210,6 @@ class GenomeViz:
         self._tracks.append(feature_track)
         return feature_track
 
-    def add_feature_subtrack(
-        self,
-        feature_track_name: str,
-        subtrack_name: str,
-        ratio: float = 1.0,
-    ) -> None:
-        """Add subtrack of feature track
-
-        Parameters
-        ----------
-        feature_track_name : str
-            Feature track name to be added subtrack
-        subtrack_name : str
-            Subtrack name
-        ratio : float, optional
-            Subtrack size ratio to feature track
-        """
-        feature_track = self.get_track(feature_track_name)
-        if not isinstance(feature_track, FeatureTrack):
-            err_msg = f"'{feature_track_name}' is not FeatureTrack."
-            raise ValueError(err_msg)
-        subtrack_ratio = feature_track.ratio * ratio
-        if subtrack_name in [t.name for t in self.get_tracks(subtrack=True)]:
-            err_msg = f"track.name='{subtrack_name}' is already exists."
-            raise ValueError(err_msg)
-        subtrack = FeatureSubTrack(
-            subtrack_name, feature_track.size, self.track_spines, subtrack_ratio
-        )
-        feature_track.subtracks.append(subtrack)
-
     def add_link(
         self,
         track_link1: Tuple[str, int, int],

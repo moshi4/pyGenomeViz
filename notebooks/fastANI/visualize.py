@@ -3,6 +3,7 @@ import argparse
 import csv
 from pathlib import Path
 
+import numpy as np
 from Bio import SeqIO
 from pygenomeviz import GenomeViz
 from pygenomeviz.utils import ColorCycler
@@ -50,13 +51,13 @@ def main():
     track1 = gv.add_feature_track(genome_name1, seq_length1)
     track2 = gv.add_feature_track(genome_name2, seq_length2)
 
-    ColorCycler.reset_cycle()
     ColorCycler.set_cmap(cmap)  # "hsv", "viridis", "jet", etc...
+    colormap, data_num = ColorCycler.cmap, len(fastani_results)
+    colors = [colormap(int(i)) for i in np.linspace(0, colormap.N, data_num)]
 
     min_identity = int(min([res[2] for res in fastani_results]))
-    for res in fastani_results:
+    for res, color in zip(fastani_results, colors):
         link1, link2, identity = res
-        color = ColorCycler()
         track1.add_feature(link1[1], link1[2], plotstyle="bigbox", facecolor=color)
         track2.add_feature(link2[1], link2[2], plotstyle="bigbox", facecolor=color)
         gv.add_link(

@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple, Union
 from urllib.request import urlretrieve
 
 import matplotlib.pyplot as plt
+import numpy as np
 from Bio import Entrez
 from matplotlib.colors import to_hex
 
@@ -215,3 +216,27 @@ class ColorCycler:
         """Set colormap (Default: `tab10`)"""
         cls.cmap = plt.get_cmap(name)
         cls.counter = 0
+
+    @classmethod
+    def get_color_list(cls, n: Optional[int] = None) -> List[str]:
+        """Get hexcolor list of colormap
+
+        Parameters
+        ----------
+        n : Optional[int], optional
+            If None, all hexcolors are extracted from colormap.
+            Else, specified number of hexcolors are extracted from colormap.
+
+        Returns
+        -------
+        hexcolor_list : List[str]
+            Hexcolor list
+        """
+        if n is None or n == cls.cmap.N:
+            cmap_idx_list = list(range(0, cls.cmap.N))
+        elif 0 < n:
+            cmap_idx_list = [int(i) for i in np.linspace(0, cls.cmap.N, n)]
+        else:
+            raise ValueError(f"n={n} is invalid number (n >= 0).")
+
+        return [to_hex(cls.cmap(i), keep_alpha=True) for i in cmap_idx_list]

@@ -22,16 +22,26 @@ def test_load_dataset_invalid_name_error():
 
 def test_color_cycler():
     """Test color cycler"""
+    # Check get color list length
+    assert len(ColorCycler.get_color_list()) == 10
+    assert len(ColorCycler.get_color_list(5)) == 5
+    assert len(ColorCycler.get_color_list(20)) == 20
+
+    # Check cycle index, color
     assert ColorCycler(0) != ColorCycler(1)
     assert ColorCycler(0) == ColorCycler(10)
     assert ColorCycler(15) == ColorCycler(25)
 
+    # Check cycle counter
     assert ColorCycler() != ColorCycler()
     assert ColorCycler.counter == 2
 
+    # Check reset cycle
     ColorCycler.reset_cycle()
     assert ColorCycler.counter == 0
 
+    # Check cmap change
     ColorCycler.set_cmap("tab20")
     with pytest.raises(ValueError):
         ColorCycler.set_cmap("invalid name")
+    assert len(ColorCycler.get_color_list()) == 20

@@ -214,3 +214,4 @@ class ColorCycler:
     def set_cmap(cls, name: str) -> None:
         """Set colormap (Default: `tab10`)"""
         cls.cmap = plt.get_cmap(name)
+        cls.counter = 0

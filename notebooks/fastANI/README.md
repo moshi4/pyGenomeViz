@@ -1,16 +1,16 @@
 # FastANI Visualization Example
 
-Python script (visualize.py) that can plot the FastANI visual result figure using pyGenomeViz.
+Python script (`visualize.py`) that can plot the FastANI visual result figure using pyGenomeViz.
 
 ## Examples
 
-Installation of pyGenomeViz is required to run examples.
+pyGenomeViz is required to run visualize.py.
 
 ```shell
 pip install pyGenomeViz
 ```
 
-It is also necessary to create FastANI visual file in advance.
+It is also necessary to create FastANI visual file (*.visual) in advance .
 
 ```shell
 fastANI -q B_quintana.fna -r B_henselae.fna --visualize -o fastani.out
@@ -18,7 +18,7 @@ fastANI -q B_quintana.fna -r B_henselae.fna --visualize -o fastani.out
 
 ### Example 1
 
-colormap="hsv", link_color="grey", curve=False (Default)
+colormap=`hsv`, link_color=`grey`, curve=`False` (Default)
 
 ```shell
 python visualize.py B_quintana.fna B_henselae.fna fastani.out.visual example01.png
@@ -28,7 +28,7 @@ python visualize.py B_quintana.fna B_henselae.fna fastani.out.visual example01.p
 
 ### Example 2
 
-colormap="viridis", link_color="red", curve=True
+colormap=`viridis`, link_color=`red`, curve=`True`
 
 ```shell
 python visualize.py B_quintana.fna B_henselae.fna fastani.out.visual example02.png --cmap viridis --link_color red --curve 

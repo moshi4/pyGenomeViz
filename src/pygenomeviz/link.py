@@ -51,6 +51,16 @@ class Link:
                 err_msg += f" (value={self.v}, vmin={self.vmin}, vmax={self.vmax})"
                 raise ValueError(err_msg)
 
+    @property
+    def track_length1(self) -> int:
+        """Track length1"""
+        return abs(self.track_end1 - self.track_start1)
+
+    @property
+    def track_length2(self) -> int:
+        """Track length2"""
+        return abs(self.track_end2 - self.track_start2)
+
     def plot_link(self, ax: Axes, ylim: Tuple[float, float] = (-1.0, 1.0)) -> None:
         """Plot link
 

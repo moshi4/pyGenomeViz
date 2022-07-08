@@ -53,9 +53,9 @@ class GenomeViz:
         tick_style : Optional[str], optional
             Tick style (`axis`|`bar`)
         plot_size_thr : float, optional
-            Plot feature size threshold.
-            If `plot_size_thr=0.0005` and `max_track_size=4.0Mb`, feature smaller than
-            `max_track_size * plot_size_thr=2.0Kb` are not plotted.
+            Plot feature, link size threshold.
+            If `plot_size_thr=0.0005` and `max_track_size=4.0Mb`, feature, link
+            smaller than `max_track_size * plot_size_thr=2.0Kb` are not plotted.
         tick_labelsize : int, optional
             Tick label size
         """
@@ -396,6 +396,7 @@ class GenomeViz:
         )
 
         # Plot each track
+        plot_length_thr = max_track_size * self.plot_size_thr
         for idx, track in enumerate(self.get_tracks(subtrack=True)):
             # Create new track subplot
             xlim, ylim = (0, max_track_size), track.ylim
@@ -420,7 +421,7 @@ class GenomeViz:
 
                 for feature in [f + track_offset for f in track.features]:
                     # Don't plot too small feature (To reduce drawing time)
-                    if feature.length < max_track_size * self.plot_size_thr:
+                    if feature.length < plot_length_thr:
                         continue
                     # Plot feature patch & label text
                     feature.plot_feature(ax, max_track_size, ylim)
@@ -432,6 +433,10 @@ class GenomeViz:
 
             elif isinstance(track, LinkTrack):
                 for link in track.links:
+                    # Don't plot too small link (To reduce drawing time)
+                    length1, length2 = link.track_length1, link.track_length2
+                    if length1 < plot_length_thr or length2 < plot_length_thr:
+                        continue
                     link = link.add_offset(self._track_name2offset)
                     link.plot_link(ax, ylim)
 

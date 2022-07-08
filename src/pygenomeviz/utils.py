@@ -224,19 +224,19 @@ class ColorCycler:
         Parameters
         ----------
         n : Optional[int], optional
-            If None, all hexcolors are extracted from colormap.
-            Else, specified number of hexcolors are extracted from colormap.
+            If n is None, all(=cmap.N) hexcolors are extracted from colormap.
+            If n is specified, hexcolors are extracted from n equally divided colormap.
 
         Returns
         -------
         hexcolor_list : List[str]
             Hexcolor list
         """
-        if n is None or n == cls.cmap.N:
+        if n is None:
             cmap_idx_list = list(range(0, cls.cmap.N))
-        elif 0 < n:
+        elif n > 0:
             cmap_idx_list = [int(i) for i in np.linspace(0, cls.cmap.N, n)]
         else:
-            raise ValueError(f"n={n} is invalid number (n >= 0).")
+            raise ValueError(f"n={n} is invalid number (Must be 'n > 0').")
 
         return [to_hex(cls.cmap(i), keep_alpha=True) for i in cmap_idx_list]

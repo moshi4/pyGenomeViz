@@ -27,7 +27,7 @@ class Link:
     vmin: float = 0
     vmax: float = 100
     curve: bool = False
-    size_ratio: float = 0.9
+    size_ratio: float = 1.0
     patch_kws: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
@@ -107,9 +107,11 @@ class Link:
             Patch keyword arguments dict
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
+        lw = 1 if self.track_length1 == self.track_length2 == 0 else 0
         return {
             "fc": self.color,
-            "lw": 0,
+            "ec": self.color,
+            "lw": lw,
             **patch_kws,
         }
 

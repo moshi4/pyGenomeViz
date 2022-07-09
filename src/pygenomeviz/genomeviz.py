@@ -435,7 +435,7 @@ class GenomeViz:
                 for link in track.links:
                     # Don't plot too small link (To reduce drawing time)
                     length1, length2 = link.track_length1, link.track_length2
-                    if length1 < plot_length_thr or length2 < plot_length_thr:
+                    if 0 < length1 < plot_length_thr or 0 < length2 < plot_length_thr:
                         continue
                     link = link.add_offset(self._track_name2offset)
                     link.plot_link(ax, ylim)

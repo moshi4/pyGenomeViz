@@ -27,6 +27,7 @@ testpaths = ["tests"]
 
 [tool.poetry.scripts]
 pgv_pmauve = "pygenomeviz.scripts.pmauve:main"
+pgv_download_dataset = "pygenomeviz.scripts.download_dataset:main"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"

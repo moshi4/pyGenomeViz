@@ -26,6 +26,7 @@ addopts = "--cov=src --tb=line --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
 
 [tool.poetry.scripts]
+pgv_pmauve = "pygenomeviz.scripts.pmauve:main"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"

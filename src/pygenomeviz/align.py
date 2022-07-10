@@ -209,13 +209,23 @@ class AlignCoord:
     ]
 
     @property
+    def ref_strand(self) -> int:
+        """Reference strand"""
+        return 1 if self.ref_end - self.ref_start >= 0 else -1
+
+    @property
+    def query_strand(self) -> int:
+        """Query strand"""
+        return 1 if self.query_end - self.query_start >= 0 else -1
+
+    @property
     def as_tsv_format(self) -> str:
         """TSV format text"""
         return "\t".join([str(v) for v in astuple(self)])
 
     @staticmethod
     def write(align_coords: List[AlignCoord], outfile: Union[str, Path]) -> None:
-        """Write alignment results as tsv format file
+        """Write alignment coords as tsv format file
 
         Parameters
         ----------
@@ -228,6 +238,39 @@ class AlignCoord:
             header = "\t".join(AlignCoord.header_list)
             output = "\n".join([ac.as_tsv_format for ac in align_coords])
             f.write(header + "\n" + output)
+
+        """Read alignment coords tsv format file"""
+
+    @staticmethod
+    def read(align_coords_file: Union[str, Path]) -> List[AlignCoord]:
+        """Read alignment coords tsv format file
+
+        Parameters
+        ----------
+        align_coords_file : Union[str, Path]
+            Alignment coords tsv file
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Alignment coords
+        """
+        align_coords = []
+        with open(align_coords_file) as f:
+            reader = csv.reader(f, delimiter="\t")
+            next(reader)
+            for row in reader:
+                # Convert to correct value type
+                typed_row = []
+                for idx, val in enumerate(row):
+                    if 0 <= idx <= 5:
+                        typed_row.append(int(val))
+                    elif idx == 6:
+                        typed_row.append(float(val))
+                    else:
+                        typed_row.append(str(val))
+                align_coords.append(AlignCoord(*typed_row))
+        return align_coords
 
     @staticmethod
     def parse(

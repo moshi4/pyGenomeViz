@@ -539,6 +539,7 @@ class TickTrack(Track):
         """
         super().__init__("tick", size, labelsize, spines, ratio)
         self.tick_style = tick_style
+        self.height_scale = 1.0
 
     @property
     def tick_params(self) -> Dict[str, Any]:
@@ -623,7 +624,7 @@ class TickTrack(Track):
     @property
     def ymin(self) -> float:
         """ymin"""
-        return self.ylim[0] - abs(self.ylim[0] * 0.1)
+        return self.ylim[0] - abs(self.ylim[0] * 0.1 * self.height_scale)
 
     @property
     def ycenter(self) -> float:
@@ -633,7 +634,7 @@ class TickTrack(Track):
     @property
     def ymax(self) -> float:
         """ymax"""
-        return self.ylim[0] + abs(self.ylim[0] * 0.1)
+        return self.ylim[0] + abs(self.ylim[0] * 0.1 * self.height_scale)
 
     @property
     def scalebar_size(self) -> float:

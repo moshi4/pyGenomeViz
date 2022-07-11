@@ -445,6 +445,8 @@ class GenomeViz:
                     ax.xaxis.set_major_locator(MaxNLocator(10, steps=[1, 2, 5, 10]))
                     ax.xaxis.set_major_formatter(track.tick_formatter)
                 elif self.tick_style == "bar":
+                    avg_height_ratio = sum(height_ratios) / len(height_ratios)
+                    track.height_scale = avg_height_ratio / self.tick_track_ratio
                     ymin, ycenter, ymax = track.ymin, track.ycenter, track.ymax
                     line_kws = {"colors": "black", "linewidth": 1, "clip_on": False}
                     ax.hlines(ycenter, track.xmin, track.xmax, **line_kws)

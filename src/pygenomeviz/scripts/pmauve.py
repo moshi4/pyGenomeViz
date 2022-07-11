@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 from pygenomeviz import GenomeViz, __version__
+from pygenomeviz.scripts import get_argparser, print_args
 from pygenomeviz.utils import ColorCycler
 
 
@@ -16,10 +17,14 @@ def main():
     """Visualization workflow using progressiveMauve"""
     # Get arguments
     args = get_args()
+    print_args(args)
+
+    # General options
     seq_files: List[Path] = args.seq_files
     outdir: Path = args.outdir
     format: str = args.format
-    cmap: str = args.cmap
+    reuse: bool = args.reuse
+    # Figure appearence options
     fig_width: float = args.fig_width
     fig_track_height: float = args.fig_track_height
     feature_track_ratio: float = args.feature_track_ratio
@@ -29,15 +34,18 @@ def main():
     tick_labelsize: int = args.tick_labelsize
     normal_link_color: str = args.normal_link_color
     inverted_link_color: str = args.inverted_link_color
-    curve: bool = args.curve
     align_type: str = args.align_type
     tick_style: Optional[str] = args.tick_style
     plotstyle: str = args.plotstyle
+    cmap: str = args.cmap
+    curve: bool = args.curve
 
+    # Setup output contents
     seq_outdir = outdir / "seqfiles"
     os.makedirs(seq_outdir, exist_ok=True)
-    outfile = outdir / f"result.{format}"
-
+    result_fig_file = outdir / f"result.{format}"
+    xmfa_file = outdir / "mauve.xmfa"
+    bbone_file = outdir / "mauve_bbone.tsv"
     ColorCycler.set_cmap(cmap)
 
     # Copy seqfiles to output directory
@@ -48,9 +56,9 @@ def main():
         seq_copy_files.append(str(seq_copy_file))
 
     # Run progressiveMauve
-    xmfa_file = outdir / "mauve.xmfa"
-    bbone_file = outdir / "mauve_bbone.tsv"
-    if not xmfa_file.exists() and not bbone_file.exists():
+    if reuse and xmfa_file.exists() and bbone_file.exists():
+        print("Reuse previous progressiveMauve result.")
+    else:
         cmd = f"progressiveMauve --output {xmfa_file} --backbone-output={bbone_file} "
         cmd += f"{' '.join(seq_copy_files)}"
         sp.run(cmd, shell=True)
@@ -77,15 +85,17 @@ def main():
         name2maxsize[filenames[i]] = seqid2maxsize[i]
         name2blocks[filenames[i]] = seqid2links[i]
 
+    # Set tracks & features(blocks)
     for name in filenames:
         maxsize = name2maxsize[name]
         track = gv.add_feature_track(name, maxsize, track_labelsize)
         blocks = name2blocks[name]
         colors = ColorCycler.get_color_list(len(blocks))
-        for link, color in zip(blocks, colors):
-            start, end, strand = link
+        for block, color in zip(blocks, colors):
+            start, end, strand = block
             track.add_feature(start, end, strand, plotstyle=plotstyle, facecolor=color)
 
+    # Set links
     for i in range(len(filenames) - 1):
         name1, name2 = filenames[i], filenames[i + 1]
         blocks1, blocks2 = name2blocks[name1], name2blocks[name2]
@@ -101,7 +111,9 @@ def main():
                 link1, link2, normal_link_color, inverted_link_color, curve=curve
             )
 
-    gv.savefig(outfile)
+    # Save figure
+    gv.savefig(result_fig_file, dpi=300)
+    print(f"\nSave result figure ({result_fig_file}).")
 
 
 def parse_xmfa_file(xmfa_file: Union[str, Path]) -> List[str]:
@@ -185,17 +197,13 @@ def get_args() -> argparse.Namespace:
     args : argparse.Namespace
         Argument parameters
     """
+    parser = get_argparser(prog_name="progressiveMauve")
 
-    class CustomHelpFormatter(argparse.HelpFormatter):
-        def __init__(self, prog, indent_increment=2, max_help_position=30, width=None):
-            super().__init__(prog, indent_increment, max_help_position, width)
-
-    description = "pyGenomeViz visualization workflow using progressiveMauve"
-    parser = argparse.ArgumentParser(
-        description=description, add_help=False, formatter_class=CustomHelpFormatter
-    )
-
-    parser.add_argument(
+    #######################################################
+    # General options
+    #######################################################
+    general_opts = parser.add_argument_group("General Options")
+    general_opts.add_argument(
         "--seq_files",
         type=Path,
         help="Input genome sequence files (Genbank or Fasta format)",
@@ -203,7 +211,8 @@ def get_args() -> argparse.Namespace:
         required=True,
         metavar="IN",
     )
-    parser.add_argument(
+    general_opts.add_argument(
+        "-o",
         "--outdir",
         type=Path,
         help="Output directory",
@@ -212,24 +221,38 @@ def get_args() -> argparse.Namespace:
     )
     default_format = "png"
     format_list = ["png", "jpg", "svg", "pdf"]
-    parser.add_argument(
+    general_opts.add_argument(
         "--format",
         type=str,
-        help="Output image format ('png'[default]|'jpg'|'svg'|'pdf')",
+        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf')",
         default=default_format,
         choices=format_list,
         metavar="",
     )
-    default_cmap = "hsv"
-    parser.add_argument(
-        "--cmap",
-        type=str,
-        help=f"Colormap for plotting figure (Default: '{default_cmap}')",
-        default=default_cmap,
-        metavar="",
+    general_opts.add_argument(
+        "--reuse",
+        help="Reuse previous alignment result if available",
+        action="store_true",
     )
+    general_opts.add_argument(
+        "-v",
+        "--version",
+        version=f"v{__version__}",
+        help="Print version information",
+        action="version",
+    )
+    general_opts.add_argument(
+        "-h",
+        "--help",
+        help="Show this help message and exit",
+        action="help",
+    )
+    #######################################################
+    # Figure appearence options
+    #######################################################
+    fig_opts = parser.add_argument_group("Figure Appearence options")
     default_fig_width = 15
-    parser.add_argument(
+    fig_opts.add_argument(
         "--fig_width",
         type=float,
         help=f"Figure width (Default: {default_fig_width})",
@@ -237,7 +260,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_fig_track_height = 1.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--fig_track_height",
         type=float,
         help=f"Figure track height (Default: {default_fig_track_height})",
@@ -245,7 +268,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_feature_track_ratio = 1.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--feature_track_ratio",
         type=float,
         help=f"Feature track ratio (Default: {default_feature_track_ratio})",
@@ -253,7 +276,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_link_track_ratio = 5.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--link_track_ratio",
         type=float,
         help=f"Link track ratio (Default: {default_link_track_ratio})",
@@ -261,7 +284,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_tick_track_ratio = 1.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--tick_track_ratio",
         type=float,
         help=f"Tick track ratio (Default: {default_tick_track_ratio})",
@@ -269,7 +292,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_track_labelsize = 20
-    parser.add_argument(
+    fig_opts.add_argument(
         "--track_labelsize",
         type=int,
         help=f"Track label size (Default: {default_track_labelsize})",
@@ -277,7 +300,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_tick_labelsize = 15
-    parser.add_argument(
+    fig_opts.add_argument(
         "--tick_labelsize",
         type=int,
         help=f"Tick label size (Default: {default_tick_labelsize})",
@@ -285,7 +308,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_normal_link_color = "grey"
-    parser.add_argument(
+    fig_opts.add_argument(
         "--normal_link_color",
         type=str,
         help=f"Normal link color (Default: '{default_normal_link_color}')",
@@ -293,7 +316,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_inverted_link_color = "tomato"
-    parser.add_argument(
+    fig_opts.add_argument(
         "--inverted_link_color",
         type=str,
         help=f"Inverted link color (Default: '{default_inverted_link_color}')",
@@ -302,50 +325,45 @@ def get_args() -> argparse.Namespace:
     )
     default_align_type = "center"
     align_type_list = ["left", "center", "right"]
-    parser.add_argument(
+    fig_opts.add_argument(
         "--align_type",
         type=str,
-        help="Figure tracks align type ('left'|'center'|'right')",
+        help="Figure tracks align type ('left'|'center'[*]|'right')",
         default=default_align_type,
         choices=align_type_list,
         metavar="",
     )
     default_tick_style = None
-    parser.add_argument(
+    fig_opts.add_argument(
         "--tick_style",
         type=str,
-        help="Tick style ('bar'|'axis'|None[default])",
+        help="Tick style ('bar'|'axis'|None[*])",
         default=default_tick_style,
         choices=["bar", "axis"],
         metavar="",
     )
     plotstyle = "box"
     plotstyle_list = ["box", "bigbox"]
-    parser.add_argument(
+    fig_opts.add_argument(
         "--plotstyle",
         type=str,
-        help="Plot feature style ('box'[default]|'bigbox')",
+        help="Block box plot style ('box'[*]|'bigbox')",
         default=plotstyle,
         choices=plotstyle_list,
         metavar="",
     )
-    parser.add_argument(
+    default_cmap = "hsv"
+    fig_opts.add_argument(
+        "--cmap",
+        type=str,
+        help=f"Block box colormap (Default: '{default_cmap}')",
+        default=default_cmap,
+        metavar="",
+    )
+    fig_opts.add_argument(
         "--curve",
         help="Plot curved style link (Default: OFF)",
         action="store_true",
-    )
-    parser.add_argument(
-        "-v",
-        "--version",
-        version=f"v{__version__}",
-        help="Print version information",
-        action="version",
-    )
-    parser.add_argument(
-        "-h",
-        "--help",
-        help="Show this help message and exit",
-        action="help",
     )
     args = parser.parse_args()
 

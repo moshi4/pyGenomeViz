@@ -6,15 +6,29 @@ from typing import List, Optional
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import Align, AlignCoord
+from pygenomeviz.scripts import get_argparser, print_args
 
 
 def main():
-    """Visualization workflow using progressiveMauve"""
+    """Visualization workflow using MUMmer"""
+    # Check MUMmer installation before run
+    Align.check_installation()
+
     # Get arguments
     args = get_args()
-    gbk_files: List[Path] = args.gbk_files
-    outdir: Path = args.outdir
+    print_args(args)
+
+    # General options
+    gbk_files: List[Path] = [Path(f) for f in args.gbk_files]
+    outdir: Path = Path(args.outdir)
     format: str = args.format
+    reuse: bool = args.reuse
+    # MUMmer alignment options
+    seqtype: str = args.seqtype
+    maptype: str = args.maptype
+    min_length: int = args.min_length
+    min_identity: float = args.min_identity
+    # Figure appearence options
     fig_width: float = args.fig_width
     fig_track_height: float = args.fig_track_height
     feature_track_ratio: float = args.feature_track_ratio
@@ -24,18 +38,20 @@ def main():
     tick_labelsize: int = args.tick_labelsize
     normal_link_color: str = args.normal_link_color
     inverted_link_color: str = args.inverted_link_color
-    curve: bool = args.curve
     align_type: str = args.align_type
     tick_style: Optional[str] = args.tick_style
-    plotstyle: str = args.plotstyle
-    seqtype: str = args.seqtype
-    maptype: str = args.maptype
-    force: bool = args.force
+    feature_plotstyle: str = args.feature_plotstyle
+    arrow_shaft_ratio: float = args.arrow_shaft_ratio
+    feature_color: str = args.feature_color
+    feature_linewidth: float = args.feature_linewidth
+    curve: bool = args.curve
 
+    # Setup output contents
     os.makedirs(outdir, exist_ok=True)
-    result_file = outdir / f"result.{format}"
+    result_fig_file = outdir / f"result.{format}"
     align_coords_file = outdir / "align_coords.tsv"
 
+    # Set tracks & features
     gv = GenomeViz(
         fig_width=fig_width,
         fig_track_height=fig_track_height,
@@ -47,24 +63,29 @@ def main():
         tick_labelsize=tick_labelsize,
         plot_size_thr=0.0005,
     )
-
     gbk_list = [Genbank(f) for f in gbk_files]
     for gbk in gbk_list:
         track = gv.add_feature_track(gbk.name, gbk.genome_length, track_labelsize)
         track.add_genbank_features(
-            gbk, plotstyle=plotstyle, facecolor="orange", linewidth=0.0
+            gbk,
+            feature_type="CDS",
+            plotstyle=feature_plotstyle,
+            arrow_shaft_ratio=arrow_shaft_ratio,
+            facecolor=feature_color,
+            linewidth=feature_linewidth,
         )
 
-    if force or not align_coords_file.exists():
-        # Run MUMmer alignment
+    # MUMmer alignment
+    if align_coords_file.exists() and reuse:
+        print("Reuse previous MUMmer result.")
+        align_coords = AlignCoord.read(align_coords_file)
+    else:
         with TemporaryDirectory() as tmpdir:
             align_coords = Align(gbk_list, tmpdir, seqtype, maptype).run()
             AlignCoord.write(align_coords, align_coords_file)
-    else:
-        align_coords = AlignCoord.read(align_coords_file)
-    # Filter alignment results by 'min_length', 'min_identity' threshold
-    align_coords = AlignCoord.filter(align_coords, min_length=0, min_identity=0)
+    align_coords = AlignCoord.filter(align_coords, min_length, min_identity)
 
+    # Set links
     min_identity = int(min([ac.identity for ac in align_coords]))
     for ac in align_coords:
         link1 = (ac.ref_name, ac.ref_start, ac.ref_end)
@@ -79,7 +100,19 @@ def main():
             vmin=min_identity,
         )
 
-    gv.savefig(result_file)
+    # Plot figure
+    fig = gv.plotfig(dpi=300)
+
+    # Set colorbar
+    bar_colors = [normal_link_color]
+    contain_inverted_align = any([ac.is_inverted for ac in align_coords])
+    if contain_inverted_align:
+        bar_colors.append(inverted_link_color)
+    gv.set_colorbar(fig, bar_colors, vmin=min_identity)
+
+    # Save figure
+    fig.savefig(result_fig_file, bbox_inches="tight", pad_inches=0.5)
+    print(f"\nSave result figure ({result_fig_file}).")
 
 
 def get_args() -> argparse.Namespace:
@@ -90,62 +123,100 @@ def get_args() -> argparse.Namespace:
     args : argparse.Namespace
         Argument parameters
     """
+    parser = get_argparser(prog_name="MUMmer")
 
-    class CustomHelpFormatter(argparse.HelpFormatter):
-        def __init__(self, prog, indent_increment=2, max_help_position=30, width=None):
-            super().__init__(prog, indent_increment, max_help_position, width)
-
-    description = "pyGenomeViz visualization workflow using progressiveMauve"
-    parser = argparse.ArgumentParser(
-        description=description, add_help=False, formatter_class=CustomHelpFormatter
-    )
-
-    parser.add_argument(
+    #######################################################
+    # General options
+    #######################################################
+    general_opts = parser.add_argument_group("General Options")
+    general_opts.add_argument(
         "--gbk_files",
-        type=Path,
+        type=str,
         help="Input genome genbank files",
         nargs="+",
         required=True,
         metavar="IN",
     )
-    parser.add_argument(
+    general_opts.add_argument(
         "-o",
         "--outdir",
-        type=Path,
+        type=str,
         help="Output directory",
         required=True,
         metavar="OUT",
     )
     default_format = "png"
     format_list = ["png", "jpg", "svg", "pdf"]
-    parser.add_argument(
+    general_opts.add_argument(
         "--format",
         type=str,
-        help="Output image format ('png'[default]|'jpg'|'svg'|'pdf')",
+        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf')",
         default=default_format,
         choices=format_list,
         metavar="",
     )
-    defaullt_seqtype = "nucleotide"
-    parser.add_argument(
+    general_opts.add_argument(
+        "--reuse",
+        help="Reuse previous alignment result if available",
+        action="store_true",
+    )
+    general_opts.add_argument(
+        "-v",
+        "--version",
+        version=f"v{__version__}",
+        help="Print version information",
+        action="version",
+    )
+    general_opts.add_argument(
+        "-h",
+        "--help",
+        help="Show this help message and exit",
+        action="help",
+    )
+    #######################################################
+    # MUMmer alignment options
+    #######################################################
+    mummer_alignment_opts = parser.add_argument_group("MUMmer Alignment Options")
+    defaullt_seqtype = "protein"
+    mummer_alignment_opts.add_argument(
         "--seqtype",
         type=str,
-        help="MUMmer alignment sequence type ('nucleotide'[default]|'protein')",
+        help="MUMmer alignment sequence type ('protein'[*]|'nucleotide')",
         default=defaullt_seqtype,
         choices=["nucleotide", "protein"],
         metavar="",
     )
-    default_maptype = "one-to-one"
-    parser.add_argument(
+    default_maptype = "many-to-many"
+    mummer_alignment_opts.add_argument(
         "--maptype",
         type=str,
-        help="MUMmer alignment map type ('one-to-one'[default]|'many-to-many')",
+        help="MUMmer alignment map type ('many-to-many'[*]|'one-to-one')",
         default=default_maptype,
         choices=["one-to-one", "many-to-many"],
         metavar="",
     )
+    default_min_length = 0
+    mummer_alignment_opts.add_argument(
+        "--min_length",
+        type=int,
+        help=f"Min-length threshold to be plotted (Default: {default_min_length})",
+        default=default_min_length,
+        metavar="",
+    )
+    default_min_identity = 0
+    mummer_alignment_opts.add_argument(
+        "--min_identity",
+        type=float,
+        help=f"Min-identity threshold to be plotted (Default: {default_min_identity})",
+        default=default_min_identity,
+        metavar="",
+    )
+    #######################################################
+    # Figure appearence options
+    #######################################################
+    fig_opts = parser.add_argument_group("Figure Appearence Options")
     default_fig_width = 15
-    parser.add_argument(
+    fig_opts.add_argument(
         "--fig_width",
         type=float,
         help=f"Figure width (Default: {default_fig_width})",
@@ -153,7 +224,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_fig_track_height = 1.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--fig_track_height",
         type=float,
         help=f"Figure track height (Default: {default_fig_track_height})",
@@ -161,7 +232,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_feature_track_ratio = 1.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--feature_track_ratio",
         type=float,
         help=f"Feature track ratio (Default: {default_feature_track_ratio})",
@@ -169,7 +240,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_link_track_ratio = 5.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--link_track_ratio",
         type=float,
         help=f"Link track ratio (Default: {default_link_track_ratio})",
@@ -177,7 +248,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_tick_track_ratio = 1.0
-    parser.add_argument(
+    fig_opts.add_argument(
         "--tick_track_ratio",
         type=float,
         help=f"Tick track ratio (Default: {default_tick_track_ratio})",
@@ -185,7 +256,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_track_labelsize = 20
-    parser.add_argument(
+    fig_opts.add_argument(
         "--track_labelsize",
         type=int,
         help=f"Track label size (Default: {default_track_labelsize})",
@@ -193,7 +264,7 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_tick_labelsize = 15
-    parser.add_argument(
+    fig_opts.add_argument(
         "--tick_labelsize",
         type=int,
         help=f"Tick label size (Default: {default_tick_labelsize})",
@@ -201,15 +272,15 @@ def get_args() -> argparse.Namespace:
         metavar="",
     )
     default_normal_link_color = "grey"
-    parser.add_argument(
+    fig_opts.add_argument(
         "--normal_link_color",
         type=str,
         help=f"Normal link color (Default: '{default_normal_link_color}')",
         default=default_normal_link_color,
         metavar="",
     )
-    default_inverted_link_color = "tomato"
-    parser.add_argument(
+    default_inverted_link_color = "red"
+    fig_opts.add_argument(
         "--inverted_link_color",
         type=str,
         help=f"Inverted link color (Default: '{default_inverted_link_color}')",
@@ -218,64 +289,70 @@ def get_args() -> argparse.Namespace:
     )
     default_align_type = "center"
     align_type_list = ["left", "center", "right"]
-    parser.add_argument(
+    fig_opts.add_argument(
         "--align_type",
         type=str,
-        help="Figure tracks align type ('left'|'center'|'right')",
+        help="Figure tracks align type ('left'|'center'[*]|'right')",
         default=default_align_type,
         choices=align_type_list,
         metavar="",
     )
     default_tick_style = None
-    parser.add_argument(
+    fig_opts.add_argument(
         "--tick_style",
         type=str,
-        help="Tick style ('bar'|'axis'|None[default])",
+        help="Tick style ('bar'|'axis'|None[*])",
         default=default_tick_style,
         choices=["bar", "axis"],
         metavar="",
     )
-    plotstyle = "bigarrow"
-    plotstyle_list = ["bigarrow", "arrow"]
-    parser.add_argument(
-        "--plotstyle",
+    feature_plotstyle = "bigarrow"
+    feature_plotstyle_list = ["bigarrow", "arrow"]
+    fig_opts.add_argument(
+        "--feature_plotstyle",
         type=str,
-        help="Plot feature style ('bigarrow'[default]|'arrow')",
-        default=plotstyle,
-        choices=plotstyle_list,
+        help="Feature plot style ('bigarrow'[*]|'arrow')",
+        default=feature_plotstyle,
+        choices=feature_plotstyle_list,
         metavar="",
     )
-    parser.add_argument(
+    default_arrow_shaft_ratio = 0.5
+    fig_opts.add_argument(
+        "--arrow_shaft_ratio",
+        type=float,
+        help=f"Feature arrow shaft ratio (Default: {default_arrow_shaft_ratio})",
+        default=default_arrow_shaft_ratio,
+        metavar="",
+    )
+    default_feature_color = "orange"
+    fig_opts.add_argument(
+        "--feature_color",
+        type=str,
+        help=f"Feature color (Default: '{default_feature_color}')",
+        default=default_feature_color,
+        metavar="",
+    )
+    default_feature_linewidth = 0.0
+    fig_opts.add_argument(
+        "--feature_linewidth",
+        type=float,
+        help=f"Feature edge line width (Default: {default_feature_linewidth})",
+        default=default_feature_linewidth,
+        metavar="",
+    )
+    fig_opts.add_argument(
         "--curve",
         help="Plot curved style link (Default: OFF)",
         action="store_true",
-    )
-    parser.add_argument(
-        "--force",
-        help="Forcibly overwrite (not reuse) previous calculation results",
-        action="store_true",
-    )
-    parser.add_argument(
-        "-v",
-        "--version",
-        version=f"v{__version__}",
-        help="Print version information",
-        action="version",
-    )
-    parser.add_argument(
-        "-h",
-        "--help",
-        help="Show this help message and exit",
-        action="help",
     )
     args = parser.parse_args()
 
     # Check arguments
     err_info = ""
     if len(args.gbk_files) < 2:
-        err_info += "--seq_files must be set at least two files.\n"
+        err_info += "--gbk_files must be set at least two files.\n"
     for file in args.gbk_files:
-        if not file.exists():
+        if not os.path.isfile(file):
             err_info += f"File not found '{file}'.\n"
 
     if err_info != "":

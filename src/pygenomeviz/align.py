@@ -4,7 +4,6 @@ import csv
 import itertools
 import multiprocessing as mp
 import os
-import platform
 import shutil
 import subprocess as sp
 import sys
@@ -46,11 +45,7 @@ class Align:
         self.maptype = maptype.lower()
         self.process_num = self._max_process_num if process_num is None else process_num
 
-        if not self.check_installation():
-            err_msg = "ERROR: Genome alignment by MUMmer is not available "
-            err_msg += "in this environment. Please check MUMmer installation."
-            print(err_msg)
-            sys.exit(1)
+        self.check_installation()
 
     @property
     def genome_num(self) -> int:
@@ -164,23 +159,32 @@ class Align:
         return align_coords
 
     @staticmethod
-    def check_installation() -> bool:
+    def check_installation(exit_on_false: bool = True) -> bool:
         """Check MUMmer installation
+
+        Parameters
+        ----------
+        exit_on_error : bool
+            If True and check result is False, system exit
 
         Returns
         -------
         result : bool
             Check result
         """
-        # MacOS or Linux only
-        if platform.system() not in ("Darwin", "Linux"):
-            return False
-        # Mummer binary installation check
+        is_installed = True
         required_bins = ["nucmer", "promer", "delta-filter", "show-coords"]
         for required_bin in required_bins:
             if not shutil.which(required_bin):
-                return False
-        return True
+                is_installed = False
+
+        if not is_installed and exit_on_false:
+            err_msg = "ERROR: Genome alignment by MUMmer is not available "
+            err_msg += "in this environment. Please check MUMmer installation."
+            print(err_msg)
+            sys.exit(1)
+
+        return is_installed
 
 
 @dataclass
@@ -217,6 +221,11 @@ class AlignCoord:
     def query_strand(self) -> int:
         """Query strand"""
         return 1 if self.query_end - self.query_start >= 0 else -1
+
+    @property
+    def is_inverted(self) -> bool:
+        """Check inverted or not"""
+        return self.ref_strand * self.query_strand < 0
 
     @property
     def as_tsv_format(self) -> str:

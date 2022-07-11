@@ -110,7 +110,7 @@ class Link:
         lw = 1 if self.track_length1 == self.track_length2 == 0 else 0
         return {
             "fc": self.color,
-            "ec": self.color,
+            "ec": "black",
             "lw": lw,
             **patch_kws,
         }

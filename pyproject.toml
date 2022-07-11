@@ -26,9 +26,9 @@ addopts = "--cov=src --tb=line --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
 
 [tool.poetry.scripts]
-pgv_mummer = "pygenomeviz.scripts.mummer:main"
-pgv_pmauve = "pygenomeviz.scripts.pmauve:main"
-pgv_download_dataset = "pygenomeviz.scripts.download_dataset:main"
+pgv-mummer = "pygenomeviz.scripts.mummer:main"
+pgv-pmauve = "pygenomeviz.scripts.pmauve:main"
+pgv-download-dataset = "pygenomeviz.scripts.download_dataset:main"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"

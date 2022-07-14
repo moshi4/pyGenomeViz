@@ -32,6 +32,9 @@ def main():
     with open(fastani_visual_file) as f:
         reader = csv.reader(f, delimiter="\t")
         for row in reader:
+            # Ignore blank lines
+            if len(row) == 0:
+                continue
             start1, end1 = int(row[6]), int(row[7])
             start2, end2 = int(row[8]), int(row[9])
             identity = float(row[2])

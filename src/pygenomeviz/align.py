@@ -135,7 +135,7 @@ class Align:
         # Run genome alignment using nucmer or promer
         prefix = self.outdir / f"out{idx}"
         delta_file = prefix.with_suffix(".delta")
-        cmd = f"{self._align_binary} {fa_file1} {fa_file2} --prefix={prefix}"
+        cmd = f"{self._align_binary} --mum {fa_file1} {fa_file2} --prefix={prefix}"
         _ = sp.run(cmd, shell=True, capture_output=True, text=True)
 
         # Run delta-filter to map 'one-to-one' or 'many-to-many' relation

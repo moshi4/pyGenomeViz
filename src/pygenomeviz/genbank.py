@@ -32,7 +32,7 @@ class Genbank:
         name : Optional[str]
             name (If None, `file name` or `record name` is set)
         reverse : bool, optional
-            Reverse genome or not
+            If True, reverse complement genome is used
         min_range : Optional[int], optional
             Min range to be extracted (Default: `0`)
         max_range : Optional[int], optional
@@ -227,7 +227,7 @@ class Genbank:
         target_strand : Optional[int], optional
             Extract target strand
         fix_position : bool, optional
-            Fix feature start & end position by specified min_range parameter
+            If True, fix feature start & end position by specified min_range parameter
             (fixed_start = start - min_range, fixed_end = end - min_range)
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted

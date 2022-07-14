@@ -49,7 +49,7 @@ class GenomeViz:
         tick_track_ratio : float, optional
             Tick track ratio
         track_spines : bool, optional
-            Display track spines
+            If True, display track spines
         tick_style : Optional[str], optional
             Tick style (`axis`|`bar`)
         plot_size_thr : float, optional
@@ -308,7 +308,7 @@ class GenomeViz:
         Parameters
         ----------
         subtrack : bool, optional
-            Include feature subtrack or not
+            If True, include feature subtracks
 
         Returns
         -------
@@ -490,7 +490,7 @@ class GenomeViz:
         Parameters
         ----------
         detail : bool, optional
-            Print detail or not. If True, detail 'feature' and 'link' are output.
+            If True, also output feature and link details
         """
         for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
             # Print track common info
@@ -573,12 +573,12 @@ class GenomeViz:
             nearly_white = to_nearly_white(color)
             cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
             norm = colors.Normalize(vmin=vmin, vmax=vmax)
-            cb_props = {"orientation": "vertical", "ticks": []}
-            cb = ColorbarBase(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_props)
+            cb_kws = {"orientation": "vertical", "ticks": []}
+            cb = ColorbarBase(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
             if cnt == len(bar_colors) - 1:
                 ticks = [vmin, vmax]
                 labels = [f"{t}%" for t in ticks]
                 cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
                 x, y = 2.0, (vmin + vmax) / 2
-                text_props = {"rotation": 90, "ha": "left", "va": "center"}
-                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_props)
+                text_kws = {"rotation": 90, "ha": "left", "va": "center"}
+                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)

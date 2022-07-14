@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 import os
 from dataclasses import dataclass
-from io import TextIOWrapper
+from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 from urllib.request import urlretrieve
@@ -153,13 +153,19 @@ class DatasetLink:
         return links
 
 
-def fetch_genbank_by_accid(accid: str, email: Optional[str] = None) -> TextIOWrapper:
+def fetch_genbank_by_accid(
+    accid: str,
+    gbk_outfile: Optional[Union[str, Path]] = None,
+    email: Optional[str] = None,
+) -> TextIOWrapper:
     """Fetch genbank text by 'Accession ID'
 
     Parameters
     ----------
     accid : str
         Accession ID
+    gbk_outfile : Optional[Union[str, Path]], optional
+        If file path is set, write fetch data to file
     email : str, optional
         Email address to notify download limitation (Required for bulk download)
 
@@ -170,16 +176,23 @@ def fetch_genbank_by_accid(accid: str, email: Optional[str] = None) -> TextIOWra
 
     Examples
     --------
-    >>> gbk_fetch_data = download_genbank_from_accid("JX128258.1")
+    >>> gbk_fetch_data = fetch_genbank_by_accid("JX128258.1")
     >>> gbk = Genbank(gbk_fetch_data)
     """
     Entrez.email = "" if email is None else email
-    return Entrez.efetch(
+    gbk_fetch_data: TextIOWrapper = Entrez.efetch(
         db="nucleotide",
         id=accid,
         rettype="gbwithparts",
         retmode="text",
     )
+    if gbk_outfile is not None:
+        gbk_text = gbk_fetch_data.read()
+        with open(gbk_outfile, "w") as f:
+            f.write(gbk_text)
+        gbk_fetch_data = StringIO(gbk_text)
+
+    return gbk_fetch_data
 
 
 class ColorCycler:

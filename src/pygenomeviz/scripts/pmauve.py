@@ -14,33 +14,84 @@ from pygenomeviz.utils import ColorCycler
 
 
 def main():
-    """Visualization workflow using progressiveMauve"""
+    """Main function called from CLI"""
     # Get arguments
     args = get_args()
     print_args(args)
+    # Run workflow
+    run(**args.__dict__)
 
+
+def run(
     # General options
-    seq_files: List[Path] = args.seq_files
-    outdir: Path = args.outdir
-    format: str = args.format
-    reuse: bool = args.reuse
+    seq_files: List[Union[str, Path]],
+    outdir: Union[str, Path],
+    format: str = "png",
+    reuse: bool = False,
     # Figure appearence options
-    fig_width: float = args.fig_width
-    fig_track_height: float = args.fig_track_height
-    feature_track_ratio: float = args.feature_track_ratio
-    link_track_ratio: float = args.link_track_ratio
-    tick_track_ratio: float = args.tick_track_ratio
-    track_labelsize: int = args.track_labelsize
-    tick_labelsize: int = args.tick_labelsize
-    normal_link_color: str = args.normal_link_color
-    inverted_link_color: str = args.inverted_link_color
-    align_type: str = args.align_type
-    tick_style: Optional[str] = args.tick_style
-    plotstyle: str = args.plotstyle
-    cmap: str = args.cmap
-    curve: bool = args.curve
+    fig_width: float = 15,
+    fig_track_height: float = 1.0,
+    feature_track_ratio: float = 1.0,
+    link_track_ratio: float = 5.0,
+    tick_track_ratio: float = 1.0,
+    track_labelsize: int = 20,
+    tick_labelsize: int = 15,
+    normal_link_color: str = "grey",
+    inverted_link_color: str = "tomato",
+    align_type: str = "center",
+    tick_style: Optional[str] = None,
+    plotstyle: str = "box",
+    cmap: str = "hsv",
+    curve: bool = True,
+) -> GenomeViz:
+    """Run genome visualization workflow using progressiveMauve
 
+    Parameters
+    ----------
+    seq_files : List[Union[str, Path]]
+        Input genome sequence files (Genbank or Fasta format)
+    outdir : Union[str, Path]
+        Output directory
+    format : str, optional
+        Output image format (`png`|`jpg`|`svg`|`pdf`)
+    reuse : bool, optional
+        If True, reuse previous result if available
+    fig_width : float, optional
+        Figure width
+    fig_track_height : float, optional
+        Figure track height
+    feature_track_ratio : float, optional
+        Feature track ratio
+    link_track_ratio : float, optional
+        Link track ratio
+    tick_track_ratio : float, optional
+        Tick track ratio
+    track_labelsize : int, optional
+        Track label size
+    tick_labelsize : int, optional
+        Tick label size
+    normal_link_color : str, optional
+        Normal link color
+    inverted_link_color : str, optional
+        Inverted link color
+    align_type : str, optional
+        Figure tracks align type (`left`|`center`|`right`)
+    tick_style : Optional[str], optional
+        Tick style (`bar`|`axis`|`None`)
+    plotstyle : str, optional
+        Block box plot style (`box`|`bigbox`)
+    cmap : str, optional
+        Block box colormap
+    curve : bool, optional
+        If True, plot curved style link
+
+    Returns
+    -------
+    gv : GenomeViz
+        GenomeViz instance
+    """
     # Setup output contents
+    outdir = Path(outdir)
     seq_outdir = outdir / "seqfiles"
     os.makedirs(seq_outdir, exist_ok=True)
     result_fig_file = outdir / f"result.{format}"
@@ -51,13 +102,23 @@ def main():
     # Copy seqfiles to output directory
     seq_copy_files = []
     for seq_file in seq_files:
-        seq_copy_file = seq_outdir / seq_file.name
+        seq_copy_file = seq_outdir / Path(seq_file).name
+        # progressiveMauve cannot recognize *.gbff as genbank format
+        if str(seq_copy_file).endswith(".gbff"):
+            seq_copy_file = seq_copy_file.with_suffix(".gbk")
         shutil.copy(seq_file, seq_copy_file)
         seq_copy_files.append(str(seq_copy_file))
 
     # Run progressiveMauve
     if reuse and xmfa_file.exists() and bbone_file.exists():
-        print("Reuse previous progressiveMauve result.")
+        filenames = [Path(f).with_suffix("").name for f in seq_files]
+        prev_filenames = parse_xmfa_file(xmfa_file)
+        if filenames != prev_filenames:
+            err_msg = "Can't reuse previous results due to different inputs!!\n"
+            err_msg += f"Previous inputs = {prev_filenames}"
+            raise ValueError(err_msg)
+        else:
+            print("Reuse previous progressiveMauve result.")
     else:
         cmd = f"progressiveMauve --output {xmfa_file} --backbone-output={bbone_file} "
         cmd += f"{' '.join(seq_copy_files)}"
@@ -115,6 +176,8 @@ def main():
     gv.savefig(result_fig_file, dpi=300)
     print(f"\nSave result figure ({result_fig_file}).")
 
+    return gv
+
 
 def parse_xmfa_file(xmfa_file: Union[str, Path]) -> List[str]:
     """Parse progressiveMauve xmfa file
@@ -166,14 +229,14 @@ def parse_bbone_file(
         for row in reader:
             row = [int(col) for col in row]
             # Always set reference seq coordinates to positive value
-            if row[refid] < 0:
+            if row[refid * 2] < 0:
                 row = [col * -1 for col in row]
             # Ignore no commonly conserved regions in all genomes
             if row.count(0) >= 2:
                 continue
             rows.append(row)
         # Sort by reference seq coordinates
-        rows = sorted(rows, key=lambda row: row[refid])
+        rows = sorted(rows, key=lambda row: row[refid * 2])
 
     seqid2maxsize: Dict[int, int] = defaultdict(int)
     seqid2blocks: Dict[int, List[Tuple[int, int, int]]] = defaultdict(list)
@@ -189,8 +252,13 @@ def parse_bbone_file(
     return seqid2maxsize, seqid2blocks
 
 
-def get_args() -> argparse.Namespace:
+def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
     """Get arguments
+
+    Parameters
+    ----------
+    cli_args : Optional[List[str]], optional
+        CLI arguments (Used in unittest)
 
     Returns
     -------
@@ -231,7 +299,7 @@ def get_args() -> argparse.Namespace:
     )
     general_opts.add_argument(
         "--reuse",
-        help="Reuse previous alignment result if available",
+        help="Reuse previous result if available",
         action="store_true",
     )
     general_opts.add_argument(
@@ -365,7 +433,7 @@ def get_args() -> argparse.Namespace:
         help="Plot curved style link (Default: OFF)",
         action="store_true",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(cli_args)
 
     # Check arguments
     err_info = ""

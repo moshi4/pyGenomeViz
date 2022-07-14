@@ -2,7 +2,7 @@ import argparse
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import Align, AlignCoord
@@ -10,43 +10,106 @@ from pygenomeviz.scripts import get_argparser, print_args
 
 
 def main():
-    """Visualization workflow using MUMmer"""
-    # Check MUMmer installation before run
-    Align.check_installation()
-
+    """Main function called from CLI"""
     # Get arguments
     args = get_args()
     print_args(args)
+    # Run workflow
+    run(**args.__dict__)
 
+
+def run(
     # General options
-    gbk_files: List[Path] = [Path(f) for f in args.gbk_files]
-    outdir: Path = Path(args.outdir)
-    format: str = args.format
-    reuse: bool = args.reuse
+    gbk_files: List[Union[str, Path]],
+    outdir: Union[str, Path],
+    format: str = "png",
+    reuse: bool = False,
     # MUMmer alignment options
-    seqtype: str = args.seqtype
-    maptype: str = args.maptype
-    min_length: int = args.min_length
-    min_identity: float = args.min_identity
+    seqtype: str = "protein",
+    maptype: str = "many-to-many",
+    min_length: int = 0,
+    min_identity: float = 0,
     # Figure appearence options
-    fig_width: float = args.fig_width
-    fig_track_height: float = args.fig_track_height
-    feature_track_ratio: float = args.feature_track_ratio
-    link_track_ratio: float = args.link_track_ratio
-    tick_track_ratio: float = args.tick_track_ratio
-    track_labelsize: int = args.track_labelsize
-    tick_labelsize: int = args.tick_labelsize
-    normal_link_color: str = args.normal_link_color
-    inverted_link_color: str = args.inverted_link_color
-    align_type: str = args.align_type
-    tick_style: Optional[str] = args.tick_style
-    feature_plotstyle: str = args.feature_plotstyle
-    arrow_shaft_ratio: float = args.arrow_shaft_ratio
-    feature_color: str = args.feature_color
-    feature_linewidth: float = args.feature_linewidth
-    curve: bool = args.curve
+    fig_width: float = 15,
+    fig_track_height: float = 1.0,
+    feature_track_ratio: float = 1.0,
+    link_track_ratio: float = 5.0,
+    tick_track_ratio: float = 1.0,
+    track_labelsize: int = 20,
+    tick_labelsize: int = 15,
+    normal_link_color: str = "grey",
+    inverted_link_color: str = "red",
+    align_type: str = "center",
+    tick_style: Optional[str] = None,
+    feature_plotstyle: str = "bigarrow",
+    arrow_shaft_ratio: float = 0.5,
+    feature_color: str = "orange",
+    feature_linewidth: float = 0,
+    curve: bool = True,
+) -> GenomeViz:
+    """Run genome visualization workflow using MUMmer
+
+    Parameters
+    ----------
+    gbk_files : List[Union[str, Path]]
+        Input genome genbank files
+    outdir : Union[str, Path]
+        Output directory
+    format : str, optional
+        Output image format (`png`|`jpg`|`svg`|`pdf`)
+    reuse : bool, optional
+        If True, reuse previous result if available
+    seqtype : str, optional
+        MUMmer alignment sequence type (`protein`|`nucleotide`)
+    maptype : str, optional
+        MUMmer alignment map type (`many-to-many`|`one-to-one`)
+    min_length : int, optional
+        Min-length threshold to be plotted
+    min_identity : float, optional
+        Min-identity threshold to be plotted
+    fig_width : float, optional
+        Figure width
+    fig_track_height : float, optional
+        Figure track height
+    feature_track_ratio : float, optional
+        Feature track ratio
+    link_track_ratio : float, optional
+        Link track ratio
+    tick_track_ratio : float, optional
+        Tick track ratio
+    track_labelsize : int, optional
+        Track label size
+    tick_labelsize : int, optional
+        Tick label size
+    normal_link_color : str, optional
+        Normal link color
+    inverted_link_color : str, optional
+        Inverted link color
+    align_type : str, optional
+        Figure tracks align type (`left`|`center`|`right`)
+    tick_style : Optional[str], optional
+        Tick style (`bar`|`axis`|`None`)
+    feature_plotstyle : str, optional
+        Feature plotstyle (`bigarrow`|`arrow`)
+    arrow_shaft_ratio : float, optional
+        Feature arrow shaft ratio
+    feature_color : str, optional
+        Feature color
+    feature_linewidth : float, optional
+        Feature edge line width
+    curve : bool, optional
+        If True, plot curved style link
+
+    Returns
+    -------
+    GenomeViz
+        _description_
+    """
+    # Check MUMmer installation
+    Align.check_installation()
 
     # Setup output contents
+    outdir = Path(outdir)
     os.makedirs(outdir, exist_ok=True)
     result_fig_file = outdir / f"result.{format}"
     align_coords_file = outdir / "align_coords.tsv"
@@ -114,9 +177,16 @@ def main():
     fig.savefig(result_fig_file, bbox_inches="tight", pad_inches=0.5)
     print(f"\nSave result figure ({result_fig_file}).")
 
+    return gv
 
-def get_args() -> argparse.Namespace:
+
+def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
     """Get arguments
+
+    Parameters
+    ----------
+    cli_args : Optional[List[str]], optional
+        CLI arguments (Used in unittest)
 
     Returns
     -------
@@ -157,7 +227,7 @@ def get_args() -> argparse.Namespace:
     )
     general_opts.add_argument(
         "--reuse",
-        help="Reuse previous alignment result if available",
+        help="Reuse previous result if available",
         action="store_true",
     )
     general_opts.add_argument(
@@ -345,7 +415,7 @@ def get_args() -> argparse.Namespace:
         help="Plot curved style link (Default: OFF)",
         action="store_true",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(cli_args)
 
     # Check arguments
     err_info = ""

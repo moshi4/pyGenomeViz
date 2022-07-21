@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from typing import List, Optional, Union
 
 from pygenomeviz import Genbank, GenomeViz, __version__
-from pygenomeviz.align import Align, AlignCoord
+from pygenomeviz.align import AlignCoord, MUMmer
 from pygenomeviz.scripts import get_argparser, print_args
 
 
@@ -102,11 +102,11 @@ def run(
 
     Returns
     -------
-    GenomeViz
-        _description_
+    gv : GenomeViz
+        GenomeViz instance
     """
     # Check MUMmer installation
-    Align.check_installation()
+    MUMmer.check_installation()
 
     # Setup output contents
     outdir = Path(outdir)
@@ -114,7 +114,7 @@ def run(
     result_fig_file = outdir / f"result.{format}"
     align_coords_file = outdir / "align_coords.tsv"
 
-    # Set tracks & features
+    # Setup GenomeViz instance
     gv = GenomeViz(
         fig_width=fig_width,
         fig_track_height=fig_track_height,
@@ -126,6 +126,8 @@ def run(
         tick_labelsize=tick_labelsize,
         plot_size_thr=0.0005,
     )
+
+    # Set tracks & features
     gbk_list = [Genbank(f) for f in gbk_files]
     for gbk in gbk_list:
         track = gv.add_feature_track(gbk.name, gbk.genome_length, track_labelsize)
@@ -144,18 +146,16 @@ def run(
         align_coords = AlignCoord.read(align_coords_file)
     else:
         with TemporaryDirectory() as tmpdir:
-            align_coords = Align(gbk_list, tmpdir, seqtype, maptype).run()
+            align_coords = MUMmer(gbk_list, tmpdir, seqtype, maptype).run()
             AlignCoord.write(align_coords, align_coords_file)
     align_coords = AlignCoord.filter(align_coords, min_length, min_identity)
 
     # Set links
     min_identity = int(min([ac.identity for ac in align_coords]))
     for ac in align_coords:
-        link1 = (ac.ref_name, ac.ref_start, ac.ref_end)
-        link2 = (ac.query_name, ac.query_start, ac.query_end)
         gv.add_link(
-            link1,
-            link2,
+            ac.ref_link,
+            ac.query_link,
             normal_link_color,
             inverted_link_color,
             curve=curve,

@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess as sp
 import sys
+from abc import ABCMeta, abstractmethod
 from dataclasses import astuple, dataclass
 from pathlib import Path
 from typing import ClassVar, List, Optional, Tuple, Union
@@ -14,8 +15,64 @@ from typing import ClassVar, List, Optional, Tuple, Union
 from pygenomeviz import Genbank
 
 
-class Align:
-    """Run MUMmer Genome Alignment Class"""
+class AlignToolBase(metaclass=ABCMeta):
+    """Alignment Tool Abstract Base Class"""
+
+    # Program name
+    NAME: str = ""
+    # Required binary names to run
+    BINARIES: List[str] = []
+
+    @abstractmethod
+    def run(self) -> List[AlignCoord]:
+        """Run genome alignment
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Genome alignment coord list
+        """
+        raise NotImplementedError
+
+    @property
+    def max_process_num(self) -> int:
+        """Max process number"""
+        cpu_num = os.cpu_count()
+        return 1 if cpu_num is None or cpu_num == 1 else cpu_num - 1
+
+    @classmethod
+    def check_installation(cls, exit_on_false: bool = True) -> bool:
+        """Check required binaries installation
+
+        Parameters
+        ----------
+        exit_on_error : bool
+            If True and check result is False, system exit
+
+        Returns
+        -------
+        result : bool
+            Check result
+        """
+        is_installed = True
+        for required_binary in cls.BINARIES:
+            if not shutil.which(required_binary):
+                is_installed = False
+
+        if not is_installed and exit_on_false:
+            err_msg = f"ERROR: Genome alignment by {cls.NAME} is not available "
+            err_msg += f"in this environment. Please check {cls.NAME} installation."
+            print(err_msg)
+            sys.exit(1)
+
+        return is_installed
+
+
+class MUMmer(AlignToolBase):
+    """MUMmer Alignment Class"""
+
+    NAME = "MUMmer"
+    BINARIES = ["nucmer", "promer", "delta-filter", "show-coords"]
 
     def __init__(
         self,
@@ -39,13 +96,13 @@ class Align:
         process_num : Optional[int], optional
             Use processor number (Default: `'Max Processor' - 1`)
         """
+        self.check_installation()
+
         self.genome_resources = genome_resources
         self.outdir = Path(outdir)
         self.seqtype = seqtype.lower()
         self.maptype = maptype.lower()
-        self.process_num = self._max_process_num if process_num is None else process_num
-
-        self.check_installation()
+        self.process_num = self.max_process_num if process_num is None else process_num
 
     @property
     def genome_num(self) -> int:
@@ -88,14 +145,8 @@ class Align:
         else:
             raise ValueError(f"Invalid maptype '{self.maptype}'")
 
-    @property
-    def _max_process_num(self) -> int:
-        """Max process number"""
-        cpu_num = os.cpu_count()
-        return 1 if cpu_num is None or cpu_num == 1 else cpu_num - 1
-
     def run(self) -> List[AlignCoord]:
-        """Run MUMmer genome alignment
+        """Run genome alignment
 
         Returns
         -------
@@ -150,7 +201,7 @@ class Align:
         cmd = f"show-coords -H -T -r -k {filter_delta_file} > {coords_file}"
         _ = sp.run(cmd, shell=True, capture_output=True, text=True)
 
-        align_coords = AlignCoord.parse(coords_file, self.seqtype)
+        align_coords = self.parse_coords_file(coords_file, self.seqtype)
 
         # Delete work files
         for work_file in (delta_file, filter_delta_file, coords_file):
@@ -159,132 +210,9 @@ class Align:
         return align_coords
 
     @staticmethod
-    def check_installation(exit_on_false: bool = True) -> bool:
-        """Check MUMmer installation
-
-        Parameters
-        ----------
-        exit_on_error : bool
-            If True and check result is False, system exit
-
-        Returns
-        -------
-        result : bool
-            Check result
-        """
-        is_installed = True
-        required_bins = ["nucmer", "promer", "delta-filter", "show-coords"]
-        for required_bin in required_bins:
-            if not shutil.which(required_bin):
-                is_installed = False
-
-        if not is_installed and exit_on_false:
-            err_msg = "ERROR: Genome alignment by MUMmer is not available "
-            err_msg += "in this environment. Please check MUMmer installation."
-            print(err_msg)
-            sys.exit(1)
-
-        return is_installed
-
-
-@dataclass
-class AlignCoord:
-    """MUMmer Alignment Coordinates DataClass"""
-
-    ref_start: int
-    ref_end: int
-    query_start: int
-    query_end: int
-    ref_length: int
-    query_length: int
-    identity: float
-    ref_name: str
-    query_name: str
-    header_list: ClassVar[List[str]] = [
-        "REF_START",
-        "REF_END",
-        "QUERY_START",
-        "QUERY_END",
-        "REF_LENGTH",
-        "QUERY_LENGTH",
-        "IDENTITY",
-        "REF_NAME",
-        "QUERY_NAME",
-    ]
-
-    @property
-    def ref_strand(self) -> int:
-        """Reference strand"""
-        return 1 if self.ref_end - self.ref_start >= 0 else -1
-
-    @property
-    def query_strand(self) -> int:
-        """Query strand"""
-        return 1 if self.query_end - self.query_start >= 0 else -1
-
-    @property
-    def is_inverted(self) -> bool:
-        """Check inverted or not"""
-        return self.ref_strand * self.query_strand < 0
-
-    @property
-    def as_tsv_format(self) -> str:
-        """TSV format text"""
-        return "\t".join([str(v) for v in astuple(self)])
-
-    @staticmethod
-    def write(align_coords: List[AlignCoord], outfile: Union[str, Path]) -> None:
-        """Write alignment coords as tsv format file
-
-        Parameters
-        ----------
-        align_coords : List[AlignCoord]
-            Alignment coords
-        outfile : Union[str, Path]
-            Output file path
-        """
-        with open(outfile, "w") as f:
-            header = "\t".join(AlignCoord.header_list)
-            output = "\n".join([ac.as_tsv_format for ac in align_coords])
-            f.write(header + "\n" + output)
-
-        """Read alignment coords tsv format file"""
-
-    @staticmethod
-    def read(align_coords_file: Union[str, Path]) -> List[AlignCoord]:
-        """Read alignment coords tsv format file
-
-        Parameters
-        ----------
-        align_coords_file : Union[str, Path]
-            Alignment coords tsv file
-
-        Returns
-        -------
-        align_coords : List[AlignCoord]
-            Alignment coords
-        """
-        align_coords = []
-        with open(align_coords_file) as f:
-            reader = csv.reader(f, delimiter="\t")
-            next(reader)
-            for row in reader:
-                # Convert to correct value type
-                typed_row = []
-                for idx, val in enumerate(row):
-                    if 0 <= idx <= 5:
-                        typed_row.append(int(val))
-                    elif idx == 6:
-                        typed_row.append(float(val))
-                    else:
-                        typed_row.append(str(val))
-                align_coords.append(AlignCoord(*typed_row))
-        return align_coords
-
-    @staticmethod
-    def parse(
+    def parse_coords_file(
         coords_tsv_file: Union[str, Path],
-        seqtype: str,
+        seqtype,
     ) -> List[AlignCoord]:
         """Parse MUMmer(nucmer|promer) output coords result file
 
@@ -292,8 +220,6 @@ class AlignCoord:
         ----------
         coords_tsv_file : Union[str, Path]
             MUMmer align coords file
-        seqtype : str
-            Sequence type (`nucleotide`|`protein`)
 
         Returns
         -------
@@ -329,6 +255,281 @@ class AlignCoord:
 
                 align_coords.append(AlignCoord(*typed_row))
 
+        return align_coords
+
+
+class MMseqs(AlignToolBase):
+    """MMseqs Alignment Class"""
+
+    NAME = "MMseqs"
+    BINARIES = ["mmseqs"]
+
+    def __init__(
+        self,
+        gbk_files: List[Union[str, Path]],
+        outdir: Union[str, Path],
+    ):
+        """
+        Parameters
+        ----------
+        gbk_files : List[Union[str, Path]]
+            Genome sequence files (Genbank or Fasta format)
+        outdir : Union[str, Path]
+            Output directory
+        """
+        self.check_installation()
+
+        self.gbk_files = [Path(f) for f in gbk_files]
+        self.outdir = Path(outdir)
+
+        os.makedirs(self.outdir, exist_ok=True)
+
+    def run(self) -> List[AlignCoord]:
+        """Run genome alignment
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Genome alignment coord list
+        """
+        cmd = "mmseqs easy-rbh "
+
+
+class ProgressiveMauve(AlignToolBase):
+    """progresiveMauve Alignment Class"""
+
+    NAME = "progressiveMauve"
+    BINARIES = ["progressiveMauve"]
+
+    def __init__(
+        self,
+        seq_files: List[Union[str, Path]],
+        outdir: Union[str, Path],
+        refid: int = 0,
+    ):
+        """
+        Parameters
+        ----------
+        seq_files : List[Union[str, Path]]
+            Genome sequence files (Genbank or Fasta format)
+        outdir : Union[str, Path]
+            Output directory
+        refid : int, optional
+            Reference genome id
+        """
+        self.check_installation()
+
+        self.seq_files = [Path(f) for f in seq_files]
+        self.outdir = Path(outdir)
+        self.refid = refid
+
+        self.xmfa_file = self.outdir / "mauve.xmfa"
+        self.bbone_file = self.outdir / "mauve_bbone.tsv"
+
+        self.seq_outdir = self.outdir / "seqfiles"
+        os.makedirs(self.seq_outdir, exist_ok=True)
+
+    @property
+    def filenames(self) -> List[str]:
+        """File names"""
+        return [f.with_suffix("").name for f in self.seq_files]
+
+    def run(self) -> List[AlignCoord]:
+        """Run genome alignment
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Genome alignment coord list
+        """
+        # Copy seqfiles to output directory
+        seq_copy_files = []
+        for seq_file in self.seq_files:
+            seq_copy_file = self.seq_outdir / Path(seq_file).name
+            # progressiveMauve cannot recognize *.gbff as genbank format
+            if str(seq_copy_file).endswith(".gbff"):
+                seq_copy_file = seq_copy_file.with_suffix(".gbk")
+            shutil.copy(seq_file, seq_copy_file)
+            seq_copy_files.append(str(seq_copy_file))
+
+        # Run progressiveMauve
+        cmd = f"progressiveMauve --output={self.xmfa_file} "
+        cmd += f"--backbone-output={self.bbone_file} {' '.join(seq_copy_files)}"
+        sp.run(cmd, shell=True)
+
+        return self.parse_pmauve_file(self.bbone_file)
+
+    def parse_pmauve_file(self, bbone_file: Union[str, Path]) -> List[AlignCoord]:
+        """Parse progressiveMauve bbone file
+
+        Parameters
+        ----------
+        bbone_file : Union[str, Path]
+            progressiveMauve bbone format file
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Genome alignment coord list
+        """
+        with open(bbone_file) as f:
+            reader = csv.reader(f, delimiter="\t")
+            header_row = next(reader)
+            genome_num = int(len(header_row) / 2)
+            rows = []
+            for row in reader:
+                row = [int(col) for col in row]
+                ref_idx = self.refid * 2
+                # Always set reference seq coordinates to positive value
+                if row[ref_idx] < 0:
+                    row = [col * -1 for col in row]
+                # Ignore no commonly conserved regions in all genomes
+                if row.count(0) >= 2:
+                    continue
+                # Ignore too short conserved regions (< 20bp)
+                if abs(row[ref_idx] - row[ref_idx + 1]) < 20:
+                    continue
+                rows.append(row)
+            # Sort by reference seq coordinates
+            rows = sorted(rows, key=lambda row: row[ref_idx])
+
+        align_coords = []
+        for row in rows:
+            for i in range(genome_num - 1):
+                idx = i * 2
+                # Reference start-end
+                rstart, rend = row[idx], row[idx + 1]
+                if rstart < 0 and rend < 0:
+                    rstart, rend = abs(rend), abs(rstart)
+                # Query start-end
+                qstart, qend = row[idx + 2], row[idx + 3]
+                if qstart < 0 and qend < 0:
+                    qstart, qend = abs(qend), abs(qstart)
+                rlength, qlength = abs(rend - rstart) + 1, abs(qend - qstart) + 1
+                rname, qname = self.filenames[i], self.filenames[i + 1]
+                align_coord = AlignCoord(
+                    rstart, rend, qstart, qend, rlength, qlength, 0, rname, qname
+                )
+                align_coords.append(align_coord)
+        return align_coords
+
+
+@dataclass
+class AlignCoord:
+    """Alignment Coordinates DataClass"""
+
+    ref_start: int
+    ref_end: int
+    query_start: int
+    query_end: int
+    ref_length: int
+    query_length: int
+    identity: float
+    ref_name: str
+    query_name: str
+    header_list: ClassVar[List[str]] = [
+        "REF_START",
+        "REF_END",
+        "QUERY_START",
+        "QUERY_END",
+        "REF_LENGTH",
+        "QUERY_LENGTH",
+        "IDENTITY",
+        "REF_NAME",
+        "QUERY_NAME",
+    ]
+
+    @property
+    def ref_strand(self) -> int:
+        """Reference strand"""
+        return 1 if self.ref_end > self.ref_start else -1
+
+    @property
+    def ref_link(self) -> Tuple[str, int, int]:
+        """Reference (name, start, end) link"""
+        return (self.ref_name, self.ref_start, self.ref_end)
+
+    @property
+    def ref_block(self) -> Tuple[int, int, int]:
+        """Reference (start, end, strand) block"""
+        if self.ref_start < self.ref_end:
+            return (self.ref_start, self.ref_end, self.ref_strand)
+        else:
+            return (self.ref_end, self.ref_start, self.ref_strand)
+
+    @property
+    def query_strand(self) -> int:
+        """Query strand"""
+        return 1 if self.query_end > self.query_start else -1
+
+    @property
+    def query_link(self) -> Tuple[str, int, int]:
+        """Query (name, start, end) link"""
+        return (self.query_name, self.query_start, self.query_end)
+
+    @property
+    def query_block(self) -> Tuple[int, int, int]:
+        """Query (start, end, strand) block"""
+        if self.query_start < self.query_end:
+            return (self.query_start, self.query_end, self.query_strand)
+        else:
+            return (self.query_end, self.query_start, self.query_strand)
+
+    @property
+    def is_inverted(self) -> bool:
+        """Check inverted or not"""
+        return self.ref_strand * self.query_strand < 0
+
+    @property
+    def as_tsv_format(self) -> str:
+        """TSV format text"""
+        return "\t".join([str(v) for v in astuple(self)])
+
+    @staticmethod
+    def write(align_coords: List[AlignCoord], outfile: Union[str, Path]) -> None:
+        """Write alignment coords as tsv format file
+
+        Parameters
+        ----------
+        align_coords : List[AlignCoord]
+            Alignment coords
+        outfile : Union[str, Path]
+            Output file path
+        """
+        with open(outfile, "w") as f:
+            header = "\t".join(AlignCoord.header_list)
+            output = "\n".join([ac.as_tsv_format for ac in align_coords])
+            f.write(header + "\n" + output)
+
+    @staticmethod
+    def read(align_coords_file: Union[str, Path]) -> List[AlignCoord]:
+        """Read alignment coords tsv format file
+
+        Parameters
+        ----------
+        align_coords_file : Union[str, Path]
+            Alignment coords tsv file
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Alignment coords
+        """
+        align_coords = []
+        with open(align_coords_file) as f:
+            reader = csv.reader(f, delimiter="\t")
+            next(reader)
+            for row in reader:
+                # Convert to correct value type
+                typed_row = []
+                for idx, val in enumerate(row):
+                    if 0 <= idx <= 5:
+                        typed_row.append(int(val))
+                    elif idx == 6:
+                        typed_row.append(float(val))
+                    else:
+                        typed_row.append(str(val))
+                align_coords.append(AlignCoord(*typed_row))
         return align_coords
 
     @staticmethod

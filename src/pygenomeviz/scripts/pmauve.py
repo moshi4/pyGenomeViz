@@ -1,14 +1,12 @@
 import argparse
 import csv
 import os
-import re
-import shutil
-import subprocess as sp
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 from pygenomeviz import GenomeViz, __version__
+from pygenomeviz.align import AlignCoord, ProgressiveMauve
 from pygenomeviz.scripts import get_argparser, print_args
 from pygenomeviz.utils import ColorCycler
 
@@ -90,44 +88,30 @@ def run(
     gv : GenomeViz
         GenomeViz instance
     """
+    # Check progressiveMauve installation
+    ProgressiveMauve.check_installation()
+
     # Setup output contents
     outdir = Path(outdir)
-    seq_outdir = outdir / "seqfiles"
-    os.makedirs(seq_outdir, exist_ok=True)
+    pmauve_dir = outdir / "pmauve_result"
+    os.makedirs(pmauve_dir, exist_ok=True)
+    align_coords_file = outdir / "align_coords.tsv"
     result_fig_file = outdir / f"result.{format}"
-    xmfa_file = outdir / "mauve.xmfa"
-    bbone_file = outdir / "mauve_bbone.tsv"
     ColorCycler.set_cmap(cmap)
 
-    # Copy seqfiles to output directory
-    seq_copy_files = []
-    for seq_file in seq_files:
-        seq_copy_file = seq_outdir / Path(seq_file).name
-        # progressiveMauve cannot recognize *.gbff as genbank format
-        if str(seq_copy_file).endswith(".gbff"):
-            seq_copy_file = seq_copy_file.with_suffix(".gbk")
-        shutil.copy(seq_file, seq_copy_file)
-        seq_copy_files.append(str(seq_copy_file))
-
-    # Run progressiveMauve
-    if reuse and xmfa_file.exists() and bbone_file.exists():
-        filenames = [Path(f).with_suffix("").name for f in seq_files]
-        prev_filenames = parse_xmfa_file(xmfa_file)
-        if filenames != prev_filenames:
-            err_msg = "Can't reuse previous results due to different inputs!!\n"
-            err_msg += f"Previous inputs = {prev_filenames}"
-            raise ValueError(err_msg)
-        else:
-            print("Reuse previous progressiveMauve result.")
+    # progressiveMauve alignment
+    pmauve = ProgressiveMauve(seq_files, pmauve_dir, refid=0)
+    if pmauve.bbone_file.exists() and reuse:
+        print("Reuse previous progressiveMauve result.")
+        align_coords = pmauve.parse_pmauve_file(pmauve.bbone_file)
+        AlignCoord.write(align_coords, align_coords_file)
     else:
-        cmd = f"progressiveMauve --output {xmfa_file} --backbone-output={bbone_file} "
-        cmd += f"{' '.join(seq_copy_files)}"
-        sp.run(cmd, shell=True)
+        align_coords = pmauve.run()
+        AlignCoord.write(align_coords, align_coords_file)
+    name2maxsize = get_name2maxsize(pmauve.filenames, pmauve.bbone_file)
+    name2blocks = get_name2blocks(align_coords)
 
-    # Parse progressiveMauve results
-    filenames = parse_xmfa_file(xmfa_file)
-    seqid2maxsize, seqid2links = parse_bbone_file(bbone_file)
-
+    # Setup GenomeViz instance
     gv = GenomeViz(
         fig_width=fig_width,
         fig_track_height=fig_track_height,
@@ -140,14 +124,8 @@ def run(
         plot_size_thr=0,
     )
 
-    name2maxsize: Dict[str, int] = defaultdict(int)
-    name2blocks: Dict[str, List[Tuple[int, int, int]]] = defaultdict(list)
-    for i in range(len(filenames)):
-        name2maxsize[filenames[i]] = seqid2maxsize[i]
-        name2blocks[filenames[i]] = seqid2links[i]
-
-    # Set tracks & features(blocks)
-    for name in filenames:
+    # Set tracks & block features
+    for name in pmauve.filenames:
         maxsize = name2maxsize[name]
         track = gv.add_feature_track(name, maxsize, track_labelsize)
         blocks = name2blocks[name]
@@ -157,20 +135,14 @@ def run(
             track.add_feature(start, end, strand, plotstyle=plotstyle, facecolor=color)
 
     # Set links
-    for i in range(len(filenames) - 1):
-        name1, name2 = filenames[i], filenames[i + 1]
-        blocks1, blocks2 = name2blocks[name1], name2blocks[name2]
-        for block1, block2 in zip(blocks1, blocks2):
-            start1, end1, strand1 = block1
-            if strand1 == -1:
-                start1, end1 = end1, start1
-            start2, end2, strand2 = block2
-            if strand2 == -1:
-                start2, end2 = end2, start2
-            link1, link2 = (name1, start1, end1), (name2, start2, end2)
-            gv.add_link(
-                link1, link2, normal_link_color, inverted_link_color, curve=curve
-            )
+    for ac in align_coords:
+        gv.add_link(
+            ac.ref_link,
+            ac.query_link,
+            normal_link_color,
+            inverted_link_color,
+            curve=curve,
+        )
 
     # Save figure
     gv.savefig(result_fig_file, dpi=300)
@@ -179,77 +151,57 @@ def run(
     return gv
 
 
-def parse_xmfa_file(xmfa_file: Union[str, Path]) -> List[str]:
-    """Parse progressiveMauve xmfa file
+def get_name2maxsize(names: List[str], bbone_file: Union[str, Path]) -> Dict[str, int]:
+    """Get name to maxsize genome dict from bbone file
 
     Parameters
     ----------
-    xmfa_file : Union[str, Path]
-        progressiveMauve xmfa format file
-
-    Returns
-    -------
-    filenames : List[str]
-        File names
-    """
-    filenames = []
-    with open(xmfa_file) as f:
-        lines = f.read().splitlines()
-        for line in lines:
-            if not line.startswith("#"):
-                break
-            if re.match("^#Sequence[0-9]+File", line):
-                seqfile = Path(line.split("\t")[1])
-                filename = seqfile.with_suffix("").name
-                filenames.append(filename)
-    return filenames
-
-
-def parse_bbone_file(
-    bbone_file: Union[str, Path],
-) -> Tuple[Dict[int, int], Dict[int, List[Tuple[int, int, int]]]]:
-    """Parse progressiveMauve bbone file
-
-    Parameters
-    ----------
+    names: List[str]
+        Name labels
     bbone_file : Union[str, Path]
         progressiveMauve bbone format file
 
     Returns
     -------
-    Tuple[Dict[int, int], Dict[int, List[Tuple[int, int, int]]]]
-        seqid2maxsize, seqid2blocks
+    name2maxsize : Dict[str, int]
+        name to maxsize dict
     """
-    refid = 0
+    name2maxsize = defaultdict(int)
     with open(bbone_file) as f:
         reader = csv.reader(f, delimiter="\t")
         header_row = next(reader)
         genome_num = int(len(header_row) / 2)
-        rows = []
         for row in reader:
-            row = [int(col) for col in row]
-            # Always set reference seq coordinates to positive value
-            if row[refid * 2] < 0:
-                row = [col * -1 for col in row]
-            # Ignore no commonly conserved regions in all genomes
-            if row.count(0) >= 2:
-                continue
-            rows.append(row)
-        # Sort by reference seq coordinates
-        rows = sorted(rows, key=lambda row: row[refid * 2])
+            row = [abs(int(col)) for col in row]
+            for i in range(genome_num):
+                name, size = names[i], max(row[i * 2], row[i * 2 + 1])
+                if name2maxsize[name] < size:
+                    name2maxsize[name] = size
+    return name2maxsize
 
-    seqid2maxsize: Dict[int, int] = defaultdict(int)
-    seqid2blocks: Dict[int, List[Tuple[int, int, int]]] = defaultdict(list)
-    for row in rows:
-        for i in range(genome_num):
-            idx = i * 2
-            left, right = row[idx], row[idx + 1]
-            strand = -1 if left < 0 or right < 0 else 1
-            start, end = abs(left), abs(right)
-            if seqid2maxsize[i] < end:
-                seqid2maxsize[i] = end
-            seqid2blocks[i].append((start, end, strand))
-    return seqid2maxsize, seqid2blocks
+
+def get_name2blocks(
+    align_coords: List[AlignCoord],
+) -> Dict[str, List[Tuple[int, int, int]]]:
+    """Get name to align coord blocks from align coords
+
+    Parameters
+    ----------
+    align_coords : List[AlignCoord]
+        Alignment coords
+
+    Returns
+    -------
+    name2blocks : Dict[str, List[Tuple[int, int, int]]]
+        name to align coord blocks
+    """
+    name2blocks = defaultdict(list)
+    for ac in align_coords:
+        if ac.ref_block not in name2blocks[ac.ref_name]:
+            name2blocks[ac.ref_name].append(ac.ref_block)
+        if ac.query_block not in name2blocks[ac.query_name]:
+            name2blocks[ac.query_name].append(ac.query_block)
+    return name2blocks
 
 
 def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:

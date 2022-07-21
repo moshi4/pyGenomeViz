@@ -295,6 +295,7 @@ class Genbank:
     def write_cds_fasta(
         self,
         fasta_outfile: Union[str, Path],
+        seqtype: str = "protein",
         allow_partial: bool = False,
     ):
         """Write CDS protein features fasta file
@@ -303,6 +304,10 @@ class Genbank:
         ----------
         fasta_outfile : Union[str, Path]
             CDS fasta file
+        seqtype : str, optional
+            Sequence type (`protein`|`nucleotide`)
+        allow_partial : bool, optional
+            If True, features that are partially included in range are also extracted
         """
         features = self.extract_features("CDS", None, False, allow_partial)
         cds_seq_records: List[SeqRecord] = []
@@ -314,7 +319,7 @@ class Genbank:
 
             start = self._to_int(feature.location.start)
             end = self._to_int(feature.location.end)
-            strand = "-" if feature.strand == -1 else "+"
+            strand = -1 if feature.strand == -1 else 1
 
             location_id = f"|{start}_{end}_{strand}|"
             if protein_id is None:
@@ -322,9 +327,14 @@ class Genbank:
             else:
                 seq_id = f"GENE{idx:06d}_{protein_id}{location_id}"
 
-            cds_seq_record = SeqRecord(
-                seq=Seq(translation), id=seq_id, description=product
-            )
+            if seqtype == "protein":
+                seq = Seq(translation)
+            elif seqtype == "nucleotide":
+                seq = Seq(feature.location.extract(self.genome_seq))
+            else:
+                raise ValueError(f"seqtype='{seqtype}' is invalid.")
+
+            cds_seq_record = SeqRecord(seq=seq, id=seq_id, description=product)
             cds_seq_records.append(cds_seq_record)
 
         SeqIO.write(cds_seq_records, fasta_outfile, "fasta-2line")

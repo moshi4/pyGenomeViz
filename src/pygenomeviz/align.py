@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess as sp
 import sys
+import tempfile
 from abc import ABCMeta, abstractmethod
 from dataclasses import astuple, dataclass
 from pathlib import Path
@@ -268,19 +269,31 @@ class MMseqs(AlignToolBase):
         self,
         gbk_files: List[Union[str, Path]],
         outdir: Union[str, Path],
+        identity: float = 0,
+        evalue: float = 1e-2,
+        process_num: Optional[int] = None,
     ):
         """
         Parameters
         ----------
         gbk_files : List[Union[str, Path]]
-            Genome sequence files (Genbank or Fasta format)
+            Genome sequence genbank files
         outdir : Union[str, Path]
             Output directory
+        identity : float, optional
+            Identity threshold
+        evalue : float, optional
+            E-value threshold
+        process_num : Optional[int], optional
+            Use processor number (Default: `'Max Processor' - 1`)
         """
         self.check_installation()
 
         self.gbk_files = [Path(f) for f in gbk_files]
         self.outdir = Path(outdir)
+        self.identity = identity
+        self.evalue = evalue
+        self.process_num = self.max_process_num if process_num is None else process_num
 
         os.makedirs(self.outdir, exist_ok=True)
 
@@ -292,7 +305,99 @@ class MMseqs(AlignToolBase):
         align_coords : List[AlignCoord]
             Genome alignment coord list
         """
-        cmd = "mmseqs easy-rbh "
+        # Make CDS fasta files from Genbank files
+        cds_fasta_files: List[Path] = []
+        for gbk_file in self.gbk_files:
+            gbk = Genbank(gbk_file)
+            cds_fasta_file = self.outdir / gbk_file.with_suffix(".faa").name
+            gbk.write_cds_fasta(cds_fasta_file)
+            cds_fasta_files.append(cds_fasta_file)
+
+        align_coords = []
+        for idx in range(0, len(self.gbk_files) - 1):
+            fa_file1, fa_file2 = cds_fasta_files[idx], cds_fasta_files[idx + 1]
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                name1 = fa_file1.with_suffix("").name
+                name2 = fa_file2.with_suffix("").name
+                rbh_result_file = self.outdir / f"{idx+1:02d}_{name1}-{name2}_rbh.tsv"
+                cmd = f"mmseqs easy-rbh {fa_file1} {fa_file2} {rbh_result_file} "
+                cmd += f"{tmpdir} --threads {self.process_num}"
+                sp.run(cmd, shell=True)
+
+                align_coords.extend(
+                    self.parse_rbh_result(rbh_result_file, name1, name2)
+                )
+
+        return align_coords
+
+    def parse_rbh_result(
+        self,
+        rbh_result_file: Union[str, Path],
+        ref_name: str,
+        query_name: str,
+    ) -> List[AlignCoord]:
+        """Parse MMseqs RBH result
+
+        Parameters
+        ----------
+        rbh_result_file : Union[str, Path]
+            MMseqs RBH result file
+        ref_name : str
+            Reference name
+        query_name : str
+            Query name
+
+        Returns
+        -------
+        align_coords : List[AlignCoord]
+            Align Coords
+        """
+        align_coords = []
+        dup_check_list = []
+        with open(rbh_result_file) as f:
+            reader = csv.reader(f, delimiter="\t")
+            for row in reader:
+                # Reference
+                ref_start, ref_end, ref_strand = [
+                    int(d) for d in row[0].split("|")[1].split("_")
+                ]
+                ref_length = ref_end - ref_start + 1
+                if ref_strand == -1:
+                    ref_start, ref_end = ref_end, ref_start
+                # Query
+                query_start, query_end, query_strand = [
+                    int(d) for d in row[1].split("|")[1].split("_")
+                ]
+                query_length = query_end - query_start + 1
+                if query_strand == -1:
+                    query_start, query_end = query_end, query_start
+                # Identity (%) [e.g. 0.95215 -> 95.21]
+                identity = int(float(row[2]) * 10000) / 100
+
+                # Check duplication
+                ref_key = f"{ref_name} {ref_start} {ref_end} {ref_strand}"
+                query_key = f"{query_name} {query_start} {query_end} {query_strand}"
+                if ref_key in dup_check_list:
+                    continue
+                if query_key in dup_check_list:
+                    continue
+                dup_check_list.extend([ref_key, query_key])
+
+                align_coord = AlignCoord(
+                    ref_start,
+                    ref_end,
+                    query_start,
+                    query_end,
+                    ref_length,
+                    query_length,
+                    identity,
+                    ref_name,
+                    query_name,
+                )
+                align_coords.append(align_coord)
+
+        return align_coords
 
 
 class ProgressiveMauve(AlignToolBase):

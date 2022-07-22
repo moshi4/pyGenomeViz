@@ -24,8 +24,10 @@ def main():
     # Load genome fasta information
     genome_name1 = genome_fasta_file1.with_suffix("").name
     genome_name2 = genome_fasta_file2.with_suffix("").name
-    seq_length1 = len(next(SeqIO.parse(genome_fasta_file1, "fasta")))
-    seq_length2 = len(next(SeqIO.parse(genome_fasta_file2, "fasta")))
+    records1 = SeqIO.parse(genome_fasta_file1, "fasta")
+    seq_length1 = sum([len(r) for r in records1])
+    records2 = SeqIO.parse(genome_fasta_file2, "fasta")
+    seq_length2 = sum([len(r) for r in records2])
 
     # Load fastANI visual result
     fastani_results = []

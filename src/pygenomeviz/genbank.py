@@ -361,3 +361,8 @@ class Genbank:
     def _to_int(self, value: Any) -> int:
         """Convert to int (Required for AbstractPostion|ExactPostion)"""
         return int(str(value).replace("<", "").replace(">", ""))
+
+    def __str__(self):
+        name = str(self._gbk_source)
+        min_max_range = f"{self.min_range:,} - {self.max_range:,} bp"
+        return f"{name} ({min_max_range})"

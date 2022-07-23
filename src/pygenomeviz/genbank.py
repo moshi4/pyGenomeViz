@@ -296,6 +296,7 @@ class Genbank:
         self,
         fasta_outfile: Union[str, Path],
         seqtype: str = "protein",
+        fix_position: bool = False,
         allow_partial: bool = False,
     ):
         """Write CDS protein features fasta file
@@ -306,10 +307,13 @@ class Genbank:
             CDS fasta file
         seqtype : str, optional
             Sequence type (`protein`|`nucleotide`)
+        fix_position : bool, optional
+            If True, fix feature start & end position by specified min_range parameter
+            (fixed_start = start - min_range, fixed_end = end - min_range)
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
         """
-        features = self.extract_features("CDS", None, False, allow_partial)
+        features = self.extract_features("CDS", None, fix_position, allow_partial)
         cds_seq_records: List[SeqRecord] = []
         for idx, feature in enumerate(features, 1):
             qualifiers = feature.qualifiers

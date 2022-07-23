@@ -19,7 +19,7 @@ def test_download_dataset_cli(tmp_path: Path):
 
 
 @pytest.mark.skipif(
-    condition=not MUMmer.check_installation(),
+    condition=not MUMmer.check_installation(exit_on_false=False),
     reason="MUMmer is not installed in this environment.",
 )
 def test_mummer_cli(tmp_path: Path):
@@ -36,7 +36,7 @@ def test_mummer_cli(tmp_path: Path):
 
 
 @pytest.mark.skipif(
-    condition=not MMseqs.check_installation(),
+    condition=not MMseqs.check_installation(exit_on_false=False),
     reason="MMseqs is not installed in this environment.",
 )
 def test_mmseqs_cli(tmp_path: Path):
@@ -53,7 +53,7 @@ def test_mmseqs_cli(tmp_path: Path):
 
 
 @pytest.mark.skipif(
-    condition=not ProgressiveMauve.check_installation(),
+    condition=not ProgressiveMauve.check_installation(exit_on_false=False),
     reason="progressiveMauve is not installed in this environment.",
 )
 def test_pmauve_cli(tmp_path: Path):

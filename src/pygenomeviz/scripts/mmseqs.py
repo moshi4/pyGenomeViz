@@ -5,7 +5,7 @@ from typing import List, Optional, Union
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, MMseqs
-from pygenomeviz.scripts import get_argparser, print_args
+from pygenomeviz.scripts import gbk_files2gbk_objects, get_argparser, print_args
 
 
 def main():
@@ -19,13 +19,14 @@ def main():
 
 def run(
     # General options
-    gbk_files: List[Union[str, Path]],
+    gbk_resources: Union[List[Union[str, Path]], List[Genbank]],
     outdir: Union[str, Path],
     format: str = "png",
     reuse: bool = False,
-    # MUMmer alignment options
-    min_length: int = 0,
+    # MMseqs options
+    evalue: float = 1e-3,
     min_identity: float = 0,
+    thread_num: Optional[int] = None,
     # Figure appearence options
     fig_width: float = 15,
     fig_track_height: float = 1.0,
@@ -43,27 +44,26 @@ def run(
     feature_color: str = "orange",
     feature_linewidth: float = 0,
     curve: bool = True,
+    dpi: int = 300,
 ) -> GenomeViz:
     """Run genome visualization workflow using MMseqs
 
     Parameters
     ----------
-    gbk_files : List[Union[str, Path]]
-        Input genome genbank files
+    gbk_resources : Union[List[Union[str, Path]], List[Genbank]]
+        Input genome genbank files or Genbank objects
     outdir : Union[str, Path]
         Output directory
     format : str, optional
         Output image format (`png`|`jpg`|`svg`|`pdf`)
     reuse : bool, optional
         If True, reuse previous result if available
-    seqtype : str, optional
-        MUMmer alignment sequence type (`protein`|`nucleotide`)
-    maptype : str, optional
-        MUMmer alignment map type (`many-to-many`|`one-to-one`)
-    min_length : int, optional
-        Min-length threshold to be plotted
+    evalue : float, optional
+        MMseqs RBH search E-value parameter
     min_identity : float, optional
         Min-identity threshold to be plotted
+    thread_num : Optional[int], optional
+        MMseqs thread number to be used
     fig_width : float, optional
         Figure width
     fig_track_height : float, optional
@@ -96,6 +96,8 @@ def run(
         Feature edge line width
     curve : bool, optional
         If True, plot curved style link
+    dpi : int, optional
+        Figure DPI
 
     Returns
     -------
@@ -112,6 +114,14 @@ def run(
     result_fig_file = outdir / f"result.{format}"
     align_coords_file = outdir / "align_coords.tsv"
 
+    # Setup Genbank objects
+    gbk_list: List[Genbank] = []
+    for gr in gbk_resources:
+        if isinstance(gr, Genbank):
+            gbk_list.append(gr)
+        else:
+            gbk_list.append(Genbank(gr))
+
     # Setup GenomeViz instance
     gv = GenomeViz(
         fig_width=fig_width,
@@ -126,7 +136,6 @@ def run(
     )
 
     # Set tracks & features
-    gbk_list = [Genbank(f) for f in gbk_files]
     for gbk in gbk_list:
         track = gv.add_feature_track(gbk.name, gbk.genome_length, track_labelsize)
         track.add_genbank_features(
@@ -136,16 +145,18 @@ def run(
             arrow_shaft_ratio=arrow_shaft_ratio,
             facecolor=feature_color,
             linewidth=feature_linewidth,
+            allow_partial=False,
         )
 
     # MMseqs alignment
     if align_coords_file.exists() and reuse:
-        print("Reuse previous MMseqs result.")
+        print("Reuse previous MMseqs RBH search result.\n")
         align_coords = AlignCoord.read(align_coords_file)
     else:
-        align_coords = MMseqs(gbk_files, mmseqs_dir).run()
+        print("Run MMseqs RBH search.\n")
+        align_coords = MMseqs(gbk_list, mmseqs_dir, 0, evalue, thread_num).run()
         AlignCoord.write(align_coords, align_coords_file)
-    align_coords = AlignCoord.filter(align_coords, min_length, min_identity)
+    align_coords = AlignCoord.filter(align_coords, 0, min_identity)
 
     # Set links
     min_identity = int(min([ac.identity for ac in align_coords]))
@@ -161,7 +172,7 @@ def run(
         )
 
     # Plot figure
-    fig = gv.plotfig(dpi=300)
+    fig = gv.plotfig(dpi=dpi)
 
     # Set colorbar
     bar_colors = [normal_link_color]
@@ -172,7 +183,7 @@ def run(
 
     # Save figure
     fig.savefig(result_fig_file, bbox_inches="tight", pad_inches=0.5)
-    print(f"\nSave result figure ({result_fig_file}).")
+    print(f"Save result figure ({result_fig_file}).")
 
     return gv
 
@@ -197,9 +208,10 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
     #######################################################
     general_opts = parser.add_argument_group("General Options")
     general_opts.add_argument(
-        "--gbk_files",
+        "--gbk_resources",
         type=str,
-        help="Input genome genbank files (file1:100-1000 file2:200-800)",
+        help="Input genome genbank file resources\n"
+        "(Target range can be set as follows 'file:100-1000')",
         nargs="+",
         required=True,
         metavar="IN",
@@ -241,41 +253,33 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
         action="help",
     )
     #######################################################
-    # MUMmer alignment options
+    # MMseqs options
     #######################################################
-    mummer_alignment_opts = parser.add_argument_group("MUMmer Alignment Options")
-    defaullt_seqtype = "protein"
-    mummer_alignment_opts.add_argument(
-        "--seqtype",
-        type=str,
-        help="MUMmer alignment sequence type ('protein'[*]|'nucleotide')",
-        default=defaullt_seqtype,
-        choices=["nucleotide", "protein"],
-        metavar="",
-    )
-    default_maptype = "many-to-many"
-    mummer_alignment_opts.add_argument(
-        "--maptype",
-        type=str,
-        help="MUMmer alignment map type ('many-to-many'[*]|'one-to-one')",
-        default=default_maptype,
-        choices=["one-to-one", "many-to-many"],
-        metavar="",
-    )
-    default_min_length = 0
-    mummer_alignment_opts.add_argument(
-        "--min_length",
-        type=int,
-        help=f"Min-length threshold to be plotted (Default: {default_min_length})",
-        default=default_min_length,
+    mmseqs_opts = parser.add_argument_group("MMseqs Options")
+    default_evalue = 1e-3
+    mmseqs_opts.add_argument(
+        "-e",
+        "--evalue",
+        type=float,
+        help=f"MMseqs RBH search E-value parameter (Default: {default_evalue:.0e})",
+        default=default_evalue,
         metavar="",
     )
     default_min_identity = 0
-    mummer_alignment_opts.add_argument(
+    mmseqs_opts.add_argument(
         "--min_identity",
         type=float,
         help=f"Min-identity threshold to be plotted (Default: {default_min_identity})",
         default=default_min_identity,
+        metavar="",
+    )
+    default_thread_num = None
+    mmseqs_opts.add_argument(
+        "-t",
+        "--thread_num",
+        type=int,
+        help="Threads number parameter (Default: MaxThread - 1)",
+        default=default_thread_num,
         metavar="",
     )
     #######################################################
@@ -412,18 +416,22 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
         help="Plot curved style link (Default: OFF)",
         action="store_true",
     )
+    default_dpi = 300
+    fig_opts.add_argument(
+        "--dpi",
+        type=int,
+        help=f"Figure DPI (Default: {default_dpi})",
+        default=default_dpi,
+        metavar="",
+    )
     args = parser.parse_args(cli_args)
 
     # Check arguments
-    err_info = ""
-    if len(args.gbk_files) < 2:
-        err_info += "--gbk_files must be set at least two files.\n"
-    for file in args.gbk_files:
-        if not os.path.isfile(file):
-            err_info += f"File not found '{file}'.\n"
+    if len(args.gbk_resources) < 2:
+        err_msg = "--gbk_resources must be set at least two files.\n"
+        parser.error(err_msg)
 
-    if err_info != "":
-        parser.error("\n" + err_info)
+    args.gbk_resources = gbk_files2gbk_objects(args.gbk_resources)
 
     return args
 

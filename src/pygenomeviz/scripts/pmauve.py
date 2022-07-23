@@ -41,6 +41,7 @@ def run(
     plotstyle: str = "box",
     cmap: str = "hsv",
     curve: bool = True,
+    dpi: int = 300,
 ) -> GenomeViz:
     """Run genome visualization workflow using progressiveMauve
 
@@ -82,6 +83,8 @@ def run(
         Block box colormap
     curve : bool, optional
         If True, plot curved style link
+    dpi : int, optional
+        Figure DPI
 
     Returns
     -------
@@ -102,10 +105,11 @@ def run(
     # progressiveMauve alignment
     pmauve = ProgressiveMauve(seq_files, pmauve_dir, refid=0)
     if pmauve.bbone_file.exists() and reuse:
-        print("Reuse previous progressiveMauve result.")
+        print("Reuse previous progressiveMauve result.\n")
         align_coords = pmauve.parse_pmauve_file(pmauve.bbone_file)
         AlignCoord.write(align_coords, align_coords_file)
     else:
+        print("Run progressiveMauve alignment.\n")
         align_coords = pmauve.run()
         AlignCoord.write(align_coords, align_coords_file)
     name2maxsize = get_name2maxsize(pmauve.filenames, pmauve.bbone_file)
@@ -145,8 +149,8 @@ def run(
         )
 
     # Save figure
-    gv.savefig(result_fig_file, dpi=300)
-    print(f"\nSave result figure ({result_fig_file}).")
+    gv.savefig(result_fig_file, dpi=dpi)
+    print(f"Save result figure ({result_fig_file}).")
 
     return gv
 
@@ -384,6 +388,14 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
         "--curve",
         help="Plot curved style link (Default: OFF)",
         action="store_true",
+    )
+    default_dpi = 300
+    fig_opts.add_argument(
+        "--dpi",
+        type=int,
+        help=f"Figure DPI (Default: {default_dpi})",
+        default=default_dpi,
+        metavar="",
     )
     args = parser.parse_args(cli_args)
 

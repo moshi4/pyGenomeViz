@@ -6,7 +6,7 @@ from typing import List, Optional, Union
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, MUMmer
-from pygenomeviz.scripts import get_argparser, print_args
+from pygenomeviz.scripts import gbk_files2gbk_objects, get_argparser, print_args
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
 
 def run(
     # General options
-    gbk_files: List[Union[str, Path]],
+    gbk_resources: Union[List[Union[str, Path]], List[Genbank]],
     outdir: Union[str, Path],
     format: str = "png",
     reuse: bool = False,
@@ -46,13 +46,14 @@ def run(
     feature_color: str = "orange",
     feature_linewidth: float = 0,
     curve: bool = True,
+    dpi: int = 300,
 ) -> GenomeViz:
     """Run genome visualization workflow using MUMmer
 
     Parameters
     ----------
-    gbk_files : List[Union[str, Path]]
-        Input genome genbank files
+    gbk_resources : Union[List[Union[str, Path]], List[Genbank]]
+        Input genome genbank files or Genbank objects
     outdir : Union[str, Path]
         Output directory
     format : str, optional
@@ -99,6 +100,8 @@ def run(
         Feature edge line width
     curve : bool, optional
         If True, plot curved style link
+    dpi : int, optional
+        Figure DPI
 
     Returns
     -------
@@ -114,6 +117,14 @@ def run(
     result_fig_file = outdir / f"result.{format}"
     align_coords_file = outdir / "align_coords.tsv"
 
+    # Setup Genbank objects
+    gbk_list: List[Genbank] = []
+    for gr in gbk_resources:
+        if isinstance(gr, Genbank):
+            gbk_list.append(gr)
+        else:
+            gbk_list.append(Genbank(gr))
+
     # Setup GenomeViz instance
     gv = GenomeViz(
         fig_width=fig_width,
@@ -124,11 +135,10 @@ def run(
         align_type=align_type,
         tick_style=tick_style,
         tick_labelsize=tick_labelsize,
-        plot_size_thr=0.0005,
+        plot_size_thr=0,
     )
 
     # Set tracks & features
-    gbk_list = [Genbank(f) for f in gbk_files]
     for gbk in gbk_list:
         track = gv.add_feature_track(gbk.name, gbk.genome_length, track_labelsize)
         track.add_genbank_features(
@@ -138,13 +148,15 @@ def run(
             arrow_shaft_ratio=arrow_shaft_ratio,
             facecolor=feature_color,
             linewidth=feature_linewidth,
+            allow_partial=False,
         )
 
     # MUMmer alignment
     if align_coords_file.exists() and reuse:
-        print("Reuse previous MUMmer result.")
+        print("Reuse previous MUMmer result.\n")
         align_coords = AlignCoord.read(align_coords_file)
     else:
+        print("Run MUMmer alignment.\n")
         with TemporaryDirectory() as tmpdir:
             align_coords = MUMmer(gbk_list, tmpdir, seqtype, maptype).run()
             AlignCoord.write(align_coords, align_coords_file)
@@ -164,7 +176,7 @@ def run(
         )
 
     # Plot figure
-    fig = gv.plotfig(dpi=300)
+    fig = gv.plotfig(dpi=dpi)
 
     # Set colorbar
     bar_colors = [normal_link_color]
@@ -175,7 +187,7 @@ def run(
 
     # Save figure
     fig.savefig(result_fig_file, bbox_inches="tight", pad_inches=0.5)
-    print(f"\nSave result figure ({result_fig_file}).")
+    print(f"Save result figure ({result_fig_file}).")
 
     return gv
 
@@ -200,9 +212,10 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
     #######################################################
     general_opts = parser.add_argument_group("General Options")
     general_opts.add_argument(
-        "--gbk_files",
+        "--gbk_resources",
         type=str,
-        help="Input genome genbank files",
+        help="Input genome genbank file resources\n"
+        "(Target range can be set as follows 'file:100-1000')",
         nargs="+",
         required=True,
         metavar="IN",
@@ -415,18 +428,22 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
         help="Plot curved style link (Default: OFF)",
         action="store_true",
     )
+    default_dpi = 300
+    fig_opts.add_argument(
+        "--dpi",
+        type=int,
+        help=f"Figure DPI (Default: {default_dpi})",
+        default=default_dpi,
+        metavar="",
+    )
     args = parser.parse_args(cli_args)
 
     # Check arguments
-    err_info = ""
-    if len(args.gbk_files) < 2:
-        err_info += "--gbk_files must be set at least two files.\n"
-    for file in args.gbk_files:
-        if not os.path.isfile(file):
-            err_info += f"File not found '{file}'.\n"
+    if len(args.gbk_resources) < 2:
+        err_msg = "--gbk_resources must be set at least two files.\n"
+        parser.error(err_msg)
 
-    if err_info != "":
-        parser.error("\n" + err_info)
+    args.gbk_resources = gbk_files2gbk_objects(args.gbk_resources)
 
     return args
 

@@ -267,17 +267,17 @@ class MMseqs(AlignToolBase):
 
     def __init__(
         self,
-        gbk_files: List[Union[str, Path]],
+        gbk_resources: Union[List[Union[str, Path]], List[Genbank]],
         outdir: Union[str, Path],
         identity: float = 0,
-        evalue: float = 1e-2,
+        evalue: float = 1e-3,
         process_num: Optional[int] = None,
     ):
         """
         Parameters
         ----------
-        gbk_files : List[Union[str, Path]]
-            Genome sequence genbank files
+        gbk_resources : Union[List[Union[str, Path]], List[Genbank]]
+            Genome sequence genbank files or Genbank objects
         outdir : Union[str, Path]
             Output directory
         identity : float, optional
@@ -289,7 +289,12 @@ class MMseqs(AlignToolBase):
         """
         self.check_installation()
 
-        self.gbk_files = [Path(f) for f in gbk_files]
+        self.gbk_list: List[Genbank] = []
+        for gr in gbk_resources:
+            if isinstance(gr, Genbank):
+                self.gbk_list.append(gr)
+            else:
+                self.gbk_list.append(Genbank(gr))
         self.outdir = Path(outdir)
         self.identity = identity
         self.evalue = evalue
@@ -307,14 +312,13 @@ class MMseqs(AlignToolBase):
         """
         # Make CDS fasta files from Genbank files
         cds_fasta_files: List[Path] = []
-        for gbk_file in self.gbk_files:
-            gbk = Genbank(gbk_file)
-            cds_fasta_file = self.outdir / gbk_file.with_suffix(".faa").name
-            gbk.write_cds_fasta(cds_fasta_file)
+        for gbk in self.gbk_list:
+            cds_fasta_file = self.outdir / (gbk.name + ".faa")
+            gbk.write_cds_fasta(cds_fasta_file, fix_position=True)
             cds_fasta_files.append(cds_fasta_file)
 
         align_coords = []
-        for idx in range(0, len(self.gbk_files) - 1):
+        for idx in range(0, len(self.gbk_list) - 1):
             fa_file1, fa_file2 = cds_fasta_files[idx], cds_fasta_files[idx + 1]
 
             with tempfile.TemporaryDirectory() as tmpdir:
@@ -322,7 +326,8 @@ class MMseqs(AlignToolBase):
                 name2 = fa_file2.with_suffix("").name
                 rbh_result_file = self.outdir / f"{idx+1:02d}_{name1}-{name2}_rbh.tsv"
                 cmd = f"mmseqs easy-rbh {fa_file1} {fa_file2} {rbh_result_file} "
-                cmd += f"{tmpdir} --threads {self.process_num}"
+                cmd += f"{tmpdir} --threads {self.process_num} -e {self.evalue} -v 0"
+                print(f"# {idx+1:02d}: {name1}-{name2} RBH search\n$ {cmd}\n")
                 sp.run(cmd, shell=True)
 
                 align_coords.extend(

@@ -152,6 +152,7 @@ class GenomeViz:
         name: str,
         size: int,
         labelsize: int = 20,
+        labelcolor: str = "black",
         labelmargin: float = 0.01,
         linewidth: int = 1,
         linecolor: str = "grey",
@@ -170,6 +171,8 @@ class GenomeViz:
             Track size
         labelsize : int, optional
             Track label size
+        labelcolor : str, optional
+            Track label color
         labelmargin : flaot, optional
             Track label margin
         linewidth : int, optional
@@ -201,6 +204,7 @@ class GenomeViz:
             name,
             size,
             labelsize,
+            labelcolor,
             labelmargin,
             linewidth,
             linecolor,

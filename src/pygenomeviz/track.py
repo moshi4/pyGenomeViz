@@ -108,6 +108,7 @@ class FeatureTrack(Track):
         name: str,
         size: int,
         labelsize: int = 20,
+        labelcolor: str = "black",
         labelmargin: float = 0.01,
         linewidth: int = 1,
         linecolor: str = "black",
@@ -123,6 +124,8 @@ class FeatureTrack(Track):
             Track size
         labelsize : int, optional
             Track label size
+        labelcolor : str, optional
+            Track label color
         labelmargin : float, optional
             Track label margin
         linewidth : int, optional
@@ -135,6 +138,7 @@ class FeatureTrack(Track):
             Track height ratio
         """
         super().__init__(name, size, labelsize, spines, ratio)
+        self.labelcolor = labelcolor
         self.labelmargin = labelmargin
         self.linewidth = linewidth
         self.linecolor = linecolor
@@ -152,6 +156,7 @@ class FeatureTrack(Track):
         return {
             "s": self.name,
             "fontsize": self.labelsize,
+            "color": self.labelcolor,
             "ha": "right",
             "va": "center",
         }

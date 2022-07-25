@@ -24,6 +24,7 @@ def run(
     # General options
     seq_files: List[Union[str, Path]],
     outdir: Union[str, Path],
+    refid: int = 0,
     format: str = "png",
     reuse: bool = False,
     # Figure appearence options
@@ -103,7 +104,7 @@ def run(
     ColorCycler.set_cmap(cmap)
 
     # progressiveMauve alignment
-    pmauve = ProgressiveMauve(seq_files, pmauve_dir, refid=0)
+    pmauve = ProgressiveMauve(seq_files, pmauve_dir, refid)
     if pmauve.bbone_file.exists() and reuse:
         print("Reuse previous progressiveMauve result.\n")
         align_coords = pmauve.parse_pmauve_file(pmauve.bbone_file)
@@ -242,6 +243,14 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
         help="Output directory",
         required=True,
         metavar="OUT",
+    )
+    default_refid = 0
+    general_opts.add_argument(
+        "--refid",
+        type=int,
+        help=f"Reference genome index (Default: {default_refid})",
+        default=default_refid,
+        metavar="",
     )
     default_format = "png"
     format_list = ["png", "jpg", "svg", "pdf"]
@@ -406,6 +415,9 @@ def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
     for file in args.seq_files:
         if not file.exists():
             err_info += f"File not found '{file}'.\n"
+    min_refid, max_refid = 0, len(args.seq_files) - 1
+    if not min_refid <= args.refid <= max_refid:
+        err_info += f"--refid must be '{min_refid} <= refid <= {max_refid}'\n"
 
     if err_info != "":
         parser.error("\n" + err_info)

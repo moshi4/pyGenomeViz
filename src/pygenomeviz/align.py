@@ -425,7 +425,7 @@ class ProgressiveMauve(AlignToolBase):
         outdir : Union[str, Path]
             Output directory
         refid : int, optional
-            Reference genome id
+            Reference genome index
         """
         self.check_installation()
 

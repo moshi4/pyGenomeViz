@@ -44,6 +44,15 @@ DATASETS = {
         "NC_011750.gbk",
         "link.tsv",
     ],
+    "mycoplasma_gallisepticum": [
+        "NC_004829.gbk",
+        "NC_018407.gbk",
+        "NC_018408.gbk",
+        "NC_018409.gbk",
+        "NC_017502.gbk",
+        "NC_017503.gbk",
+        "link.tsv",
+    ],
 }
 
 
@@ -55,13 +64,14 @@ def load_dataset(
     """Load pygenomeviz example dataset
 
     Download and load datasets from https://github.com/moshi4/pygenomeviz-data
-    and cache datasets in local directory ('~/.cache/pygenomeviz/').
+    and cache datasets in local directory (Default: '~/.cache/pygenomeviz/').
 
     List of dataset name
     - `escherichia_phage`
     - `erwinia_phage`
     - `enterobacteria_phage`
     - `escherichia_coli`
+    - `mycoplasma_gallisepticum`
 
     Parameters
     ----------

@@ -161,21 +161,44 @@ class FeatureTrack(Track):
             "va": "center",
         }
 
-    def add_subtrack(self, ratio: float = 1.0) -> None:
+    def add_subtrack(self, name: Optional[str] = None, ratio: float = 1.0) -> None:
         """Add subtrack to feature track
 
         Parameters
         ----------
+        name : str, optional
+            Subtrack name. If None, subtrack name is automatically set.
         ratio : float, optional
             Subtrack size ratio to feature track
         """
         subtrack_ratio = self.ratio * ratio
         subtrack_idx = len(self.subtracks) + 1
-        subtrack_name = f"{self.name}_subtrack{subtrack_idx}"
-        subtrack = FeatureSubTrack(
-            subtrack_name, self.size, self.spines, subtrack_ratio
-        )
+        if name is None:
+            name = f"{self.name}_subtrack{subtrack_idx}"
+        if name in [t.name for t in self.subtracks]:
+            err_msg = f"subtrack.name='{name}' is already exists."
+            raise ValueError(err_msg)
+        subtrack = FeatureSubTrack(name, self.size, self.spines, subtrack_ratio)
         self.subtracks.append(subtrack)
+
+    def get_subtrack(self, name: str) -> FeatureSubTrack:
+        """Get subtrack by name
+
+        Parameters
+        ----------
+        name : str
+            Target subtrack name
+
+        Returns
+        -------
+        subtrack : FeatureSubTrack
+            Target subtrack
+        """
+        name2subtrack = {t.name: t for t in self.subtracks}
+        if name not in name2subtrack.keys():
+            err_msg = f"subtrack.name='{name}' is not found."
+            raise ValueError(err_msg)
+        return name2subtrack[name]
 
     def add_feature(
         self,

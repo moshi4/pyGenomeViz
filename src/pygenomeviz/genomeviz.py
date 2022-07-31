@@ -189,7 +189,7 @@ class GenomeViz:
             Feature track
         """
         # Check specified track name is unique or not
-        if name in [t.name for t in self.get_tracks(subtrack=True)]:
+        if name in [t.name for t in self.get_tracks()]:
             err_msg = f"track.name='{name}' is already exists."
             raise ValueError(err_msg)
         # Add link track between feature tracks
@@ -298,13 +298,11 @@ class GenomeViz:
         track : Track
             Target track
         """
-        track_name2track = {}
-        for track in self.get_tracks(subtrack=True):
-            track_name2track[track.name] = track
-        if track_name not in track_name2track.keys():
+        name2track = {t.name: t for t in self.get_tracks()}
+        if track_name not in name2track.keys():
             err_msg = f"track.name='{track_name}' is not found."
             raise ValueError(err_msg)
-        return track_name2track[track_name]
+        return name2track[track_name]
 
     def get_tracks(self, subtrack: bool = False) -> List[Track]:
         """Get tracks

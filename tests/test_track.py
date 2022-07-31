@@ -7,15 +7,50 @@ def test_add_subtrack():
     track_name, track_size = "feature track", 1000
     track = FeatureTrack(track_name, track_size)
     track.add_subtrack()
-    track.add_subtrack(ratio=0.7)
+    track.add_subtrack(name="subtrack2", ratio=0.7)
 
     assert len(track.subtracks) == 2
     assert track.subtracks[0].name == f"{track_name}_subtrack1"
     assert track.subtracks[0].size == track_size
     assert track.subtracks[0].ratio == 1.0
-    assert track.subtracks[1].name == f"{track_name}_subtrack2"
+    assert track.subtracks[1].name == "subtrack2"
     assert track.subtracks[1].size == track_size
     assert track.subtracks[1].ratio == 0.7
+
+
+def test_add_subtrack_name_dup_error():
+    """Test add subtrack name duplication error"""
+    track_name, track_size = "feature track", 1000
+    track = FeatureTrack(track_name, track_size)
+    track.add_subtrack(name="dup_subtrack")
+    with pytest.raises(ValueError):
+        track.add_subtrack(name="dup_subtrack")
+
+
+def test_get_subtrack():
+    """Test get subtrack"""
+    track_name, track_size = "feature track", 1000
+    track = FeatureTrack(track_name, track_size)
+    track.add_subtrack(name="subtrack1")
+    track.add_subtrack(name="subtrack2")
+
+    target_subtrack_name = "subtrack2"
+    subtrack = track.get_subtrack(target_subtrack_name)
+    assert subtrack.name == target_subtrack_name
+    assert subtrack.size == track_size
+    assert subtrack.ratio == 1.0
+
+
+def test_get_subtrack_no_exists_error():
+    """Test get subtrack no exists error"""
+    track_name, track_size = "feature track", 1000
+    track = FeatureTrack(track_name, track_size)
+    track.add_subtrack(name="subtrack1")
+    track.add_subtrack(name="subtrack2")
+
+    with pytest.raises(ValueError):
+        no_exists_name = "subtrack3"
+        track.get_subtrack(no_exists_name)
 
 
 def test_add_feature_range_error():

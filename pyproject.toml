@@ -4,7 +4,7 @@ version = "0.1.1"
 description = "A genome visualization python package for comparative genomics"
 authors = ["moshi4"]
 license = "MIT"
-homepage = "https://github.com/moshi4/pyGenomeViz/"
+homepage = "https://moshi4.github.io/pyGenomeViz/"
 repository = "https://github.com/moshi4/pyGenomeViz/"
 readme = "README.md"
 keywords = [
@@ -17,6 +17,7 @@ keywords = [
 classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Framework :: Matplotlib",
 ]
 include = ["tests"]
 

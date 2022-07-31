@@ -332,7 +332,7 @@ See CLI document for details.
 
 ### MUMmer CLI Workflow Example
 
-See [pgv-mummer document](https://moshi4.github.io/pygenomeviz/cli-docs/pgv-pmauve/) for details.
+See [pgv-mummer document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mummer/) for details.
 
 Download example dataset: `pgv-download-dataset -n escherichia_phage`
 
@@ -343,7 +343,7 @@ Download example dataset: `pgv-download-dataset -n escherichia_phage`
 
 ### MMseqs CLI Workflow Example
 
-See [pgv-mmseqs document](https://moshi4.github.io/pygenomeviz/cli-docs/pgv-mmseqs/) for details.
+See [pgv-mmseqs document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mmseqs/) for details.
 
 Downalod example dataset: `pgv-download-dataset -n enterobacteria_phage`
 
@@ -355,7 +355,7 @@ Downalod example dataset: `pgv-download-dataset -n enterobacteria_phage`
 
 ### progressiveMauve CLI Workflow Example
 
-See [pgv-pmauve document](https://moshi4.github.io/pygenomeviz/cli-docs/pgv-pmauve/) for details.
+See [pgv-pmauve document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-pmauve/) for details.
 
 Download example dataset: `pgv-download-dataset -n escherichia_coli`
 

@@ -7,12 +7,20 @@
 [![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)
 [![CI](https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml/badge.svg)](https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml)
 
+## Table of contents
+
+- [Overview](#overview)
+- [Installation](#installation)
+- [API Examples](#api-examples)
+- [CLI Examples](#cli-examples)
+- [Inspiration](#inspiration)
+
 ## Overview
 
 pyGenomeViz is a genome visualization python package for comparative genomics implemented based on matplotlib.
 This package is developed for the purpose of easily and beautifully plotting genomic
 features and sequence similarity comparison links between multiple genomes.
-It supports genome visualization of Genbank format file and can be saved figure in various formats (JPG/PNG/SVG/PDF).
+It supports genome visualization of Genbank format file from both API & CLI, and can be saved figure in various formats (JPG/PNG/SVG/PDF).
 User can use pyGenomeViz for interactive genome visualization figure plotting on jupyter notebook,
 or automatic genome visualization figure plotting in genome analysis scripts/pipelines.
 
@@ -22,7 +30,10 @@ For more information, please see full documentation [here](https://moshi4.github
 **Fig.1 Four *Erwinia phage* genome comparison result**
 
 ![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)  
-**Fig.2 Six *Enterobacteria phage* genome comparison result**
+**Fig.2 Six *Enterobacteria phage* genome comparison**
+
+![pmauve_result1.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pmauve_example1.png)  
+**Fig.3 Four *E.coli* genome comparison result**
 
 ## Installation
 
@@ -36,7 +47,7 @@ For more information, please see full documentation [here](https://moshi4.github
 
     conda install -c conda-forge -c bioconda pygenomeviz
 
-## Examples
+## API Examples
 
 Jupyter notebooks containing code examples below is available [here](https://moshi4.github.io/pyGenomeViz/getting_started/).
 
@@ -69,7 +80,7 @@ from pygenomeviz import GenomeViz
 genome_list = (
     {"name": "genome 01", "size": 1000, "cds_list": ((150, 300, 1), (500, 700, -1), (750, 950, 1))},
     {"name": "genome 02", "size": 1300, "cds_list": ((50, 200, 1), (350, 450, 1), (700, 900, -1), (950, 1150, -1))},
-    {"name": "genome 03", "size": 1200, "cds_list": ((150, 300, 1), (350, 450, -1), (500, 700, -1), (701, 900, -1))},
+    {"name": "genome 03", "size": 1200, "cds_list": ((150, 300, 1), (350, 450, -1), (500, 700, -1), (700, 900, -1))},
 )
 
 gv = GenomeViz(tick_style="axis")
@@ -88,7 +99,7 @@ gv.add_link(("genome 01", 750, 950), ("genome 02", 1150, 950))
 gv.add_link(("genome 02", 50, 200), ("genome 03", 150, 300), normal_color="skyblue", inverted_color="lime", curve=True)
 gv.add_link(("genome 02", 350, 450), ("genome 03", 450, 350), normal_color="skyblue", inverted_color="lime", curve=True)
 gv.add_link(("genome 02", 900, 700), ("genome 03", 700, 500), normal_color="skyblue", inverted_color="lime", curve=True)
-gv.add_link(("genome 03", 900, 701), ("genome 02", 1150, 950), normal_color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 03", 900, 700), ("genome 02", 1150, 950), normal_color="skyblue", inverted_color="lime", curve=True)
 
 gv.savefig("example02.png")
 ```
@@ -144,7 +155,7 @@ from pygenomeviz import Genbank, GenomeViz, load_dataset
 gv = GenomeViz(
     fig_track_height=0.7,
     feature_track_ratio=0.2,
-    tick_track_ratio=0.7,
+    tick_track_ratio=0.4,
     tick_style="bar",
     align_type="center",
 )
@@ -311,3 +322,53 @@ fig.savefig("example07.png", bbox_inches="tight")
 </details>
 
 ![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)
+
+## CLI Examples
+
+pyGenomeViz provides CLI workflow for visualization of genome alignment or
+homologous CDS search results with `MUMmer` or `MMseqs` or `progressiveMauve`.
+Each CLI workflow requires the installation of additional dependent tools to execute.
+See CLI document for details.
+
+### MUMmer CLI Workflow Example
+
+See [pgv-mummer document](https://moshi4.github.io/pygenomeviz/cli-docs/pgv-pmauve/) for details.
+
+Download example dataset: `pgv-download-dataset -n escherichia_phage`
+
+    pgv-mummer --gbk_resources MT939486.gbk MT939487.gbk MT939488.gbk LT960552.gbk \
+               -o mummer_example --tick_style axis --align_type left --feature_plotstyle arrow
+
+![mummer_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/mummer_example1.png)  
+
+### MMseqs CLI Workflow Example
+
+See [pgv-mmseqs document](https://moshi4.github.io/pygenomeviz/cli-docs/pgv-mmseqs/) for details.
+
+Downalod example dataset: `pgv-download-dataset -n enterobacteria_phage`
+
+    pgv-mmseqs --gbk_resources NC_019724.gbk NC_024783.gbk NC_016566.gbk NC_013600.gbk NC_031081.gbk NC_028901.gbk \
+               -o mmseqs_example --fig_track_height 0.7 --feature_linewidth 0.3 --tick_style bar --curve \
+               --normal_link_color chocolate --inverted_link_color limegreen --feature_color skyblue
+
+![mmseqs_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/mmseqs_example3.png)  
+
+### progressiveMauve CLI Workflow Example
+
+See [pgv-pmauve document](https://moshi4.github.io/pygenomeviz/cli-docs/pgv-pmauve/) for details.
+
+Download example dataset: `pgv-download-dataset -n escherichia_coli`
+
+    pgv-pmauve --seq_files NC_000913.gbk NC_002695.gbk NC_011751.gbk NC_011750.gbk \
+               -o pmauve_example --tick_style bar
+
+![pmauve_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pmauve_example1.png)  
+
+## Inspiration
+
+pyGenomeViz was inspired by
+
+- [GenomeDiagram (BioPython)](https://github.com/biopython/biopython)
+- [Easyfig](http://mjsull.github.io/Easyfig/)
+- [genoplotR](https://genoplotr.r-forge.r-project.org/)
+- [gggenomes](https://github.com/thackl/gggenomes)

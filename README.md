@@ -326,15 +326,16 @@ fig.savefig("example07.png", bbox_inches="tight")
 ## CLI Examples
 
 pyGenomeViz provides CLI workflow for visualization of genome alignment or
-homologous CDS search results with `MUMmer` or `MMseqs` or `progressiveMauve`.
-Each CLI workflow requires the installation of additional dependent tools to execute.
-See CLI document for details.
+reciprocal best-hit CDS search results with `MUMmer` or `MMseqs` or `progressiveMauve`.
+Each CLI workflow requires the installation of additional dependent tools to run.
 
 ### MUMmer CLI Workflow Example
 
 See [pgv-mummer document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mummer/) for details.
 
 Download example dataset: `pgv-download-dataset -n escherichia_phage`
+
+> :warning: MUMmer must be installed in advance to run
 
     pgv-mummer --gbk_resources MT939486.gbk MT939487.gbk MT939488.gbk LT960552.gbk \
                -o mummer_example --tick_style axis --align_type left --feature_plotstyle arrow
@@ -345,7 +346,9 @@ Download example dataset: `pgv-download-dataset -n escherichia_phage`
 
 See [pgv-mmseqs document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mmseqs/) for details.
 
-Downalod example dataset: `pgv-download-dataset -n enterobacteria_phage`
+Download example dataset: `pgv-download-dataset -n enterobacteria_phage`
+
+> :warning: MMseqs must be installed in advance to run
 
     pgv-mmseqs --gbk_resources NC_019724.gbk NC_024783.gbk NC_016566.gbk NC_013600.gbk NC_031081.gbk NC_028901.gbk \
                -o mmseqs_example --fig_track_height 0.7 --feature_linewidth 0.3 --tick_style bar --curve \
@@ -358,6 +361,8 @@ Downalod example dataset: `pgv-download-dataset -n enterobacteria_phage`
 See [pgv-pmauve document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-pmauve/) for details.
 
 Download example dataset: `pgv-download-dataset -n escherichia_coli`
+
+> :warning: progressiveMauve must be installed in advance to run
 
     pgv-pmauve --seq_files NC_000913.gbk NC_002695.gbk NC_011751.gbk NC_011750.gbk \
                -o pmauve_example --tick_style bar

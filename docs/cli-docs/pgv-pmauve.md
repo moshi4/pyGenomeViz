@@ -12,7 +12,7 @@ Additional installation of progressiveMauve is required.
 
 ### Conda
 
-    conda install -c conda-force -c bioconda pygenomeviz progressivemauve
+    conda install -c conda-forge -c bioconda pygenomeviz progressivemauve
 
 ### Pip (Ubuntu)
 

@@ -12,7 +12,7 @@ Additional installation of MMseqs is required.
 
 ### Conda
 
-    conda install -c conda-force -c bioconda pygenomeviz mmseqs2
+    conda install -c conda-forge -c bioconda pygenomeviz mmseqs2
 
 ### Pip
 

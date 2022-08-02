@@ -11,7 +11,7 @@ Additional installation of MUMmer is required.
 
 ### Conda
 
-    conda install -c conda-force -c bioconda pygenomeviz mummer
+    conda install -c conda-forge -c bioconda pygenomeviz mummer
 
 ### Pip (Ubuntu)
 

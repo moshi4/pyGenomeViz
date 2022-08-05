@@ -93,7 +93,7 @@ Download four *Erwinia phage* genbank files
 
 **Run CLI workflow:**
 
-> Target range with same dataset as in Example 1
+> Target range is specified (e.g. file:100-1000)
 
     pgv-mmseqs --gbk_resources MT939486.gbk:250000-358115 MT939487.gbk:250000-355376 MT939488.gbk:250000-356948 LT960552.gbk:270000-340000 \
                -o mmseqs_example2 --tick_style bar --feature_plotstyle arrow

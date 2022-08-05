@@ -4,7 +4,7 @@
 visualization of homologous CDSs using MMseqs.
 It can be used to visualize reciprocal best-hit CDSs between each genome.
 
-![mmseqs_example1.png](../../images/mmseqs_example1.png)
+![mmseqs_example1.png](../images/mmseqs_example1.png)
 
 ## Installation
 
@@ -78,9 +78,10 @@ Download four *Erwinia phage* genbank files
     pgv-mmseqs --gbk_resources MT939486.gbk MT939487.gbk MT939488.gbk LT960552.gbk \
                -o mmseqs_example1 --tick_style axis --align_type left --feature_plotstyle arrow
 
-mmseqs_example1/result.png
-
-![mmseqs_example1.png](../../images/mmseqs_example1.png)
+<figure markdown>
+  ![mmseqs_example1.png](../images/mmseqs_example1.png)
+  <figcaption>mmseqs_example1/result.png</figcaption>
+</figure>
 
 ### Example 2
 
@@ -97,9 +98,10 @@ Download four *Erwinia phage* genbank files
     pgv-mmseqs --gbk_resources MT939486.gbk:250000-358115 MT939487.gbk:250000-355376 MT939488.gbk:250000-356948 LT960552.gbk:270000-340000 \
                -o mmseqs_example2 --tick_style bar --feature_plotstyle arrow
 
-mmseqs_example2/result.png
-
-![mmseqs_example2.png](../../images/mmseqs_example2.png)
+<figure markdown>
+  ![mmseqs_example2.png](../images/mmseqs_example2.png)
+  <figcaption>mmseqs_example2/result.png</figcaption>
+</figure>
 
 ### Example 3
 
@@ -115,6 +117,7 @@ Download six *Enterobacteria phage* genbank files
                -o mmseqs_example3 --fig_track_height 0.7 --feature_linewidth 0.3 --tick_style bar --curve \
                --normal_link_color chocolate --inverted_link_color limegreen --feature_color skyblue
 
-mmseqs_example3/result.png
-
-![mmseqs_example3.png](../../images/mmseqs_example3.png)
+<figure markdown>
+  ![mmseqs_example3.png](../images/mmseqs_example3.png)
+  <figcaption>mmseqs_example3/result.png</figcaption>
+</figure>

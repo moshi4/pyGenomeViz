@@ -4,7 +4,7 @@
 visualization of genome alignment results using progressiveMauve.
 It can be used to visualize commonly conserved regions between all genomes.
 
-![pmauve_example1.png](../../images/pmauve_example1.png)
+![pmauve_example1.png](../images/pmauve_example1.png)
 
 ## Installation
 
@@ -79,9 +79,10 @@ Download four *E.coli* genbank files
     pgv-pmauve --seq_files NC_000913.gbk NC_002695.gbk NC_011751.gbk NC_011750.gbk \
                -o pmauve_example1 --tick_style bar
 
-pmauve_example1/result.png
-
-![pmauve_example1.png](../../images/pmauve_example1.png)
+<figure markdown>
+  ![pmauve_example1.png](../images/pmauve_example1.png)
+  <figcaption>pmauve_example1/result.png</figcaption>
+</figure>
 
 ### Example 2
 
@@ -96,6 +97,7 @@ Download six *M.gallisepticum* genbank files
     pgv-pmauve --seq_files NC_004829.gbk NC_017502.gbk NC_017503.gbk NC_018407.gbk NC_018408.gbk NC_018409.gbk \
                -o pmauve_example2 --fig_track_height 0.7 --align_type left --cmap viridis --tick_style axis --curve
 
-pmauve_example2/result.png
-
-![pmauve_example2.png](../../images/pmauve_example2.png)
+<figure markdown>
+  ![pmauve_example2.png](../images/pmauve_example2.png)
+  <figcaption>pmauve_example2/result.png</figcaption>
+</figure>

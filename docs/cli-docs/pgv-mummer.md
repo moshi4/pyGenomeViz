@@ -3,7 +3,7 @@
 `pgv-mummer` is one of the CLI workflows in pyGenomeViz for
 visualization of genome alignment using MUMmer.
 
-![mummer_example1.png](../../images/mummer_example1.png)
+![mummer_example1.png](../images/mummer_example1.png)
 
 ## Installation
 
@@ -80,9 +80,10 @@ Download four *Erwinia phage* genbank files
     pgv-mummer --gbk_resources MT939486.gbk MT939487.gbk MT939488.gbk LT960552.gbk \
                -o mummer_example1 --tick_style axis --align_type left --feature_plotstyle arrow
 
-mummer_example1/result.png
-
-![mummer_example1.png](../../images/mummer_example1.png)
+<figure markdown>
+  ![mummer_example1.png](../images/mummer_example1.png)
+  <figcaption>mummer_example1/result.png</figcaption>
+</figure>
 
 ### Example 2
 
@@ -94,14 +95,15 @@ Download four *Erwinia phage* genbank files
 
 **Run CLI workflow:**
 
-> Target range with same dataset as in Example 1
+> Target range is specified (e.g. file:100-1000)
 
     pgv-mummer --gbk_resources MT939486.gbk:250000-358115 MT939487.gbk:250000-355376 MT939488.gbk:250000-356948 LT960552.gbk:270000-340000 \
                -o mummer_example2 --tick_style bar --feature_plotstyle arrow
 
-mummer_example2/result.png
-
-![mummer_example2.png](../../images/mummer_example2.png)
+<figure markdown>
+  ![mummer_example2.png](../images/mummer_example2.png)
+  <figcaption>mummer_example2/result.png</figcaption>
+</figure>
 
 ### Example 3
 
@@ -117,6 +119,7 @@ Download six *Enterobacteria phage* genbank files
                -o mummer_example3 --fig_track_height 0.7 --feature_linewidth 0.3 --tick_style bar --curve \
                --normal_link_color chocolate --inverted_link_color limegreen --feature_color skyblue
 
-mummer_example3/result.png
-
-![mummer_example3.png](../../images/mummer_example3.png)
+<figure markdown>
+  ![mummer_example3.png](../images/mummer_example3.png)
+  <figcaption>mummer_example3/result.png</figcaption>
+</figure>

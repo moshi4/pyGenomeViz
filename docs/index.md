@@ -15,6 +15,11 @@ It supports genome visualization of Genbank format file from both API & CLI, and
 User can use pyGenomeViz for interactive genome visualization figure plotting on jupyter notebook,
 or automatic genome visualization figure plotting in genome analysis scripts/pipelines.
 
+<figure markdown>
+  ![pygenomeviz_gallery.png](./images/pygenomeviz_gallery.png)
+  <figcaption>pyGenomeViz example plot gallery</figcaption>
+</figure>
+
 ## Installation
 
 `Python 3.7 or later` is required for installation.

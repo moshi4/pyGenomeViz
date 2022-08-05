@@ -29,7 +29,7 @@ class GenomeViz:
         tick_track_ratio: float = 1.0,
         track_spines: bool = False,
         tick_style: Optional[str] = None,
-        plot_size_thr: float = 0.0005,  # 0.05 %
+        plot_size_thr: float = 0,
         tick_labelsize: int = 15,
     ):
         """

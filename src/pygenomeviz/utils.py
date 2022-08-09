@@ -5,7 +5,6 @@ import os
 from dataclasses import dataclass
 from io import StringIO, TextIOWrapper
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
 from urllib.request import urlretrieve
 
 import matplotlib.pyplot as plt
@@ -58,9 +57,9 @@ DATASETS = {
 
 def load_dataset(
     name: str,
-    cache_dir: Optional[Union[str, Path]] = None,
+    cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
-) -> Tuple[List[Path], List[DatasetLink]]:
+) -> tuple[list[Path], list[DatasetLink]]:
     """Load pygenomeviz example dataset
 
     Download and load datasets from https://github.com/moshi4/pygenomeviz-data
@@ -78,7 +77,7 @@ def load_dataset(
     name : str
         Dataset name (e.g. `escherichia_phage`)
 
-    cache_dir : Optional[Union[str, Path]], optional
+    cache_dir : str | Path | None, optional
         Cache directory (Default: `~/.cache/pygenomeviz/`)
 
     overwrite_cache : bool
@@ -86,7 +85,7 @@ def load_dataset(
 
     Returns
     -------
-    gbk_files, links : Tuple[List[Path], List[DatasetLink]]
+    gbk_files, links : tuple[list[Path], list[DatasetLink]]
         Genbank files, DatasetLink list
     """
     # Check specified name dataset exists or not
@@ -108,8 +107,8 @@ def load_dataset(
     target_url = base_url + f"{name}/"
 
     # Download & cache dataset
-    gbk_files: List[Path] = []
-    links: List[DatasetLink] = []
+    gbk_files: list[Path] = []
+    links: list[DatasetLink] = []
     for filename in DATASETS[name]:
         file_url = target_url + filename
         file_path = cache_dir / filename
@@ -136,7 +135,7 @@ class DatasetLink:
     identity: float
 
     @staticmethod
-    def load(link_file: Path) -> List[DatasetLink]:
+    def load(link_file: Path) -> list[DatasetLink]:
         """Load pyGenomeViz dataset link file
 
         Parameters
@@ -146,13 +145,13 @@ class DatasetLink:
 
         Returns
         -------
-        links : List[DatasetLink]
+        links : list[DatasetLink]
             DatasetLink list
         """
         with open(link_file) as f:
             reader = csv.reader(f, delimiter="\t")
             next(reader)
-            links: List[DatasetLink] = []
+            links: list[DatasetLink] = []
             for row in reader:
                 rname, rstart, rend = row[7], int(row[0]), int(row[1])
                 qname, qstart, qend = row[8], int(row[2]), int(row[3])
@@ -165,8 +164,8 @@ class DatasetLink:
 
 def fetch_genbank_by_accid(
     accid: str,
-    gbk_outfile: Optional[Union[str, Path]] = None,
-    email: Optional[str] = None,
+    gbk_outfile: str | Path | None = None,
+    email: str | None = None,
 ) -> TextIOWrapper:
     """Fetch genbank text by 'Accession ID'
 
@@ -174,9 +173,9 @@ def fetch_genbank_by_accid(
     ----------
     accid : str
         Accession ID
-    gbk_outfile : Optional[Union[str, Path]], optional
+    gbk_outfile : str | Path | None, optional
         If file path is set, write fetch data to file
-    email : str, optional
+    email : str | None, optional
         Email address to notify download limitation (Required for bulk download)
 
     Returns
@@ -211,12 +210,12 @@ class ColorCycler:
     counter = 0
     cmap = plt.get_cmap("tab10")
 
-    def __new__(cls, n: Optional[int] = None) -> str:
+    def __new__(cls, n: int | None = None) -> str:
         """Get hexcolor cyclically from cmap by counter or user specified number
 
         Parameters
         ----------
-        n : Optional[int], optional
+        n : int | None, optional
             Number for color cycle. If None, counter class variable is used.
 
         Returns
@@ -241,18 +240,18 @@ class ColorCycler:
         cls.counter = 0
 
     @classmethod
-    def get_color_list(cls, n: Optional[int] = None) -> List[str]:
+    def get_color_list(cls, n: int | None = None) -> list[str]:
         """Get hexcolor list of colormap
 
         Parameters
         ----------
-        n : Optional[int], optional
+        n : int | None, optional
             If n is None, all(=cmap.N) hexcolors are extracted from colormap.
             If n is specified, hexcolors are extracted from n equally divided colormap.
 
         Returns
         -------
-        hexcolor_list : List[str]
+        hexcolor_list : list[str]
             Hexcolor list
         """
         if n is None:

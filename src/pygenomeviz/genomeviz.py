@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib import colors, gridspec
@@ -28,7 +28,7 @@ class GenomeViz:
         link_track_ratio: float = 1.0,
         tick_track_ratio: float = 1.0,
         track_spines: bool = False,
-        tick_style: Optional[str] = None,
+        tick_style: str | None = None,
         plot_size_thr: float = 0,
         tick_labelsize: int = 15,
     ):
@@ -50,7 +50,7 @@ class GenomeViz:
             Tick track ratio
         track_spines : bool, optional
             If True, display track spines
-        tick_style : Optional[str], optional
+        tick_style : str | None, optional
             Tick style (`axis`|`bar`)
         plot_size_thr : float, optional
             Plot feature, link size threshold.
@@ -69,7 +69,7 @@ class GenomeViz:
         self.tick_style = tick_style
         self.plot_size_thr = plot_size_thr
         self.tick_labelsize = tick_labelsize
-        self._tracks: List[Track] = []
+        self._tracks: list[Track] = []
 
         self._check_init_values()
 
@@ -106,7 +106,7 @@ class GenomeViz:
             raise NotImplementedError()
 
     @property
-    def _track_name2offset(self) -> Dict[str, int]:
+    def _track_name2offset(self) -> dict[str, int]:
         """Track name & offset dict"""
         track_name2offset = {}
         for track in self.get_tracks(subtrack=True):
@@ -157,7 +157,7 @@ class GenomeViz:
         labelmargin: float = 0.01,
         linewidth: int = 1,
         linecolor: str = "grey",
-        link_track_ratio: Optional[float] = None,
+        link_track_ratio: float | None = None,
     ) -> FeatureTrack:
         """Add feature track
 
@@ -183,7 +183,7 @@ class GenomeViz:
             Track line width
         linecolor : str, optional
             Track line color
-        link_track_ratio : Optional[float], optional
+        link_track_ratio : float | None, optional
             Link track ratio. By default, the link_track_ratio value set
             when GenomeViz was instantiated is used.
 
@@ -221,25 +221,25 @@ class GenomeViz:
 
     def add_link(
         self,
-        track_link1: Tuple[str, int, int],
-        track_link2: Tuple[str, int, int],
+        track_link1: tuple[str, int, int],
+        track_link2: tuple[str, int, int],
         normal_color: str = "grey",
         inverted_color: str = "red",
         alpha: float = 0.8,
-        v: Optional[float] = None,
+        v: float | None = None,
         vmin: float = 0,
         vmax: float = 100,
         curve: bool = False,
         size_ratio: float = 1.0,
-        patch_kws: Optional[Dict[str, Any]] = None,
+        patch_kws: dict[str, Any] | None = None,
     ) -> None:
         """Add link data to link track
 
         Parameters
         ----------
-        track_link1 : Tuple[str, int, int]
+        track_link1 : tuple[str, int, int]
             Track link1 (track_name, start, end)
-        track_link2 : Tuple[str, int, int]
+        track_link2 : tuple[str, int, int]
             Track link2 (track_name, start, end)
         normal_color : str, optional
             Normal link color
@@ -247,7 +247,7 @@ class GenomeViz:
             Inverted link color
         alpha : float, optional
             Color transparency
-        v : Optional[float], optional
+        v : float | None, optional
             Value for color interpolation
         vmin : float, optional
             Min value for color interpolation
@@ -257,7 +257,7 @@ class GenomeViz:
             If True, bezier curve link is plotted
         size_ratio : float, optional
             Link size ratio to track
-        patch_kws : Optional[Dict[str, Any]], optional
+        patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to link Patch object.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
             for detailed parameters.
@@ -330,7 +330,7 @@ class GenomeViz:
             raise ValueError(err_msg)
         return name2track[track_name]
 
-    def get_tracks(self, subtrack: bool = False) -> List[Track]:
+    def get_tracks(self, subtrack: bool = False) -> list[Track]:
         """Get tracks
 
         Parameters
@@ -340,7 +340,7 @@ class GenomeViz:
 
         Returns
         -------
-        tracks : List[Track]
+        tracks : list[Track]
             Track list
         """
         tracks = []
@@ -490,7 +490,7 @@ class GenomeViz:
 
     def savefig(
         self,
-        savefile: Union[str, Path],
+        savefile: str | Path,
         dpi: int = 100,
         pad_inches: float = 0.5,
     ) -> None:
@@ -498,7 +498,7 @@ class GenomeViz:
 
         Parameters
         ----------
-        savefile : Union[str, Path]
+        savefile : str | Path
             Save file
         dpi : int, optional
             DPI
@@ -547,7 +547,7 @@ class GenomeViz:
     def set_colorbar(
         self,
         figure: Figure,
-        bar_colors: List[str] = ["grey", "red"],
+        bar_colors: list[str] = ["grey", "red"],
         alpha: float = 0.8,
         vmin: float = 0,
         vmax: float = 100,
@@ -567,7 +567,7 @@ class GenomeViz:
         ----------
         figure : Figure
             Matplotlib figure
-        bar_colors : List[str], optional
+        bar_colors : list[str], optional
             Bar color list
         alpha : float, optional
             Color transparency

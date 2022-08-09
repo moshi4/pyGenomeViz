@@ -11,7 +11,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from dataclasses import astuple, dataclass
 from pathlib import Path
-from typing import ClassVar, List, Optional, Tuple, Union
+from typing import ClassVar
 
 from pygenomeviz import Genbank
 
@@ -22,15 +22,15 @@ class AlignToolBase(metaclass=ABCMeta):
     # Program name
     NAME: str = ""
     # Required binary names to run
-    BINARIES: List[str] = []
+    BINARIES: list[str] = []
 
     @abstractmethod
-    def run(self) -> List[AlignCoord]:
+    def run(self) -> list[AlignCoord]:
         """Run genome alignment
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Genome alignment coord list
         """
         raise NotImplementedError
@@ -77,24 +77,24 @@ class MUMmer(AlignToolBase):
 
     def __init__(
         self,
-        genome_resources: Union[List[Union[str, Path]], List[Genbank]],
-        outdir: Union[str, Path],
+        genome_resources: list[str | Path] | list[Genbank],
+        outdir: str | Path,
         seqtype: str = "nucleotide",
         maptype: str = "one-to-one",
-        process_num: Optional[int] = None,
+        process_num: int | None = None,
     ):
         """
         Parameters
         ----------
-        genome_resources : Union[List[Union[str, Path]], List[Genbank]]
+        genome_resources : list[str | Path] | list[Genbank]
             Genome fasta files or Genbank objects
-        outdir : Union[str, Path]
+        outdir : str | Path
             Output directory
         seqtype : str, optional
             Sequence type (`nucleotide`|`protein`)
         maptype : str, optional
             Alignment map type (`one-to-one`|`many-to-many`)
-        process_num : Optional[int], optional
+        process_num : int | None, optional
             Use processor number (Default: `'Max Processor' - 1`)
         """
         self.check_installation()
@@ -111,7 +111,7 @@ class MUMmer(AlignToolBase):
         return len(self.genome_resources)
 
     @property
-    def _genome_fasta_files(self) -> List[Path]:
+    def _genome_fasta_files(self) -> list[Path]:
         """Genome fasta file list"""
         genome_fasta_files = []
         for gr in self.genome_resources:
@@ -146,16 +146,16 @@ class MUMmer(AlignToolBase):
         else:
             raise ValueError(f"Invalid maptype '{self.maptype}'")
 
-    def run(self) -> List[AlignCoord]:
+    def run(self) -> list[AlignCoord]:
         """Run genome alignment
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Genome alignment coord list
         """
         # Prepare data for run MUMmer with multiprocessing
-        mp_data_list: List[Tuple[Path, Path, int]] = []
+        mp_data_list: list[tuple[Path, Path, int]] = []
         for idx in range(0, self.genome_num - 1):
             fa_file1 = self._genome_fasta_files[idx]
             fa_file2 = self._genome_fasta_files[idx + 1]
@@ -167,7 +167,7 @@ class MUMmer(AlignToolBase):
 
         return list(itertools.chain.from_iterable(results))
 
-    def _run_mummer(self, fa_file1: Path, fa_file2: Path, idx: int) -> List[AlignCoord]:
+    def _run_mummer(self, fa_file1: Path, fa_file2: Path, idx: int) -> list[AlignCoord]:
         """Run MUMmer function for multiprocessing
 
         Parameters
@@ -181,7 +181,7 @@ class MUMmer(AlignToolBase):
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Align coord list
         """
         # Run genome alignment using nucmer or promer
@@ -212,19 +212,19 @@ class MUMmer(AlignToolBase):
 
     @staticmethod
     def parse_coords_file(
-        coords_tsv_file: Union[str, Path],
+        coords_tsv_file: str | Path,
         seqtype,
-    ) -> List[AlignCoord]:
+    ) -> list[AlignCoord]:
         """Parse MUMmer(nucmer|promer) output coords result file
 
         Parameters
         ----------
-        coords_tsv_file : Union[str, Path]
+        coords_tsv_file : str | Path
             MUMmer align coords file
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Align coord list
         """
         align_coords = []
@@ -267,29 +267,29 @@ class MMseqs(AlignToolBase):
 
     def __init__(
         self,
-        gbk_resources: Union[List[Union[str, Path]], List[Genbank]],
-        outdir: Union[str, Path],
+        gbk_resources: list[str | Path] | list[Genbank],
+        outdir: str | Path,
         identity: float = 0,
         evalue: float = 1e-3,
-        process_num: Optional[int] = None,
+        process_num: int | None = None,
     ):
         """
         Parameters
         ----------
-        gbk_resources : Union[List[Union[str, Path]], List[Genbank]]
+        gbk_resources : list[str | Path] | list[Genbank]
             Genome sequence genbank files or Genbank objects
-        outdir : Union[str, Path]
+        outdir : str | Path
             Output directory
         identity : float, optional
             Identity threshold
         evalue : float, optional
             E-value threshold
-        process_num : Optional[int], optional
+        process_num : int | None, optional
             Use processor number (Default: `'Max Processor' - 1`)
         """
         self.check_installation()
 
-        self.gbk_list: List[Genbank] = []
+        self.gbk_list: list[Genbank] = []
         for gr in gbk_resources:
             if isinstance(gr, Genbank):
                 self.gbk_list.append(gr)
@@ -302,16 +302,16 @@ class MMseqs(AlignToolBase):
 
         os.makedirs(self.outdir, exist_ok=True)
 
-    def run(self) -> List[AlignCoord]:
+    def run(self) -> list[AlignCoord]:
         """Run genome alignment
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Genome alignment coord list
         """
         # Make CDS fasta files from Genbank files
-        cds_fasta_files: List[Path] = []
+        cds_fasta_files: list[Path] = []
         for gbk in self.gbk_list:
             cds_fasta_file = self.outdir / (gbk.name + ".faa")
             gbk.write_cds_fasta(cds_fasta_file, fix_position=True)
@@ -338,15 +338,15 @@ class MMseqs(AlignToolBase):
 
     def parse_rbh_result(
         self,
-        rbh_result_file: Union[str, Path],
+        rbh_result_file: str | Path,
         ref_name: str,
         query_name: str,
-    ) -> List[AlignCoord]:
+    ) -> list[AlignCoord]:
         """Parse MMseqs RBH result
 
         Parameters
         ----------
-        rbh_result_file : Union[str, Path]
+        rbh_result_file : str | Path
             MMseqs RBH result file
         ref_name : str
             Reference name
@@ -355,7 +355,7 @@ class MMseqs(AlignToolBase):
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Align Coords
         """
         align_coords = []
@@ -413,16 +413,16 @@ class ProgressiveMauve(AlignToolBase):
 
     def __init__(
         self,
-        seq_files: List[Union[str, Path]],
-        outdir: Union[str, Path],
+        seq_files: list[str | Path],
+        outdir: str | Path,
         refid: int = 0,
     ):
         """
         Parameters
         ----------
-        seq_files : List[Union[str, Path]]
+        seq_files : list[str | Path]
             Genome sequence files (Genbank or Fasta format)
-        outdir : Union[str, Path]
+        outdir : str | Path
             Output directory
         refid : int, optional
             Reference genome index
@@ -440,16 +440,16 @@ class ProgressiveMauve(AlignToolBase):
         os.makedirs(self.seq_outdir, exist_ok=True)
 
     @property
-    def filenames(self) -> List[str]:
+    def filenames(self) -> list[str]:
         """File names"""
         return [f.with_suffix("").name for f in self.seq_files]
 
-    def run(self) -> List[AlignCoord]:
+    def run(self) -> list[AlignCoord]:
         """Run genome alignment
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Genome alignment coord list
         """
         # Copy seqfiles to output directory
@@ -469,17 +469,17 @@ class ProgressiveMauve(AlignToolBase):
 
         return self.parse_pmauve_file(self.bbone_file)
 
-    def parse_pmauve_file(self, bbone_file: Union[str, Path]) -> List[AlignCoord]:
+    def parse_pmauve_file(self, bbone_file: str | Path) -> list[AlignCoord]:
         """Parse progressiveMauve bbone file
 
         Parameters
         ----------
-        bbone_file : Union[str, Path]
+        bbone_file : str | Path
             progressiveMauve bbone format file
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Genome alignment coord list
         """
         with open(bbone_file) as f:
@@ -537,7 +537,7 @@ class AlignCoord:
     identity: float
     ref_name: str
     query_name: str
-    header_list: ClassVar[List[str]] = [
+    header_list: ClassVar[list[str]] = [
         "REF_START",
         "REF_END",
         "QUERY_START",
@@ -555,12 +555,12 @@ class AlignCoord:
         return 1 if self.ref_end > self.ref_start else -1
 
     @property
-    def ref_link(self) -> Tuple[str, int, int]:
+    def ref_link(self) -> tuple[str, int, int]:
         """Reference (name, start, end) link"""
         return (self.ref_name, self.ref_start, self.ref_end)
 
     @property
-    def ref_block(self) -> Tuple[int, int, int]:
+    def ref_block(self) -> tuple[int, int, int]:
         """Reference (start, end, strand) block"""
         if self.ref_start < self.ref_end:
             return (self.ref_start, self.ref_end, self.ref_strand)
@@ -573,12 +573,12 @@ class AlignCoord:
         return 1 if self.query_end > self.query_start else -1
 
     @property
-    def query_link(self) -> Tuple[str, int, int]:
+    def query_link(self) -> tuple[str, int, int]:
         """Query (name, start, end) link"""
         return (self.query_name, self.query_start, self.query_end)
 
     @property
-    def query_block(self) -> Tuple[int, int, int]:
+    def query_block(self) -> tuple[int, int, int]:
         """Query (start, end, strand) block"""
         if self.query_start < self.query_end:
             return (self.query_start, self.query_end, self.query_strand)
@@ -596,14 +596,14 @@ class AlignCoord:
         return "\t".join([str(v) for v in astuple(self)])
 
     @staticmethod
-    def write(align_coords: List[AlignCoord], outfile: Union[str, Path]) -> None:
+    def write(align_coords: list[AlignCoord], outfile: str | Path) -> None:
         """Write alignment coords as tsv format file
 
         Parameters
         ----------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Alignment coords
-        outfile : Union[str, Path]
+        outfile : str | Path
             Output file path
         """
         with open(outfile, "w") as f:
@@ -612,17 +612,17 @@ class AlignCoord:
             f.write(header + "\n" + output)
 
     @staticmethod
-    def read(align_coords_file: Union[str, Path]) -> List[AlignCoord]:
+    def read(align_coords_file: str | Path) -> list[AlignCoord]:
         """Read alignment coords tsv format file
 
         Parameters
         ----------
-        align_coords_file : Union[str, Path]
+        align_coords_file : str | Path
             Alignment coords tsv file
 
         Returns
         -------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Alignment coords
         """
         align_coords = []
@@ -644,15 +644,15 @@ class AlignCoord:
 
     @staticmethod
     def filter(
-        align_coords: List[AlignCoord],
+        align_coords: list[AlignCoord],
         min_length: int = 0,
         min_identity: float = 0.0,
-    ) -> List[AlignCoord]:
+    ) -> list[AlignCoord]:
         """Filter align coord list with 'length' & 'identity'
 
         Parameters
         ----------
-        align_coords : List[AlignCoord]
+        align_coords : list[AlignCoord]
             Align coord list
         min_length : int, optional
             Min length filtering threshold
@@ -661,10 +661,10 @@ class AlignCoord:
 
         Returns
         -------
-        filtered_align_coords : List[AlignCoord]
+        filtered_align_coords : list[AlignCoord]
             Filtered align coord list
         """
-        filtered_align_coords: List[AlignCoord] = []
+        filtered_align_coords: list[AlignCoord] = []
         for ac in align_coords:
             rlen, qlen, ident = ac.ref_length, ac.query_length, ac.identity
             if (rlen >= min_length and qlen >= min_length) and ident >= min_identity:

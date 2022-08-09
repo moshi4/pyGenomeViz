@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import argparse
-from typing import List
 
 from pygenomeviz.genbank import Genbank
 
@@ -53,20 +54,20 @@ def print_args(args: argparse.Namespace) -> None:
     print("*" * len(header))
 
 
-def gbk_files2gbk_objects(gbk_files: List[str]) -> List[Genbank]:
+def gbk_files2gbk_objects(gbk_files: list[str]) -> list[Genbank]:
     """Convert genbank files to Genbank objects
 
     Parameters
     ----------
-    gbk_files : List[str]
+    gbk_files : list[str]
         Genbank files (Target range can be set as follows 'file:100-1000')
 
     Returns
     -------
-    gbk_list : List[Genbank]
+    gbk_list : list[Genbank]
         Genbank objects
     """
-    gbk_list: List[Genbank] = []
+    gbk_list: list[Genbank] = []
     for gbk_file in gbk_files:
         contents = str(gbk_file).split(":")
         gbk_file = contents[0]

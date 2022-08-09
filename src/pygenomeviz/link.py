@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from matplotlib import colors
 from matplotlib.figure import Axes
@@ -23,12 +23,12 @@ class Link:
     normal_color: str = "grey"
     inverted_color: str = "red"
     alpha: float = 0.8
-    v: Optional[float] = None
+    v: float | None = None
     vmin: float = 0
     vmax: float = 100
     curve: bool = False
     size_ratio: float = 1.0
-    patch_kws: Optional[Dict[str, Any]] = None
+    patch_kws: dict[str, Any] | None = None
 
     def __post_init__(self):
         # Check color string
@@ -61,14 +61,14 @@ class Link:
         """Track length2"""
         return abs(self.track_end2 - self.track_start2)
 
-    def plot_link(self, ax: Axes, ylim: Tuple[float, float] = (-1.0, 1.0)) -> None:
+    def plot_link(self, ax: Axes, ylim: tuple[float, float] = (-1.0, 1.0)) -> None:
         """Plot link
 
         Parameters
         ----------
         ax : Axes
             Matplotlib axes object to be plotted
-        ylim: Tuple[flaot, float], optional
+        ylim: tuple[flaot, float], optional
             Min-Max y coordinatess
         """
         ymin, ymax = ylim[0] * self.size_ratio, ylim[1] * self.size_ratio
@@ -98,12 +98,12 @@ class Link:
         codes, verts = zip(*path_data)
         ax.add_patch(PathPatch(Path(verts, codes), **self._patch_kwargs()))
 
-    def _patch_kwargs(self) -> Dict[str, Any]:
+    def _patch_kwargs(self) -> dict[str, Any]:
         """Patch keyword arguments dict
 
         Returns
         -------
-        patch_kwargs : Dict[str, Any]
+        patch_kwargs : dict[str, Any]
             Patch keyword arguments dict
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
@@ -148,12 +148,12 @@ class Link:
         track_link_length2 = self.track_end2 - self.track_start2
         return track_link_length1 * track_link_length2 < 0
 
-    def add_offset(self, track_name2offset: Dict[str, int]) -> Link:
+    def add_offset(self, track_name2offset: dict[str, int]) -> Link:
         """Add offset to each link position
 
         Parameters
         ----------
-        track_name2offset : Dict[str, int]
+        track_name2offset : dict[str, int]
             Track name & offset dict
 
         Returns

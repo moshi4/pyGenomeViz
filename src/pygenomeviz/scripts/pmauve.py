@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import argparse
 import csv
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
 
 from pygenomeviz import GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, ProgressiveMauve
@@ -22,8 +23,8 @@ def main():
 
 def run(
     # General options
-    seq_files: List[Union[str, Path]],
-    outdir: Union[str, Path],
+    seq_files: list[str | Path],
+    outdir: str | Path,
     refid: int = 0,
     format: str = "png",
     reuse: bool = False,
@@ -38,7 +39,7 @@ def run(
     normal_link_color: str = "grey",
     inverted_link_color: str = "tomato",
     align_type: str = "center",
-    tick_style: Optional[str] = None,
+    tick_style: str | None = None,
     plotstyle: str = "box",
     cmap: str = "hsv",
     curve: bool = True,
@@ -48,9 +49,9 @@ def run(
 
     Parameters
     ----------
-    seq_files : List[Union[str, Path]]
+    seq_files : list[str | Path]
         Input genome sequence files (Genbank or Fasta format)
-    outdir : Union[str, Path]
+    outdir : str | Path
         Output directory
     format : str, optional
         Output image format (`png`|`jpg`|`svg`|`pdf`)
@@ -76,7 +77,7 @@ def run(
         Inverted link color
     align_type : str, optional
         Figure tracks align type (`left`|`center`|`right`)
-    tick_style : Optional[str], optional
+    tick_style : str | None, optional
         Tick style (`bar`|`axis`|`None`)
     plotstyle : str, optional
         Block box plot style (`box`|`bigbox`)
@@ -156,19 +157,19 @@ def run(
     return gv
 
 
-def get_name2maxsize(names: List[str], bbone_file: Union[str, Path]) -> Dict[str, int]:
+def get_name2maxsize(names: list[str], bbone_file: str | Path) -> dict[str, int]:
     """Get name to maxsize genome dict from bbone file
 
     Parameters
     ----------
-    names: List[str]
+    names: list[str]
         Name labels
-    bbone_file : Union[str, Path]
+    bbone_file : str | Path
         progressiveMauve bbone format file
 
     Returns
     -------
-    name2maxsize : Dict[str, int]
+    name2maxsize : dict[str, int]
         name to maxsize dict
     """
     name2maxsize = defaultdict(int)
@@ -186,18 +187,18 @@ def get_name2maxsize(names: List[str], bbone_file: Union[str, Path]) -> Dict[str
 
 
 def get_name2blocks(
-    align_coords: List[AlignCoord],
-) -> Dict[str, List[Tuple[int, int, int]]]:
+    align_coords: list[AlignCoord],
+) -> dict[str, list[tuple[int, int, int]]]:
     """Get name to align coord blocks from align coords
 
     Parameters
     ----------
-    align_coords : List[AlignCoord]
+    align_coords : list[AlignCoord]
         Alignment coords
 
     Returns
     -------
-    name2blocks : Dict[str, List[Tuple[int, int, int]]]
+    name2blocks : dict[str, list[tuple[int, int, int]]]
         name to align coord blocks
     """
     name2blocks = defaultdict(list)
@@ -209,12 +210,12 @@ def get_name2blocks(
     return name2blocks
 
 
-def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
+def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
     """Get arguments
 
     Parameters
     ----------
-    cli_args : Optional[List[str]], optional
+    cli_args : list[str] | None, optional
         CLI arguments (Used in unittest)
 
     Returns

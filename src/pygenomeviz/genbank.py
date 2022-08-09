@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import bz2
 import gzip
 import zipfile
 from functools import lru_cache
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 from Bio import SeqIO, SeqUtils
@@ -17,25 +19,25 @@ class Genbank:
 
     def __init__(
         self,
-        gbk_source: Union[str, Path, TextIOWrapper],
-        name: Optional[str] = None,
+        gbk_source: str | Path | TextIOWrapper,
+        name: str | None = None,
         reverse: bool = False,
-        min_range: Optional[int] = None,
-        max_range: Optional[int] = None,
+        min_range: int | None = None,
+        max_range: int | None = None,
     ):
         """
         Parameters
         ----------
-        gbk_source : Union[str, Path, TextIOWrapper]
+        gbk_source : str | Path | TextIOWrapper
             Genbank file or source
             (`.gz`, `.bz2`, `.zip` format file is automatically uncompressed)
-        name : Optional[str]
+        name : str | None
             name (If None, `file name` or `record name` is set)
         reverse : bool, optional
             If True, reverse complement genome is used
-        min_range : Optional[int], optional
+        min_range : int | None, optional
             Min range to be extracted (Default: `0`)
-        max_range : Optional[int], optional
+        max_range : int | None, optional
             Max range to be extracted (Default: `genome length`)
         """
         self._gbk_source = gbk_source
@@ -52,18 +54,18 @@ class Genbank:
             raise ValueError(err_msg)
 
     def _parse_gbk_source(
-        self, gbk_source: Union[str, Path, TextIOWrapper]
-    ) -> List[SeqRecord]:
+        self, gbk_source: str | Path | TextIOWrapper
+    ) -> list[SeqRecord]:
         """Parse genbank source
 
         Parameters
         ----------
-        gbk_source : Union[str, Path, TextIOWrapper]
+        gbk_source : str | Path | TextIOWrapper
             Genbank file or source
 
         Returns
         -------
-        List[SeqRecord]
+        list[SeqRecord]
             Genbank SeqRecords
         """
         # Parse compressed file
@@ -98,7 +100,7 @@ class Genbank:
             raise NotImplementedError()
 
     @property
-    def records(self) -> List[SeqRecord]:
+    def records(self) -> list[SeqRecord]:
         """Genbank records"""
         if self.reverse:
             return list(reversed([r.reverse_complement() for r in self._records]))
@@ -133,21 +135,21 @@ class Genbank:
 
     def calc_gc_skew(
         self,
-        window_size: Optional[int] = None,
-        step_size: Optional[int] = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+        window_size: int | None = None,
+        step_size: int | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate GC skew in sliding window
 
         Parameters
         ----------
-        window_size : int, optional
+        window_size : int | None, optional
             Window size (Default: `genome_size / 500`)
-        step_size : int, optional
+        step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
 
         Returns
         -------
-        gc_skew_result_tuple : Tuple[np.ndarray, np.ndarray]
+        gc_skew_result_tuple : tuple[np.ndarray, np.ndarray]
             Position list & GC skew list
         """
         pos_list, gc_skew_list = [], []
@@ -176,21 +178,21 @@ class Genbank:
 
     def calc_gc_content(
         self,
-        window_size: Optional[int] = None,
-        step_size: Optional[int] = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+        window_size: int | None = None,
+        step_size: int | None = None,
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate GC content in sliding window
 
         Parameters
         ----------
-        window_size : int, optional
+        window_size : int | None, optional
             Window size (Default: `genome_size / 500`)
-        step_size : int, optional
+        step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
 
         Returns
         -------
-        gc_content_result_tuple : Tuple[np.ndarray, np.ndarray]
+        gc_content_result_tuple : tuple[np.ndarray, np.ndarray]
             Position list & GC content list
         """
         pos_list, gc_content_list = [], []
@@ -214,17 +216,17 @@ class Genbank:
     def extract_features(
         self,
         feature_type: str = "CDS",
-        target_strand: Optional[int] = None,
+        target_strand: int | None = None,
         fix_position: bool = True,
         allow_partial: bool = True,
-    ) -> List[SeqFeature]:
+    ) -> list[SeqFeature]:
         """Extract features
 
         Parameters
         ----------
         feature_type : str, optional
             Extract feature type
-        target_strand : Optional[int], optional
+        target_strand : int | None, optional
             Extract target strand
         fix_position : bool, optional
             If True, fix feature start & end position by specified min_range parameter
@@ -234,7 +236,7 @@ class Genbank:
 
         Returns
         -------
-        features : List[SeqFeature]
+        features : list[SeqFeature]
             Extracted features
         """
         extract_features = []
@@ -294,7 +296,7 @@ class Genbank:
 
     def write_cds_fasta(
         self,
-        fasta_outfile: Union[str, Path],
+        fasta_outfile: str | Path,
         seqtype: str = "protein",
         fix_position: bool = False,
         allow_partial: bool = False,
@@ -303,7 +305,7 @@ class Genbank:
 
         Parameters
         ----------
-        fasta_outfile : Union[str, Path]
+        fasta_outfile : str | Path
             CDS fasta file
         seqtype : str, optional
             Sequence type (`protein`|`nucleotide`)
@@ -314,7 +316,7 @@ class Genbank:
             If True, features that are partially included in range are also extracted
         """
         features = self.extract_features("CDS", None, fix_position, allow_partial)
-        cds_seq_records: List[SeqRecord] = []
+        cds_seq_records: list[SeqRecord] = []
         for idx, feature in enumerate(features, 1):
             qualifiers = feature.qualifiers
             protein_id = qualifiers.get("protein_id", [None])[0]
@@ -345,13 +347,13 @@ class Genbank:
 
     def write_genome_fasta(
         self,
-        outfile: Union[str, Path],
+        outfile: str | Path,
     ) -> None:
         """Write genome fasta file
 
         Parameters
         ----------
-        outfile : Union[str, Path]
+        outfile : str | Path
             Output genome fasta file
         """
         write_seq = self.genome_seq

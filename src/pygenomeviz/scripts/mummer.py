@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import argparse
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import List, Optional, Union
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, MUMmer
@@ -20,8 +21,8 @@ def main():
 
 def run(
     # General options
-    gbk_resources: Union[List[Union[str, Path]], List[Genbank]],
-    outdir: Union[str, Path],
+    gbk_resources: list[str | Path] | list[Genbank],
+    outdir: str | Path,
     format: str = "png",
     reuse: bool = False,
     # MUMmer alignment options
@@ -40,7 +41,7 @@ def run(
     normal_link_color: str = "grey",
     inverted_link_color: str = "red",
     align_type: str = "center",
-    tick_style: Optional[str] = None,
+    tick_style: str | None = None,
     feature_plotstyle: str = "bigarrow",
     arrow_shaft_ratio: float = 0.5,
     feature_color: str = "orange",
@@ -52,9 +53,9 @@ def run(
 
     Parameters
     ----------
-    gbk_resources : Union[List[Union[str, Path]], List[Genbank]]
+    gbk_resources : list[str | Path] | list[Genbank]
         Input genome genbank files or Genbank objects
-    outdir : Union[str, Path]
+    outdir : [str | Path
         Output directory
     format : str, optional
         Output image format (`png`|`jpg`|`svg`|`pdf`)
@@ -88,7 +89,7 @@ def run(
         Inverted link color
     align_type : str, optional
         Figure tracks align type (`left`|`center`|`right`)
-    tick_style : Optional[str], optional
+    tick_style : str | None, optional
         Tick style (`bar`|`axis`|`None`)
     feature_plotstyle : str, optional
         Feature plotstyle (`bigarrow`|`arrow`)
@@ -118,7 +119,7 @@ def run(
     align_coords_file = outdir / "align_coords.tsv"
 
     # Setup Genbank objects
-    gbk_list: List[Genbank] = []
+    gbk_list: list[Genbank] = []
     for gr in gbk_resources:
         if isinstance(gr, Genbank):
             gbk_list.append(gr)
@@ -194,12 +195,12 @@ def run(
     return gv
 
 
-def get_args(cli_args: Optional[List[str]] = None) -> argparse.Namespace:
+def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
     """Get arguments
 
     Parameters
     ----------
-    cli_args : Optional[List[str]], optional
+    cli_args : list[str] | None, optional
         CLI arguments (Used in unittest)
 
     Returns

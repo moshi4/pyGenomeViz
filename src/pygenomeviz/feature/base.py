@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from matplotlib.figure import Axes
 from matplotlib.patches import FancyArrow, PathPatch, Rectangle
@@ -27,7 +29,7 @@ class Feature:
     labelha: str = "left"  # "left", "center", "right"
     arrow_shaft_ratio: float = 0.5
     size_ratio: float = 0.9
-    patch_kws: Optional[Dict[str, Any]] = None
+    patch_kws: dict[str, Any] | None = None
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -65,7 +67,7 @@ class Feature:
             raise ValueError(err_msg)
 
     def plot_feature(
-        self, ax: Axes, max_track_size: int, ylim: Tuple[float, float]
+        self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
     ) -> None:
         """Plot feature
 
@@ -75,7 +77,7 @@ class Feature:
             Matplotlib axes object to be plotted
         max_track_size : int
             Max track size
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
         """
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
@@ -92,14 +94,14 @@ class Feature:
 
         ax.add_patch(p)
 
-    def plot_label(self, ax: Axes, ylim: Tuple[float, float]) -> None:
+    def plot_label(self, ax: Axes, ylim: tuple[float, float]) -> None:
         """Plot label
 
         Parameters
         ----------
         ax : Axes
             Matplotlib axes object to be plotted
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
         """
         if self.label != "" and self.labelsize != 0:
@@ -116,7 +118,7 @@ class Feature:
         """Check plotstyle is 'big~~~' or not"""
         return self.plotstyle.startswith("big")
 
-    def _box_patch(self, start: int, end: int, ylim: Tuple[float, float]) -> Rectangle:
+    def _box_patch(self, start: int, end: int, ylim: tuple[float, float]) -> Rectangle:
         """Box patch
 
         Parameters
@@ -125,7 +127,7 @@ class Feature:
             Start position
         end : int
             End position
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
 
         Returns
@@ -152,7 +154,7 @@ class Feature:
         self,
         start: int,
         end: int,
-        ylim: Tuple[float, float],
+        ylim: tuple[float, float],
         max_track_size: int,
         no_head_length: bool = False,
     ) -> FancyArrow:
@@ -164,7 +166,7 @@ class Feature:
             Start position
         end : int
             End position
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
         max_track_size : int
             Max track size (Use for head length calculation)
@@ -219,7 +221,7 @@ class Feature:
         )
 
     def _rbox_patch(
-        self, start: int, end: int, ylim: Tuple[float, float], max_track_size: int
+        self, start: int, end: int, ylim: tuple[float, float], max_track_size: int
     ) -> PathPatch:
         """Rounded box patch
 
@@ -229,7 +231,7 @@ class Feature:
             Start position
         end : int
             End position
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
         max_track_size : int
             Max track size (Use for rounded size calculation)
@@ -265,12 +267,12 @@ class Feature:
         codes, verts = zip(*path_data)
         return PathPatch(Path(verts, codes), **self._patch_kwargs())
 
-    def _patch_kwargs(self) -> Dict[str, Any]:
+    def _patch_kwargs(self) -> dict[str, Any]:
         """Patch keyword arguments dict
 
         Returns
         -------
-        patch_kwargs : Dict[str, Any]
+        patch_kwargs : dict[str, Any]
             Patch keyword arguments dict
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
@@ -284,8 +286,8 @@ class Feature:
         }
 
     def _label_kwargs(
-        self, start: int, end: int, label: str, ylim: Tuple[float, float]
-    ) -> Dict[str, Any]:
+        self, start: int, end: int, label: str, ylim: tuple[float, float]
+    ) -> dict[str, Any]:
         """Label keyword arguments dict
 
         Parameters
@@ -296,12 +298,12 @@ class Feature:
             End position
         label : str
             Label
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
 
         Returns
         -------
-        label_kwargs : Dict[str, Any]
+        label_kwargs : dict[str, Any]
             Label keyword arguments dict
         """
         # x

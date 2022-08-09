@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from matplotlib.figure import Axes
 from matplotlib.patches import PathPatch
@@ -12,7 +14,7 @@ class ExonFeature(Feature):
 
     def __init__(
         self,
-        exon_regions: List[Tuple[int, int]],
+        exon_regions: list[tuple[int, int]],
         strand: int,
         label: str = "",
         labelsize: int = 15,
@@ -27,10 +29,10 @@ class ExonFeature(Feature):
         labelha: str = "left",  # "left", "center", "right"
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
-        exon_labels: Optional[List[str]] = None,
-        exon_label_kws: Optional[Dict[str, Any]] = None,
-        patch_kws: Optional[Dict[str, Any]] = None,
-        intron_patch_kws: Optional[Dict[str, Any]] = None,
+        exon_labels: list[str] | None = None,
+        exon_label_kws: dict[str, Any] | None = None,
+        patch_kws: dict[str, Any] | None = None,
+        intron_patch_kws: dict[str, Any] | None = None,
     ):
         self.exon_regions = exon_regions
         self.exon_labels = exon_labels
@@ -62,7 +64,7 @@ class ExonFeature(Feature):
             raise ValueError(err_msg)
 
     def plot_feature(
-        self, ax: Axes, max_track_size: int, ylim: Tuple[float, float]
+        self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
     ) -> None:
         """Plot feature
 
@@ -72,7 +74,7 @@ class ExonFeature(Feature):
             Matplotlib axes object to be plotted
         max_track_size : int
             Max track size
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
         """
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
@@ -96,14 +98,14 @@ class ExonFeature(Feature):
                 raise ValueError(f"'{self.plotstyle}' is invalid plotstyle.")
             ax.add_patch(p)
 
-    def plot_label(self, ax: Axes, ylim: Tuple[float, float]) -> None:
+    def plot_label(self, ax: Axes, ylim: tuple[float, float]) -> None:
         """Plot label
 
         Parameters
         ----------
         ax : Axes
             Matplotlib axes object to be plotted
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
         """
         super().plot_label(ax, ylim)
@@ -115,7 +117,7 @@ class ExonFeature(Feature):
                     ax.text(**label_kwargs)
 
     @property
-    def intron_regions(self) -> List[Tuple[int, int]]:
+    def intron_regions(self) -> list[tuple[int, int]]:
         """Intron regions"""
         intron_regions = []
         if len(self.exon_regions) > 1:
@@ -140,7 +142,7 @@ class ExonFeature(Feature):
             max_pos_record = exon_end
 
     def _intron_patch(
-        self, start: int, end: int, ylim: Tuple[float, float]
+        self, start: int, end: int, ylim: tuple[float, float]
     ) -> PathPatch:
         """Intron patch
 
@@ -150,7 +152,7 @@ class ExonFeature(Feature):
             Start position
         end : int
             End position
-        ylim : Tuple[float, float]
+        ylim : tuple[float, float]
             Y-axis limit
 
         Returns
@@ -176,12 +178,12 @@ class ExonFeature(Feature):
         codes, verts = zip(*path_data)
         return PathPatch(Path(verts, codes), **self._intron_patch_kwargs())
 
-    def _intron_patch_kwargs(self) -> Dict[str, Any]:
+    def _intron_patch_kwargs(self) -> dict[str, Any]:
         """Intron patch keyword arguments dict
 
         Returns
         -------
-        intron_patch_kwargs : Dict[str, Any]
+        intron_patch_kwargs : dict[str, Any]
             Intron patch keyword arguments dict
         """
         return {

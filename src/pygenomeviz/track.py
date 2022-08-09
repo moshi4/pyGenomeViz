@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable
 
 from matplotlib.figure import Axes
 
@@ -40,8 +40,8 @@ class Track:
         self.labelsize = labelsize
         self.spines = spines
         self.ratio = ratio
-        self._offset: Optional[int] = None
-        self._ax: Optional[Axes] = None
+        self._offset: int | None = None
+        self._ax: Axes | None = None
 
     @property
     def zorder(self) -> float:
@@ -49,12 +49,12 @@ class Track:
         return 0
 
     @property
-    def ylim(self) -> Tuple[float, float]:
+    def ylim(self) -> tuple[float, float]:
         """Track y min-max limit tuple"""
         return (-1.0, 1.0)
 
     @property
-    def tick_params(self) -> Dict[str, bool]:
+    def tick_params(self) -> dict[str, bool]:
         """Track tick parameters dict"""
         return {
             "left": False,
@@ -64,7 +64,7 @@ class Track:
         }
 
     @property
-    def spines_params(self) -> Dict[str, bool]:
+    def spines_params(self) -> dict[str, bool]:
         """Spines parameters dict"""
         return {
             "left": self.spines,
@@ -147,8 +147,8 @@ class FeatureTrack(Track):
         self.labelmargin = labelmargin
         self.linewidth = linewidth
         self.linecolor = linecolor
-        self.features: List[Feature] = []
-        self.subtracks: List[FeatureSubTrack] = []
+        self.features: list[Feature] = []
+        self.subtracks: list[FeatureSubTrack] = []
 
     @property
     def start(self) -> int:
@@ -166,7 +166,7 @@ class FeatureTrack(Track):
         return 10
 
     @property
-    def label_params(self) -> Dict[str, Any]:
+    def label_params(self) -> dict[str, Any]:
         """Label drawing parameters"""
         return {
             "s": self.name,
@@ -196,12 +196,12 @@ class FeatureTrack(Track):
         else:
             return False
 
-    def add_subtrack(self, name: Optional[str] = None, ratio: float = 1.0) -> None:
+    def add_subtrack(self, name: str | None = None, ratio: float = 1.0) -> None:
         """Add subtrack to feature track
 
         Parameters
         ----------
-        name : str, optional
+        name : str | None, optional
             Subtrack name. If None, subtrack name is automatically set.
         ratio : float, optional
             Subtrack size ratio to feature track
@@ -253,7 +253,7 @@ class FeatureTrack(Track):
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
-        patch_kws: Optional[Dict[str, Any]] = None,
+        patch_kws: dict[str, Any] | None = None,
     ) -> None:
         """Add feature to track
 
@@ -292,7 +292,7 @@ class FeatureTrack(Track):
             Feature arrow shaft ratio
         size_ratio : float, optional
             Feature size ratio to track
-        patch_kws : Optional[Dict[str, Any]], optional
+        patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to feature Patch object.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
             for detailed parameters.
@@ -328,7 +328,7 @@ class FeatureTrack(Track):
 
     def add_exon_feature(
         self,
-        exon_regions: List[Tuple[int, int]],
+        exon_regions: list[tuple[int, int]],
         strand: int = 1,
         label: str = "",
         labelsize: int = 15,
@@ -343,16 +343,16 @@ class FeatureTrack(Track):
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
-        exon_labels: Optional[List[str]] = None,
-        exon_label_kws: Optional[Dict[str, Any]] = None,
-        patch_kws: Optional[Dict[str, Any]] = None,
-        intron_patch_kws: Optional[Dict[str, Any]] = None,
+        exon_labels: list[str] | None = None,
+        exon_label_kws: dict[str, Any] | None = None,
+        patch_kws: dict[str, Any] | None = None,
+        intron_patch_kws: dict[str, Any] | None = None,
     ) -> None:
         """Add exon feature to track
 
         Parameters
         ----------
-        exon_regions : List[Tuple[int, int]]
+        exon_regions : list[tuple[int, int]]
             Exon feature start-end postion list
         strand : int, optional
             Feature strand
@@ -383,18 +383,18 @@ class FeatureTrack(Track):
             Feature arrow shaft ratio
         size_ratio : float, optional
             Feature size ratio to track
-        exon_labels: Optional[List[str]], optional
+        exon_labels: list[str] | None, optional
             Exon labels. Array length must be same as `exon_regions`.
-        exon_label_kws : Optional[Dict[str, Any]], optional
+        exon_label_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to Axes.text method for exon label.
             Use this option when plotting both Feature & Exon labels.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html
             for detailed parameters.
-        patch_kws : Optional[Dict[str, Any]], optional
+        patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to exon feature Patch object.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
             for detailed parameters.
-        intron_patch_kws : Optional[Dict[str, Any]], optional
+        intron_patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to intron feature Patch object.
         """
         # Check if start & end positions are within appropriate track range
@@ -433,8 +433,8 @@ class FeatureTrack(Track):
         self,
         gbk: Genbank,
         feature_type: str = "CDS",
-        label_type: Optional[str] = None,
-        label_handle_func: Optional[Callable[[str], str]] = None,
+        label_type: str | None = None,
+        label_handle_func: Callable[[str], str] | None = None,
         allow_partial: bool = True,
         labelsize: int = 15,
         labelcolor: str = "black",
@@ -448,7 +448,7 @@ class FeatureTrack(Track):
         labelha: str = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
-        patch_kws: Optional[Dict[str, Any]] = None,
+        patch_kws: dict[str, Any] | None = None,
     ):
         """Add features from genbank record
 
@@ -458,9 +458,9 @@ class FeatureTrack(Track):
             Genbank object
         feature_type : str, optional
             Feature type (e.g. `CDS`,`rRNA`,`tRNA`,etc...)
-        label_type : Optional[str], optional
+        label_type : str | None, optional
             Label type (e.g. `gene`,`protein_id`,`product`,etc...)
-        label_handle_func : Optional[Callable[[str], str]], optional
+        label_handle_func : Callable[[str], str] | None, optional
             Labels are handled by user defined function.
             Useful for filtering out unnecesary labels such as `hypothetical ~~~`,
             omitting labels with long characters, etc.
@@ -490,7 +490,7 @@ class FeatureTrack(Track):
             Feature arrow shaft ratio
         size_ratio : float, optional
             Feature size ratio to track
-        patch_kws : Optional[Dict[str, Any]], optional
+        patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to feature Patch object.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
             for detailed parameters.
@@ -564,7 +564,7 @@ class LinkTrack(Track):
             Track height ratio
         """
         super().__init__(name, 0, 0, spines, ratio)
-        self.links: List[Link] = []
+        self.links: list[Link] = []
 
     def add_link(self, link: Link) -> None:
         """Add link to track
@@ -607,7 +607,7 @@ class TickTrack(Track):
         self.height_scale = 1.0
 
     @property
-    def tick_params(self) -> Dict[str, Any]:
+    def tick_params(self) -> dict[str, Any]:
         """Track tick parameters dict"""
         return {
             "left": False,
@@ -618,7 +618,7 @@ class TickTrack(Track):
         }
 
     @property
-    def spines_params(self) -> Dict[str, bool]:
+    def spines_params(self) -> dict[str, bool]:
         """Spines parameters dict"""
         return {
             "left": self.spines,
@@ -628,7 +628,7 @@ class TickTrack(Track):
         }
 
     @property
-    def scalebar_text_params(self) -> Dict[str, Any]:
+    def scalebar_text_params(self) -> dict[str, Any]:
         """Scalebar text parameters dict"""
         return {
             "x": self.xcenter,
@@ -661,7 +661,7 @@ class TickTrack(Track):
         return self.unit2base_value[self.unit]
 
     @property
-    def unit2base_value(self) -> Dict[str, int]:
+    def unit2base_value(self) -> dict[str, int]:
         """Unit & base value dict"""
         return {"Gb": 10**9, "Mb": 10**6, "Kb": 10**3, "bp": 1}
 

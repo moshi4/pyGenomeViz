@@ -107,6 +107,7 @@ class FeatureTrack(Track):
         self,
         name: str,
         size: int,
+        start_pos: int = 0,
         labelsize: int = 20,
         labelcolor: str = "black",
         labelmargin: float = 0.01,
@@ -122,6 +123,9 @@ class FeatureTrack(Track):
             Track name
         size : int
             Track size
+        start_pos : int, optional
+            Track start position.
+            Track start-end range is defined as (start_pos, start_pos + size).
         labelsize : int, optional
             Track label size
         labelcolor : str, optional
@@ -138,12 +142,23 @@ class FeatureTrack(Track):
             Track height ratio
         """
         super().__init__(name, size, labelsize, spines, ratio)
+        self._start_pos = start_pos
         self.labelcolor = labelcolor
         self.labelmargin = labelmargin
         self.linewidth = linewidth
         self.linecolor = linecolor
         self.features: List[Feature] = []
         self.subtracks: List[FeatureSubTrack] = []
+
+    @property
+    def start(self) -> int:
+        """Track start position"""
+        return self._start_pos
+
+    @property
+    def end(self) -> int:
+        """Track end position"""
+        return self.start + self.size
 
     @property
     def zorder(self) -> float:
@@ -160,6 +175,26 @@ class FeatureTrack(Track):
             "ha": "right",
             "va": "center",
         }
+
+    def _within_valid_range(self, start: int, end: int) -> bool:
+        """Check if start-end position within valid track range
+
+        Parameters
+        ----------
+        start : int
+            Start position
+        end : int
+            End position
+
+        Returns
+        -------
+        check_result : bool
+            Check result
+        """
+        if self.start <= start <= self.end and self.start <= end <= self.end:
+            return True
+        else:
+            return False
 
     def add_subtrack(self, name: Optional[str] = None, ratio: float = 1.0) -> None:
         """Add subtrack to feature track
@@ -263,8 +298,9 @@ class FeatureTrack(Track):
             for detailed parameters.
         """
         # Check if start & end positions are within appropriate track range
-        if not 0 <= start <= end <= self.size:
-            err_msg = f"start-end must be '0 <= start <= end <= {self.size}' "
+        if not self.start <= start <= end <= self.end:
+            err_msg = f"'{self.name}' track start-end range must be "
+            err_msg += f"'{self.start} <= start <= end <= {self.end}' "
             err_msg += f"(start={start}, end={end})"
             raise ValueError(err_msg)
 
@@ -363,8 +399,9 @@ class FeatureTrack(Track):
         """
         # Check if start & end positions are within appropriate track range
         for (exon_start, exon_end) in exon_regions:
-            if not 0 <= exon_start <= exon_end <= self.size:
-                err_msg = f"Exon start-end must be '0 <= start <= end <= {self.size}' "
+            if not self.start <= exon_start <= exon_end <= self.end:
+                err_msg = "Exon start-end must be "
+                err_msg += f"'{self.start} <= start <= end <= {self.size}' "
                 err_msg += f"(exon_regions={exon_regions})"
                 raise ValueError(err_msg)
 

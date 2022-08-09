@@ -137,7 +137,9 @@ def run(
 
     # Set tracks & features
     for gbk in gbk_list:
-        track = gv.add_feature_track(gbk.name, gbk.genome_length, track_labelsize)
+        track = gv.add_feature_track(
+            gbk.name, gbk.genome_length, labelsize=track_labelsize
+        )
         track.add_genbank_features(
             gbk,
             feature_type="CDS",

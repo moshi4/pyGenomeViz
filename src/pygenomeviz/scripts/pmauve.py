@@ -132,7 +132,7 @@ def run(
     # Set tracks & block features
     for name in pmauve.filenames:
         maxsize = name2maxsize[name]
-        track = gv.add_feature_track(name, maxsize, track_labelsize)
+        track = gv.add_feature_track(name, maxsize, labelsize=track_labelsize)
         blocks = name2blocks[name]
         colors = ColorCycler.get_color_list(len(blocks))
         for block, color in zip(blocks, colors):

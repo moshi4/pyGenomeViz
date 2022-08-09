@@ -151,6 +151,7 @@ class GenomeViz:
         self,
         name: str,
         size: int,
+        start_pos: int = 0,
         labelsize: int = 20,
         labelcolor: str = "black",
         labelmargin: float = 0.01,
@@ -169,6 +170,9 @@ class GenomeViz:
             Track name
         size : int
             Track size
+        start_pos : int, optional
+            Track start position.
+            Track start-end range is defined as (start_pos, start_pos + size).
         labelsize : int, optional
             Track label size
         labelcolor : str, optional
@@ -203,6 +207,7 @@ class GenomeViz:
         feature_track = FeatureTrack(
             name,
             size,
+            start_pos,
             labelsize,
             labelcolor,
             labelmargin,
@@ -265,14 +270,18 @@ class GenomeViz:
             above_track_link, below_track_link = track_link1, track_link2
         else:
             above_track_link, below_track_link = track_link2, track_link1
+
+        above_track_name, above_link_start, above_link_end = above_track_link
+        below_track_name, below_link_start, below_link_end = below_track_link
+
         link_track.add_link(
             Link(
-                above_track_link[0],
-                above_track_link[1],
-                above_track_link[2],
-                below_track_link[0],
-                below_track_link[1],
-                below_track_link[2],
+                above_track_name,
+                above_link_start - above_track.start,
+                above_link_end - above_track.start,
+                below_track_name,
+                below_link_start - below_track.start,
+                below_link_end - below_track.start,
                 normal_color,
                 inverted_color,
                 alpha,
@@ -421,7 +430,8 @@ class GenomeViz:
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, track.linecolor, linewidth=track.linewidth)
 
-                for feature in [f + track_offset for f in track.features]:
+                feature_offset = track_offset - track.start
+                for feature in [f + feature_offset for f in track.features]:
                     # Don't plot too small feature (To reduce drawing time)
                     if feature.length < plot_length_thr:
                         continue

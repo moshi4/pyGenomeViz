@@ -26,14 +26,8 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 
 For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
 
-![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)  
-**Fig.1 Four *Erwinia phage* genome comparison result**
-
-![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)  
-**Fig.2 Six *Enterobacteria phage* genome comparison**
-
-![pmauve_result1.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pmauve_example1.png)  
-**Fig.3 Four *E.coli* genome comparison result**
+![pygenomeviz_gallery.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pygenomeviz_gallery.png)  
+**Fig.1 pyGenomeViz example plot gallery**
 
 ## Installation
 

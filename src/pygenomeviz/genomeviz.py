@@ -271,8 +271,25 @@ class GenomeViz:
         else:
             above_track_link, below_track_link = track_link2, track_link1
 
+        # Check link start-end position within valid range or not
         above_track_name, above_link_start, above_link_end = above_track_link
+        above_track = self.get_track(above_track_name)
         below_track_name, below_link_start, below_link_end = below_track_link
+        below_track = self.get_track(below_track_name)
+        ft = FeatureTrack
+        if isinstance(above_track, ft) and isinstance(below_track, ft):
+            if not above_track._within_valid_range(above_link_start, above_link_end):
+                err_msg = f"track_link1 = {track_link1} has invalid track range.\n"
+                err_msg += f"'{above_track_name}' track start-end range must be "
+                err_msg += f"'{above_track.start} <= pos <= {above_track.end}'"
+                raise ValueError(err_msg)
+            if not below_track._within_valid_range(below_link_start, below_link_end):
+                err_msg = f"track_link2 = {track_link2} has invalid track range.\n"
+                err_msg += f"'{below_track_name}' track start-end range must be "
+                err_msg += f"'{below_track.start} <= pos <= {below_track.end}'"
+                raise ValueError(err_msg)
+        else:
+            raise ValueError("Unexpected error. Why not FeatureTrack object?")
 
         link_track.add_link(
             Link(

@@ -245,6 +245,27 @@ def test_add_link_for_no_adjacent_tracks():
         gv.add_link((track_name1, 100, 200), (track_name3, 200, 300))
 
 
+def test_add_link_range_error():
+    """Test add_link out range error"""
+    gv = GenomeViz()
+    track_name1, track_name2, track_name3 = "track01", "track02", "track03"
+    gv.add_feature_track(track_name1, 1000)  # Range: 0 - 1000
+    gv.add_feature_track(track_name2, 1100)  # Range: 0 - 1100
+    gv.add_feature_track(track_name3, 1200, start_pos=100)  # Range: 100 - 1300
+
+    # Case1. track_link1 is out range
+    with pytest.raises(ValueError):
+        gv.add_link((track_name1, 900, 1100), (track_name2, 200, 400))
+    # Case2. track_link2 is out range
+    with pytest.raises(ValueError):
+        gv.add_link((track_name1, 800, 1000), (track_name2, 900, 1150))
+    # Case3. track_link is out range (Set start_pos)
+    with pytest.raises(ValueError):
+        gv.add_link((track_name2, 800, 1000), (track_name3, 50, 250))
+    with pytest.raises(ValueError):
+        gv.add_link((track_name2, 800, 1000), (track_name3, 1150, 1350))
+
+
 def test_top_track():
     """Test top track"""
     gv = GenomeViz()
@@ -276,6 +297,7 @@ def test_ax_property():
     # Can't access ax property before calling 'plotfig' method
     with pytest.raises(ValueError):
         gv.top_track.ax
+    # Propery access ax property after calling 'plotfig' method
     gv.plotfig()
     gv.top_track.ax
 
@@ -287,5 +309,6 @@ def test_offset_property():
     # Can't access offset property before calling 'plotfig' method
     with pytest.raises(ValueError):
         gv.top_track.offset
+    # Propery access offset property after calling 'plotfig' method
     gv.plotfig()
     gv.top_track.offset

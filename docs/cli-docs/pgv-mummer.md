@@ -40,7 +40,6 @@ In Ubuntu, MUMmer can be installed with apt command below.
 
     MUMmer Alignment Options:
       --seqtype                    MUMmer alignment sequence type ('protein'[*]|'nucleotide')
-      --maptype                    MUMmer alignment map type ('many-to-many'[*]|'one-to-one')
       --min_length                 Min-length threshold to be plotted (Default: 0)
       --min_identity               Min-identity threshold to be plotted (Default: 0)
 

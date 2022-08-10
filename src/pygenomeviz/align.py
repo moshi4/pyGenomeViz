@@ -79,8 +79,8 @@ class MUMmer(AlignToolBase):
         self,
         genome_resources: list[str | Path] | list[Genbank],
         outdir: str | Path,
-        seqtype: str = "nucleotide",
-        maptype: str = "one-to-one",
+        seqtype: str = "protein",
+        maptype: str = "many-to-many",
         process_num: int | None = None,
     ):
         """

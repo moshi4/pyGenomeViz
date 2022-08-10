@@ -27,7 +27,6 @@ def run(
     reuse: bool = False,
     # MUMmer alignment options
     seqtype: str = "protein",
-    maptype: str = "many-to-many",
     min_length: int = 0,
     min_identity: float = 0,
     # Figure appearence options
@@ -63,8 +62,6 @@ def run(
         If True, reuse previous result if available
     seqtype : str, optional
         MUMmer alignment sequence type (`protein`|`nucleotide`)
-    maptype : str, optional
-        MUMmer alignment map type (`many-to-many`|`one-to-one`)
     min_length : int, optional
         Min-length threshold to be plotted
     min_identity : float, optional
@@ -161,7 +158,7 @@ def run(
     else:
         print("Run MUMmer alignment.\n")
         with TemporaryDirectory() as tmpdir:
-            align_coords = MUMmer(gbk_list, tmpdir, seqtype, maptype).run()
+            align_coords = MUMmer(gbk_list, tmpdir, seqtype, "many-to-many").run()
             AlignCoord.write(align_coords, align_coords_file)
     align_coords = AlignCoord.filter(align_coords, min_length, min_identity)
 
@@ -270,15 +267,6 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         help="MUMmer alignment sequence type ('protein'[*]|'nucleotide')",
         default=defaullt_seqtype,
         choices=["nucleotide", "protein"],
-        metavar="",
-    )
-    default_maptype = "many-to-many"
-    mummer_alignment_opts.add_argument(
-        "--maptype",
-        type=str,
-        help="MUMmer alignment map type ('many-to-many'[*]|'one-to-one')",
-        default=default_maptype,
-        choices=["one-to-one", "many-to-many"],
         metavar="",
     )
     default_min_length = 0

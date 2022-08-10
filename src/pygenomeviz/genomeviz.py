@@ -346,9 +346,11 @@ class GenomeViz:
         tracks = []
         for track in self._tracks:
             if isinstance(track, FeatureTrack):
+                if subtrack:
+                    tracks.extend([t for t in track.subtracks if t.position == "above"])
                 tracks.append(track)
                 if subtrack:
-                    tracks.extend(track.subtracks)
+                    tracks.extend([t for t in track.subtracks if t.position == "below"])
             else:
                 tracks.append(track)
         return tracks

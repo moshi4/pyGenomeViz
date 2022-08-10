@@ -196,7 +196,9 @@ class FeatureTrack(Track):
         else:
             return False
 
-    def add_subtrack(self, name: str | None = None, ratio: float = 1.0) -> None:
+    def add_subtrack(
+        self, name: str | None = None, ratio: float = 1.0, position: str = "below"
+    ) -> None:
         """Add subtrack to feature track
 
         Parameters
@@ -205,15 +207,22 @@ class FeatureTrack(Track):
             Subtrack name. If None, subtrack name is automatically set.
         ratio : float, optional
             Subtrack size ratio to feature track
+        position : str, optional
+            Subtrack position (`above`|`below`)
         """
         subtrack_ratio = self.ratio * ratio
         subtrack_idx = len(self.subtracks) + 1
         if name is None:
             name = f"{self.name}_subtrack{subtrack_idx}"
+
         if name in [t.name for t in self.subtracks]:
-            err_msg = f"subtrack.name='{name}' is already exists."
-            raise ValueError(err_msg)
-        subtrack = FeatureSubTrack(name, self.size, self.spines, subtrack_ratio)
+            raise ValueError(f"subtrack.name='{name}' is already exists.")
+        if position not in ("above", "below"):
+            raise ValueError(f"position='{position}' is invalid ('above'|'below').")
+
+        subtrack = FeatureSubTrack(
+            name, self.size, self.spines, subtrack_ratio, position
+        )
         self.subtracks.append(subtrack)
 
     def get_subtrack(self, name: str) -> FeatureSubTrack:
@@ -533,20 +542,30 @@ class FeatureTrack(Track):
 class FeatureSubTrack(Track):
     """FeatureSubTrack Class"""
 
-    def __init__(self, name: str, size: int, spines: bool = False, ratio: float = 1.0):
+    def __init__(
+        self,
+        name: str,
+        size: int,
+        spines: bool = False,
+        ratio: float = 1.0,
+        position: str = "below",
+    ):
         """
         Parameters
         ----------
         name : str
-            Sub track name
+            Subtrack name
         size : int
-            Sub track size
+            Subtrack size
         spines : bool, optional
             Display track spines
         ratio : float, optional
-            Sub track height ratio
+            Subtrack height ratio
+        position : str, optional
+            Subtrack position (`above`|`below`)
         """
         super().__init__(name, size, 0, spines, ratio)
+        self.position = position
 
 
 class LinkTrack(Track):

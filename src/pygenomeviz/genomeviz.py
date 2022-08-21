@@ -421,9 +421,8 @@ class GenomeViz:
 
         # Set gridspec
         height_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
-        spec = gridspec.GridSpec(
-            nrows=track_num, ncols=1, height_ratios=height_ratios, hspace=0
-        )
+        gs = gridspec.GridSpec(nrows=track_num, ncols=1, height_ratios=height_ratios)
+        gs.update(left=0, right=1, bottom=0, top=1, hspace=0, wspace=0)
 
         # Plot each track
         plot_length_thr = max_track_size * self.plot_size_thr
@@ -431,7 +430,7 @@ class GenomeViz:
             # Create new track subplot
             xlim, ylim = (0, max_track_size), track.ylim
             ax: Axes = figure.add_subplot(
-                spec[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
+                gs[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
             )
             track_offset = self._get_track_offset(track)
             track._ax, track._offset = ax, track_offset

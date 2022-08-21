@@ -150,6 +150,15 @@ class FeatureTrack(Track):
         self.features: list[Feature] = []
         self.subtracks: list[FeatureSubTrack] = []
 
+        # Sublabel parameters
+        self._sublabel_y: float | None = None
+        self._sublabel_text: str | None = None
+        self._sublabel_size: int = 10
+        self._sublabel_color: str = "black"
+        self._sublabel_ha: str = "left"
+        self._sublabel_va: str = "top"
+        self._sublabel_kws: dict[str, Any] = {}
+
     @property
     def start(self) -> int:
         """Track start position"""
@@ -174,6 +183,20 @@ class FeatureTrack(Track):
             "color": self.labelcolor,
             "ha": "right",
             "va": "center",
+        }
+
+    @property
+    def sublabel_params(self) -> dict[str, Any]:
+        """Sublabel drawing parameters"""
+        return {
+            "y": self._sublabel_y,
+            "s": self._sublabel_text,
+            "fontsize": self._sublabel_size,
+            "color": self._sublabel_color,
+            "ha": self._sublabel_ha,
+            "va": self._sublabel_va,
+            "zorder": 10,
+            **self._sublabel_kws,
         }
 
     def _within_valid_range(self, start: int, end: int) -> bool:
@@ -243,6 +266,49 @@ class FeatureTrack(Track):
             err_msg = f"subtrack.name='{name}' is not found."
             raise ValueError(err_msg)
         return name2subtrack[name]
+
+    def set_sublabel(
+        self,
+        text: str | None = None,
+        size: int = 15,
+        color: str = "black",
+        position: str = "bottom-left",
+        sublabel_kws: dict[str, Any] = {},
+    ) -> None:
+        """Set sublabel to feature track
+
+        Parameters
+        ----------
+        text : str | None, optional
+            Sublabel text. If None, `{start} - {end} bp` label text is set.
+        size : int, optional
+            Sublabel size
+        color : str, optional
+            Sublabel color
+        position : str, optional
+            Sublabel position (`[top|bottom]-[left|center|right]`)
+        sublabel_kws: dict[str, Any], optional
+            Optional keyword arguments to pass to Axes.text method for sublabel.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html
+            for detailed parameters.
+        """
+        # Sublabel text setting (e.g. '0 - 1000 bp')
+        default_text = f"{self.start} - {self.end} bp"
+        self._sublabel_text = default_text if text is None else text
+        self._sublabel_size = size
+        self._sublabel_color = color
+        self._sublabel_kws = sublabel_kws
+        # Sublabel position setting
+        vpos, hpos = position.split("-")
+        vpos_types, hpos_types = ("top", "bottom"), ("left", "center", "right")
+        if vpos not in vpos_types or hpos not in hpos_types:
+            err_msg = f"position='{position}' is invalid pattern. "
+            err_msg += "position must be '[top|bottom]-[left|center|right]'"
+            raise ValueError(err_msg)
+        vpos2y, vpos2va = {"top": 1, "bottom": -1}, {"top": "bottom", "bottom": "top"}
+        self._sublabel_y = vpos2y[vpos]
+        self._sublabel_va = vpos2va[vpos]
+        self._sublabel_ha = hpos
 
     def add_feature(
         self,

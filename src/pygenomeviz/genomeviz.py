@@ -441,13 +441,18 @@ class GenomeViz:
             ax.tick_params(**track.tick_params)
 
             if isinstance(track, FeatureTrack):
+                # Plot track scale line
+                xmin, xmax = track_offset, track.size + track_offset
+                ax.hlines(0, xmin, xmax, track.linecolor, linewidth=track.linewidth)
                 # Plot track label
                 if track.labelsize != 0:
                     margin = -max_track_size * track.labelmargin
                     ax.text(margin, 0, **track.label_params)
-                # Plot track scale line
-                xmin, xmax = track_offset, track.size + track_offset
-                ax.hlines(0, xmin, xmax, track.linecolor, linewidth=track.linewidth)
+                # Plot track sublabel
+                if track._sublabel_text is not None and track._sublabel_size != 0:
+                    ha2x = dict(left=xmin, center=(xmax + xmin) / 2, right=xmax)
+                    x = ha2x[track._sublabel_ha]
+                    ax.text(**{**dict(x=x), **track.sublabel_params})
 
                 feature_offset = track_offset - track.start
                 for feature in [f + feature_offset for f in track.features]:

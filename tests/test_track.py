@@ -41,6 +41,35 @@ def test_get_subtrack():
     assert subtrack.ratio == 1.0
 
 
+def test_set_sublabel():
+    """Test set sublabel"""
+    track_name, track_size = "feature track", 1000
+    track = FeatureTrack(track_name, track_size)
+    # Default text
+    track.set_sublabel()
+    assert track._sublabel_text == "0 - 1000 bp"
+    # User defined text
+    sublabel_text = "sublabel"
+    track.set_sublabel(text=sublabel_text)
+    assert track._sublabel_text == sublabel_text
+
+
+def test_set_sublabel_position_error():
+    """Test set_sublabel position error"""
+    track_name, track_size = "feature track", 1000
+    track = FeatureTrack(track_name, track_size)
+    vpos_types, hpos_types = ("top", "bottom"), ("left", "center", "right")
+    # Valid position
+    for vpos in vpos_types:
+        for hpos in hpos_types:
+            track.set_sublabel(position=f"{vpos}-{hpos}")
+    # Invalid position
+    with pytest.raises(ValueError):
+        track.set_sublabel(position="top left")
+    with pytest.raises(ValueError):
+        track.set_sublabel(position="invalid-position")
+
+
 def test_get_subtrack_no_exists_error():
     """Test get subtrack no exists error"""
     track_name, track_size = "feature track", 1000

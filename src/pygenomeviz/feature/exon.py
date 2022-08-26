@@ -15,7 +15,7 @@ class ExonFeature(Feature):
     def __init__(
         self,
         exon_regions: list[tuple[int, int]],
-        strand: int,
+        strand: int = 1,
         label: str = "",
         labelsize: int = 15,
         labelcolor: str = "black",

@@ -15,7 +15,7 @@ class Feature:
 
     start: int
     end: int
-    strand: int  # -1 or 1
+    strand: int = 1  # -1 or 1
     label: str = ""
     labelsize: int = 15
     labelcolor: str = "black"

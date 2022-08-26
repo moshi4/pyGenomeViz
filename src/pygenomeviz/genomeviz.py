@@ -6,7 +6,7 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib import colors, gridspec
-from matplotlib.colorbar import ColorbarBase
+from matplotlib.colorbar import Colorbar
 from matplotlib.figure import Axes, Figure
 from matplotlib.ticker import MaxNLocator
 
@@ -609,7 +609,7 @@ class GenomeViz:
             cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
             norm = colors.Normalize(vmin=vmin, vmax=vmax)
             cb_kws = {"orientation": "vertical", "ticks": []}
-            cb = ColorbarBase(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
+            cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
             if cnt == len(bar_colors) - 1:
                 ticks = [vmin, vmax]
                 labels = [f"{t}%" for t in ticks]

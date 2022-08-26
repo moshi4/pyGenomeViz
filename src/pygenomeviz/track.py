@@ -4,7 +4,9 @@ import math
 from typing import Any, Callable
 
 from matplotlib.figure import Axes
+from typing_extensions import Literal
 
+from pygenomeviz.config import LiteralTypes
 from pygenomeviz.feature import ExonFeature, Feature
 from pygenomeviz.genbank import Genbank
 from pygenomeviz.link import Link
@@ -314,18 +316,18 @@ class FeatureTrack(Track):
         self,
         start: int,
         end: int,
-        strand: int = 1,
+        strand: LiteralTypes.STRAND = 1,
         label: str = "",
         labelsize: int = 15,
         labelcolor: str = "black",
-        plotstyle: str = "bigarrow",
+        plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
         facecolor: str = "orange",
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 45,
-        labelvpos: str = "strand",
-        labelhpos: str = "center",
-        labelha: str = "left",
+        labelvpos: LiteralTypes.LABELVPOS = "strand",
+        labelhpos: LiteralTypes.LABELHPOS = "center",
+        labelha: LiteralTypes.LABELHA = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
         patch_kws: dict[str, Any] | None = None,
@@ -404,18 +406,18 @@ class FeatureTrack(Track):
     def add_exon_feature(
         self,
         exon_regions: list[tuple[int, int]],
-        strand: int = 1,
+        strand: LiteralTypes.STRAND = 1,
         label: str = "",
         labelsize: int = 15,
         labelcolor: str = "black",
-        plotstyle: str = "bigarrow",
+        plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
         facecolor: str = "orange",
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 45,
-        labelvpos: str = "strand",
-        labelhpos: str = "center",
-        labelha: str = "left",
+        labelvpos: LiteralTypes.LABELVPOS = "strand",
+        labelhpos: LiteralTypes.LABELHPOS = "center",
+        labelha: LiteralTypes.LABELHA = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
         exon_labels: list[str] | None = None,
@@ -513,14 +515,14 @@ class FeatureTrack(Track):
         allow_partial: bool = True,
         labelsize: int = 15,
         labelcolor: str = "black",
-        plotstyle: str = "bigarrow",
+        plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
         facecolor: str = "orange",
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 45,
-        labelvpos: str = "strand",
-        labelhpos: str = "center",
-        labelha: str = "left",
+        labelvpos: LiteralTypes.LABELVPOS = "strand",
+        labelhpos: LiteralTypes.LABELHPOS = "center",
+        labelha: LiteralTypes.LABELHA = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
         patch_kws: dict[str, Any] | None = None,
@@ -614,7 +616,7 @@ class FeatureSubTrack(Track):
         size: int,
         spines: bool = False,
         ratio: float = 1.0,
-        position: str = "below",
+        position: Literal["above", "below"] = "below",
     ):
         """
         Parameters

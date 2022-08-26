@@ -29,16 +29,16 @@ def test_feature_check_error():
         Feature(100, 0)
     # Case2. Invalid labelvpos
     with pytest.raises(ValueError):
-        Feature(0, 100, labelvpos="invalid")
+        Feature(0, 100, labelvpos="invalid")  # type: ignore
     # Case3. Invalid labelhpos
     with pytest.raises(ValueError):
-        Feature(0, 100, labelhpos="invalid")
+        Feature(0, 100, labelhpos="invalid")  # type: ignore
     # Case4. Invalid labelha
     with pytest.raises(ValueError):
-        Feature(0, 100, labelha="invalid")
+        Feature(0, 100, labelha="invalid")  # type: ignore
     # Case5. Invalid plotstyle
     with pytest.raises(ValueError):
-        Feature(0, 100, plotstyle="invalid")
+        Feature(0, 100, plotstyle="invalid")  # type: ignore
     # Case6. Invalid arrow_shaft_ratio range (not 0 <= v <= 1)
     with pytest.raises(ValueError):
         Feature(0, 100, arrow_shaft_ratio=2.0)

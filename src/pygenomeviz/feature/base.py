@@ -7,6 +7,8 @@ from typing import Any
 from matplotlib.figure import Axes
 from matplotlib.patches import FancyArrow, PathPatch, Rectangle
 from matplotlib.path import Path
+from pygenomeviz.config import LiteralTypes
+from typing_extensions import get_args
 
 
 @dataclass
@@ -15,18 +17,18 @@ class Feature:
 
     start: int
     end: int
-    strand: int = 1  # -1 or 1
+    strand: LiteralTypes.STRAND = 1
     label: str = ""
     labelsize: int = 15
     labelcolor: str = "black"
-    plotstyle: str = "bigarrow"  # "(big)arrow", "(big)box", "(big)rbox"
+    plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow"
     facecolor: str = "orange"
     edgecolor: str = "black"
     linewidth: float = 0
     labelrotation: int = 45
-    labelvpos: str = "strand"  # "top", "center", "bottom", "strand"
-    labelhpos: str = "center"  # "left", "center", "right"
-    labelha: str = "left"  # "left", "center", "right"
+    labelvpos: LiteralTypes.LABELVPOS = "strand"
+    labelhpos: LiteralTypes.LABELHPOS = "center"
+    labelha: LiteralTypes.LABELHA = "left"
     arrow_shaft_ratio: float = 0.5
     size_ratio: float = 0.9
     patch_kws: dict[str, Any] | None = None
@@ -40,19 +42,18 @@ class Feature:
             err_msg = f"Feature 'end' must be larger than 'start' ({self})"
             raise ValueError(err_msg)
         # Check labelvpos
-        if self.labelvpos not in ("top", "center", "bottom", "strand"):
+        if self.labelvpos not in get_args(LiteralTypes.LABELVPOS):
             raise ValueError(f"'labelvpos={self.labelvpos}' is invalid parameter.")
         # Check labelhpos
-        if self.labelhpos not in ("left", "center", "right"):
+        if self.labelhpos not in get_args(LiteralTypes.LABELHPOS):
             raise ValueError(f"'labelhpos={self.labelhpos}' is invalid parameter.")
         # Check labelha
-        if self.labelha not in ("left", "center", "right"):
+        if self.labelha not in get_args(LiteralTypes.LABELHA):
             raise ValueError(f"'labelha={self.labelha}' is invalid parameter.")
         # Check feature plot style
-        self.plotstyle_list = ("bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox")
-        self.plotstyle = self.plotstyle.lower()
-        if self.plotstyle not in self.plotstyle_list:
-            err_msg = f"'plotstyle must be '{'|'.join(self.plotstyle_list)}'.\n"
+        plotstyle_list = get_args(LiteralTypes.PLOTSTYLE)
+        if self.plotstyle not in plotstyle_list:
+            err_msg = f"'plotstyle must be '{'|'.join(plotstyle_list)}'.\n"
             err_msg += f"plotstyle='{self.plotstyle}' is invalid."
             raise ValueError(err_msg)
         # Check arrow shaft ratio

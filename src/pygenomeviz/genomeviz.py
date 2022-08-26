@@ -9,7 +9,9 @@ from matplotlib import colors, gridspec
 from matplotlib.colorbar import Colorbar
 from matplotlib.figure import Axes, Figure
 from matplotlib.ticker import MaxNLocator
+from typing_extensions import get_args
 
+from pygenomeviz.config import LiteralTypes
 from pygenomeviz.link import Link
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
 
@@ -23,12 +25,12 @@ class GenomeViz:
         self,
         fig_width: float = 15,
         fig_track_height: float = 1.0,
-        align_type: str = "left",
+        align_type: LiteralTypes.ALIGN_TYPE = "left",
         feature_track_ratio: float = 1.0,
         link_track_ratio: float = 1.0,
         tick_track_ratio: float = 1.0,
         track_spines: bool = False,
-        tick_style: str | None = None,
+        tick_style: LiteralTypes.TICK_STYLE = None,
         plot_size_thr: float = 0,
         tick_labelsize: int = 15,
     ):
@@ -75,11 +77,11 @@ class GenomeViz:
 
     def _check_init_values(self) -> None:
         """Check initial values"""
-        if self.align_type not in ("left", "center", "right"):
+        if self.align_type not in get_args(LiteralTypes.ALIGN_TYPE):
             err_msg = f"Invalid align type '{self.align_type}'."
             raise ValueError(err_msg)
 
-        if self.tick_style is not None and self.tick_style not in ("axis", "bar"):
+        if self.tick_style not in get_args(LiteralTypes.TICK_STYLE):
             err_msg = f"Invalid tick type '{self.tick_style}'."
             raise ValueError(err_msg)
 

@@ -37,6 +37,7 @@ python = "^3.7.1"
 matplotlib = "^3.5.2"
 biopython = "^1.79"
 numpy = "^1.21"
+typing-extensions = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

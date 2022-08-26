@@ -13,6 +13,8 @@ from dataclasses import astuple, dataclass
 from pathlib import Path
 from typing import ClassVar
 
+from typing_extensions import Literal
+
 from pygenomeviz import Genbank
 
 
@@ -79,8 +81,8 @@ class MUMmer(AlignToolBase):
         self,
         genome_resources: list[str | Path] | list[Genbank],
         outdir: str | Path,
-        seqtype: str = "protein",
-        maptype: str = "many-to-many",
+        seqtype: Literal["protein", "nucleotide"] = "protein",
+        maptype: Literal["many-to-many", "one-to-one"] = "many-to-many",
         process_num: int | None = None,
     ):
         """
@@ -101,8 +103,8 @@ class MUMmer(AlignToolBase):
 
         self.genome_resources = genome_resources
         self.outdir = Path(outdir)
-        self.seqtype = seqtype.lower()
-        self.maptype = maptype.lower()
+        self.seqtype = seqtype
+        self.maptype = maptype
         self.process_num = self.max_process_num if process_num is None else process_num
 
     @property

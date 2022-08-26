@@ -6,6 +6,7 @@ from typing import Any
 from matplotlib.figure import Axes
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
+from pygenomeviz.config import LiteralTypes
 from pygenomeviz.feature.base import Feature
 
 
@@ -15,18 +16,18 @@ class ExonFeature(Feature):
     def __init__(
         self,
         exon_regions: list[tuple[int, int]],
-        strand: int = 1,
+        strand: LiteralTypes.STRAND = 1,
         label: str = "",
         labelsize: int = 15,
         labelcolor: str = "black",
-        plotstyle: str = "bigarrow",  # "(big)arrow", "(big)box", "(big)rbox"
+        plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
         facecolor: str = "orange",
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 45,
-        labelvpos: str = "strand",  # "top", "center", "bottom", "strand"
-        labelhpos: str = "center",  # "left", "center", "right"
-        labelha: str = "left",  # "left", "center", "right"
+        labelvpos: LiteralTypes.LABELVPOS = "strand",
+        labelhpos: LiteralTypes.LABELHPOS = "center",
+        labelha: LiteralTypes.LABELHA = "left",
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 0.9,
         exon_labels: list[str] | None = None,

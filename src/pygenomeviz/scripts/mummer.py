@@ -186,7 +186,7 @@ def run(
     gv.set_colorbar(fig, bar_colors, vmin=min_identity)
 
     # Save figure
-    fig.savefig(result_fig_file, bbox_inches="tight", pad_inches=0.5)
+    fig.savefig(result_fig_file)
     print(f"Save result figure ({result_fig_file}).")
 
     return gv

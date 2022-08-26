@@ -245,7 +245,7 @@ gc_skew_ax.text(gv.top_track.offset, 0, "GC skew ", ha="right", va="center", col
 # Set coloarbar for link
 gv.set_colorbar(fig, vmin=min_identity)
 
-fig.savefig("example06.png", bbox_inches="tight")
+fig.savefig("example06.png")
 ```
 
 </details>
@@ -268,9 +268,9 @@ from pygenomeviz import Genbank, GenomeViz, load_dataset
 
 gv = GenomeViz(
     fig_width=10,
-    fig_track_height=0.7,
+    fig_track_height=0.5,
     feature_track_ratio=0.5,
-    tick_track_ratio=0.5,
+    tick_track_ratio=0.3,
     align_type="center",
     tick_style="bar",
     tick_labelsize=10,
@@ -305,12 +305,12 @@ handles = [
     Patch(color=normal_color, label="Normal Link"),
     Patch(color=inverted_color, label="Inverted Link"),
 ]
-fig.legend(handles=handles, frameon=True, bbox_to_anchor=(1, 0.8), loc="upper left", ncol=1, handlelength=1, handleheight=1)
+fig.legend(handles=handles, bbox_to_anchor=(1, 1))
 
 # Set colorbar for link
-gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmin=min_identity, bar_height=0.15, bar_label="Identity", bar_labelsize=10)
+gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmin=min_identity, bar_label="Identity", bar_labelsize=10)
 
-fig.savefig("example07.png", bbox_inches="tight")
+fig.savefig("example07.png")
 ```
 
 </details>

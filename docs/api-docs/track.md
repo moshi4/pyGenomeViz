@@ -9,3 +9,4 @@
         - add_genbank_features
         - add_subtrack
         - get_subtrack
+        - set_sublabel

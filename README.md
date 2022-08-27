@@ -327,7 +327,7 @@ Each CLI workflow requires the installation of additional dependent tools to run
 
 See [pgv-mummer document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mummer/) for details.
 
-Download example dataset: `pgv-download-dataset -n escherichia_phage`
+Download example dataset: `pgv-download-dataset -n erwinia_phage`
 
 > :warning: MUMmer must be installed in advance to run
 

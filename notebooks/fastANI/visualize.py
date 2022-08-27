@@ -69,9 +69,9 @@ def main():
 
     fig = gv.plotfig()
     gv.set_colorbar(
-        fig, bar_colors=[link_color], vmin=min_identity, bar_height=0.3, bar_bottom=0.2
+        fig, bar_colors=[link_color], vmin=min_identity, bar_height=0.3, bar_bottom=0.15
     )
-    fig.savefig(visualize_result_file, bbox_inches="tight", pad_inches=0.5)
+    fig.savefig(visualize_result_file)
 
 
 def get_args() -> argparse.Namespace:

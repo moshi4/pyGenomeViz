@@ -41,6 +41,11 @@ For more information, please see full documentation [here](https://moshi4.github
 
     conda install -c conda-forge -c bioconda pygenomeviz
 
+**Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
+
+    docker pull ghcr.io/moshi4/pygenomeviz:latest
+    docker run -it --rm ghcr.io/moshi4/pygenomeviz:latest pgv-pmauve -h
+
 ## API Examples
 
 Jupyter notebooks containing code examples below is available [here](https://moshi4.github.io/pyGenomeViz/getting_started/).

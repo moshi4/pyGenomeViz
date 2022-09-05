@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Build
-        run: docker build --tag ghcr.io/$GITHUB_ACTOR/pygenomeviz:v${{ github.event.inputs.version }} .
+        run: docker build --tag pygenomeviz:v${{ github.event.inputs.version }} .
 
       - name: Docker Push
         run: docker push ghcr.io/$GITHUB_ACTOR/pygenomeviz:v${{ github.event.inputs.version }}

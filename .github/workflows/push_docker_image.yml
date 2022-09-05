@@ -28,5 +28,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/$GITHUB_ACTOR/pygenomeviz:latest
-            ghcr.io/$GITHUB_ACTOR/pygenomeviz:v{{ github.event.inputs.version }}
+            ghcr.io/${{ github.repository_owner }}/pygenomeviz:latest
+            ghcr.io/${{ github.repository_owner }}/pygenomeviz:v${{ github.event.inputs.version }}

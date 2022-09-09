@@ -8,6 +8,7 @@ from pathlib import Path
 
 from pygenomeviz import GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, ProgressiveMauve
+from pygenomeviz.config import LiteralTypes
 from pygenomeviz.scripts import get_argparser, print_args
 from pygenomeviz.utils import ColorCycler
 
@@ -38,9 +39,9 @@ def run(
     tick_labelsize: int = 15,
     normal_link_color: str = "grey",
     inverted_link_color: str = "tomato",
-    align_type: str = "center",
-    tick_style: str | None = None,
-    plotstyle: str = "box",
+    align_type: LiteralTypes.ALIGN_TYPE = "center",
+    tick_style: LiteralTypes.TICK_STYLE = None,
+    plotstyle: LiteralTypes.PLOTSTYLE = "box",
     cmap: str = "hsv",
     curve: bool = True,
     dpi: int = 300,

@@ -48,7 +48,7 @@ DATASETS = {
 @dataclass
 class LiteralTypes:
     PLOTSTYLE = Literal["bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox"]
-    STRAND = Literal[1, -1, 0]
+    STRAND = int
     LABELVPOS = Literal["top", "center", "bottom", "strand"]
     LABELHPOS = Literal["left", "center", "right"]
     LABELHA = Literal["left", "center", "right"]

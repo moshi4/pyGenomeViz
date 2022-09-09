@@ -7,7 +7,9 @@ from tempfile import TemporaryDirectory
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, MUMmer
+from pygenomeviz.config import LiteralTypes
 from pygenomeviz.scripts import gbk_files2gbk_objects, get_argparser, print_args
+from typing_extensions import Literal
 
 
 def main():
@@ -26,7 +28,7 @@ def run(
     format: str = "png",
     reuse: bool = False,
     # MUMmer alignment options
-    seqtype: str = "protein",
+    seqtype: Literal["protein", "nucleotide"] = "protein",
     min_length: int = 0,
     min_identity: float = 0,
     # Figure appearence options
@@ -39,9 +41,9 @@ def run(
     tick_labelsize: int = 15,
     normal_link_color: str = "grey",
     inverted_link_color: str = "red",
-    align_type: str = "center",
-    tick_style: str | None = None,
-    feature_plotstyle: str = "bigarrow",
+    align_type: LiteralTypes.ALIGN_TYPE = "center",
+    tick_style: LiteralTypes.TICK_STYLE = None,
+    feature_plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
     arrow_shaft_ratio: float = 0.5,
     feature_color: str = "orange",
     feature_linewidth: float = 0,

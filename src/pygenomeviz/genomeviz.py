@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 from typing import Any
 
@@ -14,8 +13,6 @@ from typing_extensions import get_args
 from pygenomeviz.config import LiteralTypes
 from pygenomeviz.link import Link
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
-
-warnings.filterwarnings("ignore")
 
 
 class GenomeViz:

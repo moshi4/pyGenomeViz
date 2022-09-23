@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from matplotlib import colors
-from matplotlib.figure import Axes
+from matplotlib.axes import Axes
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
 

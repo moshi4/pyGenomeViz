@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from typing import Any, Callable
 
-from matplotlib.figure import Axes
+from matplotlib.axes import Axes
 from typing_extensions import Literal
 
 from pygenomeviz.config import LiteralTypes

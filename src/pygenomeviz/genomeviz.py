@@ -5,8 +5,9 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib import colors, gridspec
+from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
-from matplotlib.figure import Axes, Figure
+from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 from typing_extensions import get_args
 

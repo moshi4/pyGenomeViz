@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import Any
 
@@ -16,8 +17,8 @@ from pygenomeviz.link import Link
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
 
 
-class GenomeViz:
-    """GenomeViz Class"""
+class GenomeVizBase(metaclass=ABCMeta):
+    """GenomeViz Abstract Base Class"""
 
     def __init__(
         self,
@@ -103,7 +104,7 @@ class GenomeViz:
         elif self.align_type == "right":
             return self.max_track_size - track.size
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
 
     @property
     def _track_name2offset(self) -> dict[str, int]:
@@ -146,6 +147,219 @@ class GenomeViz:
             err_msg = f"`{feature_track_name1}` and '{feature_track_name2}' "
             err_msg += "are not adjacent feature tracks."
             raise ValueError(err_msg)
+
+    @abstractmethod
+    def add_feature_track():
+        """Add feature track"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_link():
+        """Add link track"""
+        raise NotImplementedError
+
+    def get_track(self, track_name: str) -> Track:
+        """Get track by name
+
+        Parameters
+        ----------
+        track_name : str
+            Target track name
+
+        Returns
+        -------
+        track : Track
+            Target track
+        """
+        name2track = {t.name: t for t in self.get_tracks()}
+        if track_name not in name2track.keys():
+            err_msg = f"track.name='{track_name}' is not found."
+            raise ValueError(err_msg)
+        return name2track[track_name]
+
+    def get_tracks(self, subtrack: bool = False) -> list[Track]:
+        """Get tracks
+
+        Parameters
+        ----------
+        subtrack : bool, optional
+            If True, include feature subtracks
+
+        Returns
+        -------
+        tracks : list[Track]
+            Track list
+        """
+        tracks = []
+        for track in self._tracks:
+            if isinstance(track, FeatureTrack):
+                if subtrack:
+                    tracks.extend([t for t in track.subtracks if t.position == "above"])
+                tracks.append(track)
+                if subtrack:
+                    tracks.extend([t for t in track.subtracks if t.position == "below"])
+            else:
+                tracks.append(track)
+        return tracks
+
+    @property
+    def top_track(self) -> FeatureTrack:
+        """Top feature track"""
+        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+        if len(feature_tracks) == 0:
+            err_msg = "No track found. Can't access 'top_track' property."
+            raise ValueError(err_msg)
+        return feature_tracks[0]
+
+    @property
+    def bottom_track(self) -> FeatureTrack:
+        """Bottom feature track"""
+        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+        if len(feature_tracks) == 0:
+            err_msg = "No track found. Can't access 'bottom_track' property."
+            raise ValueError(err_msg)
+        return feature_tracks[-1]
+
+    @property
+    def max_track_size(self) -> int:
+        """Max track size"""
+        if len(self.get_tracks()) == 0:
+            err_msg = "No track found. Can't access 'max_track_size' property."
+            raise ValueError(err_msg)
+        return max([track.size for track in self.get_tracks()])
+
+    @abstractmethod
+    def plotfig(self, dpi: int = 100) -> Figure:
+        """Plot figure"""
+        raise NotImplementedError
+
+    def savefig(
+        self,
+        savefile: str | Path,
+        dpi: int = 100,
+        pad_inches: float = 0.5,
+    ) -> None:
+        """Save figure to file
+
+        Parameters
+        ----------
+        savefile : str | Path
+            Save file
+        dpi : int, optional
+            DPI
+        pad_inches : float, optional
+            Padding inches
+        """
+        figure = self.plotfig(dpi=dpi)
+        figure.savefig(
+            fname=savefile,
+            dpi=dpi,
+            pad_inches=pad_inches,
+            bbox_inches="tight",
+        )
+
+    def print_tracks_info(self, detail=False) -> None:
+        """Print tracks info (Mainly for debugging work)
+
+        Parameters
+        ----------
+        detail : bool, optional
+            If True, also output feature and link details
+        """
+        for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
+            # Print track common info
+            class_name = track.__class__.__name__
+            print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
+            size, ratio, zorder = track.size, track.ratio, track.zorder
+            print(f"# Size={size}, Ratio={ratio}, Zorder={zorder}", end="")
+
+            # Print each track specific info
+            if isinstance(track, FeatureTrack):
+                print(f", FeatureNumber={len(track.features)}")
+                if detail:
+                    for feature in track.features:
+                        print(feature)
+            elif isinstance(track, FeatureSubTrack):
+                print()
+            elif isinstance(track, LinkTrack):
+                print(f", LinkNumber={len(track.links)}")
+                if detail:
+                    for link in track.links:
+                        print(link)
+            elif isinstance(track, TickTrack):
+                print()
+
+    def set_colorbar(
+        self,
+        figure: Figure,
+        bar_colors: list[str] = ["grey", "red"],
+        alpha: float = 0.8,
+        vmin: float = 0,
+        vmax: float = 100,
+        bar_height: float = 0.2,
+        bar_width: float = 0.01,
+        bar_left: float = 1.02,
+        bar_bottom: float = 0,
+        bar_label: str = "",
+        bar_labelsize: float = 15,
+        tick_labelsize: float = 10,
+    ) -> None:
+        """Set colorbars to figure
+
+        Set colorbars for similarity links between genome tracks
+
+        Parameters
+        ----------
+        figure : Figure
+            Matplotlib figure
+        bar_colors : list[str], optional
+            Bar color list
+        alpha : float, optional
+            Color transparency
+        vmin : float, optional
+            Colorbar min value
+        vmax : float, optional
+            Colorbar max value
+        bar_height : float, optional
+            Colorbar height
+        bar_width : float, optional
+            Colorbar width
+        bar_left : float, optional
+            Colorbar left position
+        bar_bottom : float, optional
+            Colorbar bottom position
+        bar_label : str, optional
+            Colorbar label name
+        bar_labelsize : float, optional
+            Colorbar label size
+        tick_labelsize : float, optional
+            Colorbar tick label size
+        """
+        for cnt, color in enumerate(bar_colors):
+            left = bar_left + bar_width * cnt
+            cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
+
+            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
+                """Convert target color to nearly white"""
+                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                return colors.to_hex(cmap(nearly_value))
+
+            nearly_white = to_nearly_white(color)
+            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
+            norm = colors.Normalize(vmin=vmin, vmax=vmax)
+            cb_kws = {"orientation": "vertical", "ticks": []}
+            cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
+            if cnt == len(bar_colors) - 1:
+                ticks = [vmin, vmax]
+                labels = [f"{t}%" for t in ticks]
+                cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
+                x, y = 2.0, (vmin + vmax) / 2
+                text_kws = {"rotation": 90, "ha": "left", "va": "center"}
+                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)
+
+
+class GenomeViz(GenomeVizBase):
+    """GenomeViz Class"""
 
     def add_feature_track(
         self,
@@ -311,76 +525,6 @@ class GenomeViz:
             )
         )
 
-    def get_track(self, track_name: str) -> Track:
-        """Get track by name
-
-        Parameters
-        ----------
-        track_name : str
-            Target track name
-
-        Returns
-        -------
-        track : Track
-            Target track
-        """
-        name2track = {t.name: t for t in self.get_tracks()}
-        if track_name not in name2track.keys():
-            err_msg = f"track.name='{track_name}' is not found."
-            raise ValueError(err_msg)
-        return name2track[track_name]
-
-    def get_tracks(self, subtrack: bool = False) -> list[Track]:
-        """Get tracks
-
-        Parameters
-        ----------
-        subtrack : bool, optional
-            If True, include feature subtracks
-
-        Returns
-        -------
-        tracks : list[Track]
-            Track list
-        """
-        tracks = []
-        for track in self._tracks:
-            if isinstance(track, FeatureTrack):
-                if subtrack:
-                    tracks.extend([t for t in track.subtracks if t.position == "above"])
-                tracks.append(track)
-                if subtrack:
-                    tracks.extend([t for t in track.subtracks if t.position == "below"])
-            else:
-                tracks.append(track)
-        return tracks
-
-    @property
-    def top_track(self) -> FeatureTrack:
-        """Top feature track"""
-        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
-        if len(feature_tracks) == 0:
-            err_msg = "No track found. Can't access 'top_track' property."
-            raise ValueError(err_msg)
-        return feature_tracks[0]
-
-    @property
-    def bottom_track(self) -> FeatureTrack:
-        """Bottom feature track"""
-        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
-        if len(feature_tracks) == 0:
-            err_msg = "No track found. Can't access 'bottom_track' property."
-            raise ValueError(err_msg)
-        return feature_tracks[-1]
-
-    @property
-    def max_track_size(self) -> int:
-        """Max track size"""
-        if len(self.get_tracks()) == 0:
-            err_msg = "No track found. Can't access 'max_track_size' property."
-            raise ValueError(err_msg)
-        return max([track.size for track in self.get_tracks()])
-
     def plotfig(self, dpi: int = 100) -> Figure:
         """Plot figure
 
@@ -432,6 +576,8 @@ class GenomeViz:
             ax: Axes = figure.add_subplot(
                 gs[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
             )
+            if not isinstance(ax, Axes):
+                raise TypeError("Error: Not matplotlib Axes class instance.")
             track_offset = self._get_track_offset(track)
             track._ax, track._offset = ax, track_offset
             # Set 'spines' and 'ticks' visibility
@@ -493,127 +639,3 @@ class GenomeViz:
                 raise NotImplementedError()
 
         return figure
-
-    def savefig(
-        self,
-        savefile: str | Path,
-        dpi: int = 100,
-        pad_inches: float = 0.5,
-    ) -> None:
-        """Save figure to file
-
-        Parameters
-        ----------
-        savefile : str | Path
-            Save file
-        dpi : int, optional
-            DPI
-        pad_inches : float, optional
-            Padding inches
-        """
-        figure = self.plotfig(dpi=dpi)
-        figure.savefig(
-            fname=savefile,
-            dpi=dpi,
-            pad_inches=pad_inches,
-            bbox_inches="tight",
-        )
-
-    def print_tracks_info(self, detail=False) -> None:
-        """Print tracks info (Mainly for debugging work)
-
-        Parameters
-        ----------
-        detail : bool, optional
-            If True, also output feature and link details
-        """
-        for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
-            # Print track common info
-            class_name = track.__class__.__name__
-            print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
-            size, ratio, zorder = track.size, track.ratio, track.zorder
-            print(f"# Size={size}, Ratio={ratio}, Zorder={zorder}", end="")
-
-            # Print each track specific info
-            if isinstance(track, FeatureTrack):
-                print(f", FeatureNumber={len(track.features)}")
-                if detail:
-                    for feature in track.features:
-                        print(feature)
-            elif isinstance(track, FeatureSubTrack):
-                print()
-            elif isinstance(track, LinkTrack):
-                print(f", LinkNumber={len(track.links)}")
-                if detail:
-                    for link in track.links:
-                        print(link)
-            elif isinstance(track, TickTrack):
-                print()
-
-    def set_colorbar(
-        self,
-        figure: Figure,
-        bar_colors: list[str] = ["grey", "red"],
-        alpha: float = 0.8,
-        vmin: float = 0,
-        vmax: float = 100,
-        bar_height: float = 0.2,
-        bar_width: float = 0.01,
-        bar_left: float = 1.02,
-        bar_bottom: float = 0,
-        bar_label: str = "",
-        bar_labelsize: float = 15,
-        tick_labelsize: float = 10,
-    ) -> None:
-        """Set colorbars to figure
-
-        Set colorbars for similarity links between genome tracks
-
-        Parameters
-        ----------
-        figure : Figure
-            Matplotlib figure
-        bar_colors : list[str], optional
-            Bar color list
-        alpha : float, optional
-            Color transparency
-        vmin : float, optional
-            Colorbar min value
-        vmax : float, optional
-            Colorbar max value
-        bar_height : float, optional
-            Colorbar height
-        bar_width : float, optional
-            Colorbar width
-        bar_left : float, optional
-            Colorbar left position
-        bar_bottom : float, optional
-            Colorbar bottom position
-        bar_label : str, optional
-            Colorbar label name
-        bar_labelsize : float, optional
-            Colorbar label size
-        tick_labelsize : float, optional
-            Colorbar tick label size
-        """
-        for cnt, color in enumerate(bar_colors):
-            left = bar_left + bar_width * cnt
-            cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
-
-            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
-                """Convert target color to nearly white"""
-                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
-                return colors.to_hex(cmap(nearly_value))
-
-            nearly_white = to_nearly_white(color)
-            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
-            norm = colors.Normalize(vmin=vmin, vmax=vmax)
-            cb_kws = {"orientation": "vertical", "ticks": []}
-            cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
-            if cnt == len(bar_colors) - 1:
-                ticks = [vmin, vmax]
-                labels = [f"{t}%" for t in ticks]
-                cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
-                x, y = 2.0, (vmin + vmax) / 2
-                text_kws = {"rotation": 90, "ha": "left", "va": "center"}
-                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)

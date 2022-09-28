@@ -8,7 +8,11 @@ function convertFeatureIdToLabel(featureId) {
   let [start, end, strand, type, gene, protein_id, product] = match_result.slice(1, 8)
   strand = strand === "-1" ? "-" : "+"
   product = product.replaceAll("_", " ")
-  return `location: ${start} - ${end} (${strand})\ntype: ${type}\ngene: ${gene}\nprotein_id: ${protein_id}\nproduct: ${product}`
+  let label = `location: ${start} - ${end} (${strand})`
+  if (type !== "na") {
+    label += `\ntype: ${type}\ngene: ${gene}\nprotein_id: ${protein_id}\nproduct: ${product}`
+  }
+  return label
 }
 /**
  * Convert link ID to proper label for tooltip display
@@ -18,7 +22,11 @@ function convertFeatureIdToLabel(featureId) {
 function convertLinkIdToLabel(linkId) {
   const match_result = linkId.match(/Link_(.+)_(\d+)_(\d+)_(.+)_(\d+)_(\d+)_(.+)$/)
   const [n1, s1, e1, n2, s2, e2, ident] = match_result.slice(1, 8)
-  return `1. ${n1} (${s1} - ${e1} bp)\n2. ${n2} (${s2} - ${e2} bp)\nIdentity: ${ident}%`
+  let label = `1. ${n1} (${s1} - ${e1} bp)\n2. ${n2} (${s2} - ${e2} bp)`
+  if (ident !== "na") {
+    label += `\nIdentity: ${ident}%`
+  }
+  return label
 }
 /**
  * Save as PNG image

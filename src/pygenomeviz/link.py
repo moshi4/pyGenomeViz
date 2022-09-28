@@ -29,6 +29,8 @@ class Link:
     curve: bool = False
     size_ratio: float = 1.0
     patch_kws: dict[str, Any] | None = None
+    track_offset1: int = 0
+    track_offset2: int = 0
 
     def __post_init__(self):
         # Check color string
@@ -60,6 +62,18 @@ class Link:
     def track_length2(self) -> int:
         """Track length2"""
         return abs(self.track_end2 - self.track_start2)
+
+    @property
+    def gid(self) -> str:
+        """Group ID"""
+        start1 = self.track_start1 - self.track_offset1
+        end1 = self.track_end1 - self.track_offset1
+        start2 = self.track_start2 - self.track_offset2
+        end2 = self.track_end2 - self.track_offset2
+        track1_info = f"{self.track_name1}_{start1}_{end1}"
+        track2_info = f"{self.track_name2}_{start2}_{end2}"
+        identity = "na" if self.v is None else int(self.v)
+        return f"Link_{track1_info}_{track2_info}_{identity}"
 
     def plot_link(self, ax: Axes, ylim: tuple[float, float] = (-1.0, 1.0)) -> None:
         """Plot link
@@ -112,6 +126,7 @@ class Link:
             "fc": self.color,
             "ec": "grey",
             "lw": lw,
+            "gid": self.gid,
             **patch_kws,
         }
 
@@ -162,8 +177,10 @@ class Link:
             Offset added Link object
         """
         link = deepcopy(self)
-        link.track_start1 += track_name2offset[self.track_name1]
-        link.track_end1 += track_name2offset[self.track_name1]
-        link.track_start2 += track_name2offset[self.track_name2]
-        link.track_end2 += track_name2offset[self.track_name2]
+        link.track_offset1 = track_name2offset[self.track_name1]
+        link.track_offset2 = track_name2offset[self.track_name2]
+        link.track_start1 += link.track_offset1
+        link.track_end1 += link.track_offset1
+        link.track_start2 += link.track_offset2
+        link.track_end2 += link.track_offset2
         return link

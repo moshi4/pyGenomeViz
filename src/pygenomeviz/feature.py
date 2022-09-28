@@ -4,6 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
 
+from Bio.SeqFeature import SeqFeature
 from matplotlib.axes import Axes
 from matplotlib.patches import FancyArrow, PathPatch, Rectangle
 from matplotlib.path import Path
@@ -33,6 +34,8 @@ class Feature:
     arrow_shaft_ratio: float = 0.5
     size_ratio: float = 0.9
     patch_kws: dict[str, Any] | None = None
+    seq_feature: SeqFeature | None = None
+    offset: float = 0
 
     def __post_init__(self):
         # Change unknown strand value to 1
@@ -119,6 +122,28 @@ class Feature:
     def is_bigstyle(self) -> bool:
         """Check plotstyle is 'big~~~' or not"""
         return self.plotstyle.startswith("big")
+
+    @property
+    def gid(self) -> str:
+        """Group ID"""
+        start, end = self.start - self.offset, self.end - self.offset
+        type, gene, protein_id, product = "na", "na", "na", "na"
+        if self.seq_feature is not None:
+            type = self.seq_feature.type
+            qualifiers = self.seq_feature.qualifiers
+            gene = qualifiers.get("gene", ["na"])[0]
+            protein_id = qualifiers.get("protein_id", ["na"])[0].split(".")[0]
+            product = qualifiers.get("product", ["na"])[0]
+            # Replace special characters to underscore (For html ID tag selection)
+            trans_dict = {e: "_" for e in list(" /:()+.,'`\"\\!|^~[]{}<>#$&")}
+            trans_table = str.maketrans(trans_dict)
+            gene = gene.translate(trans_table)
+            product = product.translate(trans_table)
+
+        return (
+            f"Feature_{start}_{end}_{self.strand}_"
+            + f"type_{type}_gene_{gene}_protein_id_{protein_id}_product_{product}"
+        )
 
     def _box_patch(self, start: int, end: int, ylim: tuple[float, float]) -> Rectangle:
         """Box patch
@@ -284,6 +309,7 @@ class Feature:
             "lw": self.linewidth,
             "clip_on": False,
             "zorder": 5 if self.is_bigstyle else -5,
+            "gid": self.gid,
             **patch_kws,
         }
 
@@ -362,6 +388,7 @@ class Feature:
         feature = deepcopy(self)
         feature.start += offset
         feature.end += offset
+        feature.offset = offset
         return feature
 
 
@@ -555,6 +582,7 @@ class ExonFeature(Feature):
         # Add offset to start & end
         feature.start += offset
         feature.end += offset
+        feature.offset = offset
         # Add offset to exon regions
         exon_regions = []
         for (exon_start, exon_end) in feature.exon_regions:

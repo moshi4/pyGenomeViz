@@ -185,6 +185,7 @@ class FeatureTrack(Track):
             "color": self.labelcolor,
             "ha": "right",
             "va": "center",
+            "gid": f"TrackLabel_{self.name}",
         }
 
     @property
@@ -603,8 +604,12 @@ class FeatureTrack(Track):
                     arrow_shaft_ratio,
                     size_ratio,
                     patch_kws,
+                    feature,
                 )
             )
+
+    def __str__(self):
+        return f"{self.name}:{self.start}-{self.end}"
 
 
 class FeatureSubTrack(Track):

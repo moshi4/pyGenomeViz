@@ -578,6 +578,7 @@ class GenomeViz(GenomeVizBase):
             )
             if not isinstance(ax, Axes):
                 raise TypeError("Error: Not matplotlib Axes class instance.")
+            ax.set_gid(f"{track.__class__.__name__}{idx:02d}")
             track_offset = self._get_track_offset(track)
             track._ax, track._offset = ax, track_offset
             # Set 'spines' and 'ticks' visibility
@@ -586,6 +587,7 @@ class GenomeViz(GenomeVizBase):
             ax.tick_params(**track.tick_params)
 
             if isinstance(track, FeatureTrack):
+                ax.set_gid(str(ax.get_gid()) + f" {track})")
                 # Plot track scale line
                 xmin, xmax = track_offset, track.size + track_offset
                 ax.hlines(0, xmin, xmax, track.linecolor, linewidth=track.linewidth)

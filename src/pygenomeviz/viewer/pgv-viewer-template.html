@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- jQuery v3.6.1 -->
+    <script src="assets/lib/jquery-3.6.1.min.js"></script>
+    <!-- Spectrum.js v1.8.1 (For Colorpicker) -->
+    <script src="assets/lib/spectrum.js"></script>
+    <link rel="stylesheet" href="assets/lib/spectrum.css" />
+    <!-- jQuery UI v1.13.2 (For Tooltips) -->
+    <script src="assets/lib/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="assets/lib/jquery-ui.min.css" />
+    <!-- panzoom v9.4.0 (For SVG pan & zoom) -->
+    <script src="assets/lib/panzoom.min.js"></script>
+    <style>
+      body {
+        text-align: center;
+        margin-left: 50px;
+        margin-right: 50px;
+      }
+
+      text:hover {
+        cursor: pointer;
+        opacity: 0.6;
+      }
+
+      path:hover {
+        cursor: pointer;
+        opacity: 1;
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+        max-width: 80vw;
+        min-height: 50vh;
+        max-height: 80vh;
+      }
+
+      .ui-tooltip {
+        text-align: left;
+        white-space: pre-line;
+      }
+
+      .color-picker {
+        height: 25px;
+      }
+
+      .save-btn {
+        height: 35px;
+      }
+
+      .zoom-btn {
+        height: 35px;
+      }
+
+      .svg-canvas {
+        border-width: 3px;
+        border-style: solid;
+        border-color: grey;
+      }
+
+      .btn-container {
+        margin: 0 auto;
+      }
+    </style>
+    <title>pyGenomeViz Viewer</title>
+  </head>
+
+  <body>
+    <div>
+      <h1>pyGenomeViz Viewer</h1>
+    </div>
+
+    <div class="btn-container">
+      <button id="zoom_in" class="zoom-btn">Zoom In (+)</button>
+      <button id="zoom_out" class="zoom-btn">Zoom Out (-)</button>
+      <button id="zoom_reset" class="zoom-btn">Zoom Reset</button>
+    </div>
+
+    <div id="svg_canvas" class="svg-canvas">PGV_SVG_FIG</div>
+
+    <div class="btn-container">
+      <input type="text" id="colorpicker" />
+      <button id="png_save" class="save-btn">Save as PNG</button>
+      <button id="svg_save" class="save-btn">Save as SVG</button>
+    </div>
+    <div id="dialog" style="display: none">
+      <p>
+        <label>Label Text: <input type="text" id="text_label" name="text label" /></label>
+      </p>
+      <p>
+        <label>Label Size: <input type="number" id="text_size" name="text size" step="1" /></label>
+      </p>
+    </div>
+
+    <script src="assets/pgv-viewer.js"></script>
+  </body>
+</html>

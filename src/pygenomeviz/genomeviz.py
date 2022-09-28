@@ -641,3 +641,37 @@ class GenomeViz(GenomeVizBase):
                 raise NotImplementedError()
 
         return figure
+
+    def plot_html(self, outdir: str | Path, fig: Figure | None = None):
+        """Plot html viewer file
+
+        Parameters
+        ----------
+        outdir : str | Path
+            Output directory
+        fig : Figure | None, optional
+            If Figure set, plot html viewer using user customized fig
+        """
+        # Load SVG content
+        if fig is None:
+            fig = self.plotfig()
+        svg_bytes = io.BytesIO()
+        fig.savefig(fname=svg_bytes, format="svg")
+        svg_bytes.seek(0)
+        svg_content = svg_bytes.read().decode("utf-8")
+
+        # Setup viewer html content
+        viewer_dir = Path(__file__).parent / "viewer"
+        assets_dir = viewer_dir / "assets"
+        template_html_file = viewer_dir / "pgv-viewer-template.html"
+        with open(template_html_file) as f:
+            template_html = f.read()
+        viewer_html = template_html.replace("PGV_SVG_FIG", svg_content)
+
+        # Write html & Copy assets
+        outdir = Path(outdir)
+        os.makedirs(outdir, exist_ok=True)
+        viewer_html_file = outdir / "pgv-viewer.html"
+        with open(viewer_html_file, "w") as f:
+            f.write(viewer_html)
+        shutil.copytree(assets_dir, outdir / assets_dir.name, dirs_exist_ok=True)

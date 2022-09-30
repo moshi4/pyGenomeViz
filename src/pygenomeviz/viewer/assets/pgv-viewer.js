@@ -139,7 +139,7 @@ $(document).ready(function () {
   for (let text of allTexts) {
     text.addEventListener("click", () => {
       const originalText = text.textContent
-      const originalFont = parseInt(text.style.font.replace("px", ""))
+      const originalFont = parseInt(text.style.font)
       $("#text_label").val(originalText)
       $("#text_size").val(originalFont)
       $("#label_edit_dialog").dialog({
@@ -154,7 +154,7 @@ $(document).ready(function () {
           },
           OK: function () {
             text.textContent = $("#text_label").val()
-            text.style.font = $("#text_size").val() + "px"
+            text.style.font = $("#text_size").val() + "px 'sans-serif'"
             $(this).dialog("close")
           },
         },

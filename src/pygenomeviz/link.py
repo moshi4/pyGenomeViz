@@ -66,14 +66,17 @@ class Link:
     @property
     def gid(self) -> str:
         """Group ID"""
+        trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
+        trans_table = str.maketrans(trans_dict)
+        name1 = self.track_name1.translate(trans_table)
         start1 = self.track_start1 - self.track_offset1
         end1 = self.track_end1 - self.track_offset1
+        name2 = self.track_name2.translate(trans_table)
         start2 = self.track_start2 - self.track_offset2
         end2 = self.track_end2 - self.track_offset2
-        track1_info = f"{self.track_name1}_{start1}_{end1}"
-        track2_info = f"{self.track_name2}_{start2}_{end2}"
+        track_info = f"{name1}_{start1}_{end1}_{name2}_{start2}_{end2}"
         identity = "na" if self.v is None else int(self.v)
-        return f"Link_{track1_info}_{track2_info}_{identity}"
+        return f"Link_{track_info}_{identity}"
 
     def plot_link(self, ax: Axes, ylim: tuple[float, float] = (-1.0, 1.0)) -> None:
         """Plot link

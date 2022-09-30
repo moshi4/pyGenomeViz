@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+import datetime
 import io
-import os
-import shutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import Any
@@ -15,7 +14,8 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 from typing_extensions import get_args
 
-from pygenomeviz.config import LiteralTypes
+import pygenomeviz
+from pygenomeviz.config import ASSETS_FILES, TEMPLATE_HTML_FILE, LiteralTypes
 from pygenomeviz.link import Link
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
 
@@ -645,36 +645,48 @@ class GenomeViz(GenomeVizBase):
 
         return figure
 
-    def plot_html(self, outdir: str | Path, fig: Figure | None = None):
-        """Plot html viewer file
+    def savefig_html(self, html_outfile: str | Path, fig: Figure | None = None):
+        """Save figure in html format
 
         Parameters
         ----------
-        outdir : str | Path
-            Output directory
+        html_outfile : str | Path
+            Output HTML file (*.html)
         fig : Figure | None, optional
             If Figure set, plot html viewer using user customized fig
         """
-        # Load SVG content
+        # Load SVG contents
         if fig is None:
             fig = self.plotfig()
         svg_bytes = io.BytesIO()
         fig.savefig(fname=svg_bytes, format="svg")
         svg_bytes.seek(0)
-        svg_content = svg_bytes.read().decode("utf-8")
+        svg_contents = svg_bytes.read().decode("utf-8")
 
-        # Setup viewer html content
-        viewer_dir = Path(__file__).parent / "viewer"
-        assets_dir = viewer_dir / "assets"
-        template_html_file = viewer_dir / "pgv-viewer-template.html"
-        with open(template_html_file) as f:
-            template_html = f.read()
-        viewer_html = template_html.replace("PGV_SVG_FIG", svg_content)
+        # Setup viewer html SVG contents
+        with open(TEMPLATE_HTML_FILE) as f:
+            viewer_html = f.read()
+        viewer_html = viewer_html.replace("$PGV_SVG_FIG", f"\n{svg_contents}")
+        viewer_html = viewer_html.replace("$VERSION", pygenomeviz.__version__)
+        datetime_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        viewer_html = viewer_html.replace("$DATETIME_NOW", datetime_now)
 
-        # Write html & Copy assets
-        outdir = Path(outdir)
-        os.makedirs(outdir, exist_ok=True)
-        viewer_html_file = outdir / "pgv-viewer.html"
-        with open(viewer_html_file, "w") as f:
+        # Setup viewer html assets contents
+        style_contents, script_contents = "\n", "\n"
+        for file in ASSETS_FILES:
+            with open(file) as f:
+                contents = f.read()
+            if file.suffix == ".css":
+                style_contents += contents + "\n"
+            elif file.suffix == ".js":
+                script_contents += contents + "\n"
+        viewer_html = viewer_html.replace(
+            "<style></style>", f"<style>{style_contents}</style>"
+        )
+        viewer_html = viewer_html.replace(
+            "<script></script>", f"<script>{script_contents}</script>"
+        )
+
+        # Write viewer html contents
+        with open(html_outfile, "w") as f:
             f.write(viewer_html)
-        shutil.copytree(assets_dir, outdir / assets_dir.name, dirs_exist_ok=True)

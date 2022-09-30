@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 from typing_extensions import Literal
 
@@ -54,3 +55,18 @@ class LiteralTypes:
     LABELHA = Literal["left", "center", "right"]
     ALIGN_TYPE = Literal["left", "center", "right"]
     TICK_STYLE = Literal["axis", "bar", None]
+
+
+_viewer_dir = Path(__file__).parent / "viewer"
+_assets_dir = _viewer_dir / "assets"
+_assets_files = [
+    "lib/spectrum.min.css",
+    "lib/jquery-ui.min.css",
+    "lib/jquery.min.js",
+    "lib/spectrum.min.js",
+    "lib/jquery-ui.min.js",
+    "lib/panzoom.min.js",
+    "pgv-viewer.js",
+]
+ASSETS_FILES = [_assets_dir / f for f in _assets_files]
+TEMPLATE_HTML_FILE = _viewer_dir / "pgv-viewer-template.html"

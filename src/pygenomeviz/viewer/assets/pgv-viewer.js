@@ -1,27 +1,27 @@
 /**
  * Convert feature ID to proper label for tooltip display
  * @param {string} featureId
- * @returns {string} - Feature info for tooltip display
+ * @returns {string} Feature info for tooltip display
  */
 function convertFeatureIdToLabel(featureId) {
-  const match_result = featureId.match(/Feature_(\d+)_(\d+)_(-*\d+)_type_(.+)_gene_(.+)_protein_id_(.+)_product_(.+)/)
-  let [start, end, strand, type, gene, protein_id, product] = match_result.slice(1, 8)
+  const matchResult = featureId.match(/Feature_(\d+)_(\d+)_(-*\d+)_type_(.+)_gene_(.+)_protein_id_(.+)_product_(.+)/)
+  let [start, end, strand, type, gene, proteinId, product] = matchResult.slice(1, 8)
   strand = strand === "-1" ? "-" : "+"
   product = product.replaceAll("_", " ")
-  let label = `location: ${start} - ${end} (${strand})`
+  let label = `location: ${start} - ${end} (${strand})\nlength: ${end - start} bp`
   if (type !== "na") {
-    label += `\ntype: ${type}\ngene: ${gene}\nprotein_id: ${protein_id}\nproduct: ${product}`
+    label += `\ntype: ${type}\ngene: ${gene}\nprotein_id: ${proteinId}\nproduct: ${product}`
   }
   return label
 }
 /**
  * Convert link ID to proper label for tooltip display
  * @param {string} linkId
- * @returns {string} - Link info for tooltip display
+ * @returns {string} Link info for tooltip display
  */
 function convertLinkIdToLabel(linkId) {
-  const match_result = linkId.match(/Link_(.+)_(\d+)_(\d+)_(.+)_(\d+)_(\d+)_(.+)$/)
-  const [n1, s1, e1, n2, s2, e2, ident] = match_result.slice(1, 8)
+  const matchResult = linkId.match(/Link_(.+)_(\d+)_(\d+)_(.+)_(\d+)_(\d+)_(.+)$/)
+  const [n1, s1, e1, n2, s2, e2, ident] = matchResult.slice(1, 8)
   let label = `1. ${n1} (${s1} - ${e1} bp)\n2. ${n2} (${s2} - ${e2} bp)`
   if (ident !== "na") {
     label += `\nIdentity: ${ident}%`
@@ -66,18 +66,19 @@ function saveAsSvg(svgNode, fileName = "image.svg") {
 }
 
 $(document).ready(function () {
-  const svg = document.getElementsByTagName("svg")[0]
+  const svg = document.querySelector("#svg_canvas>svg")
 
   // Set colorpicker
+  const initColor = "red"
+  document.getElementById("colorpicker").style.color = initColor
   $("#colorpicker").spectrum({
-    color: "red",
+    color: initColor,
     showInput: true,
     showPalette: true,
     showAlpha: true,
-    showButtons: false,
+    showButtons: true,
     preferredFormat: "hex",
     hideAfterPaletteSelect: true,
-    replacerClassName: "color-picker",
     palette: [
       ["#f00", "#f90", "#ff0", "#0f0", "#0ff", "#00f", "#90f", "#f0f"],
       ["#f4cccc", "#fce5cd", "#fff2cc", "#d9ead3", "#d0e0e3", "#cfe2f3", "#d9d2e9", "#ead1dc"],
@@ -88,6 +89,13 @@ $(document).ready(function () {
       ["#600", "#783f04", "#7f6000", "#274e13", "#0c343d", "#073763", "#20124d", "#4c1130"],
       ["#000", "#444", "#666", "#999", "#ccc", "#eee", "#f3f3f3", "#fff"],
     ],
+    change: () => {
+      let pickColor = $("#colorpicker").spectrum("get").toHexString()
+      if (pickColor === "#ffffff") {
+        pickColor = "transparent"
+      }
+      document.getElementById("colorpicker").style.color = pickColor
+    },
   })
 
   const allPaths = svg.getElementsByTagName("path")
@@ -97,6 +105,7 @@ $(document).ready(function () {
     if (!pathId.startsWith("Feature") && !pathId.startsWith("Link")) {
       continue
     }
+
     let $pathObj = $("#" + pathId + ">path")
     $pathObj.attr("title", "")
     let tooltipLabel = ""
@@ -109,16 +118,15 @@ $(document).ready(function () {
 
     // Set picked color as facecolor
     path.addEventListener("dblclick", () => {
-      const pickcolor = $("#colorpicker").spectrum("get")
-      path.style.fill = pickcolor
+      path.style.fill = document.getElementById("colorpicker").style.color
     })
 
-    // Highlight selected path objectS
+    // Highlight selected path objects
     const originalStroke = path.style.stroke
     const originalStrokeWidth = path.style["stroke-width"]
     path.addEventListener("mouseover", () => {
       path.style.stroke = "black"
-      path.style["stroke-width"] = "2.0"
+      path.style["stroke-width"] = "1.0"
     })
     path.addEventListener("mouseout", () => {
       path.style.stroke = originalStroke
@@ -126,7 +134,7 @@ $(document).ready(function () {
     })
   }
 
-  // Edit Track Name
+  // Edit Label Text Dialog
   const allTexts = svg.getElementsByTagName("text")
   for (let text of allTexts) {
     text.addEventListener("click", () => {
@@ -134,24 +142,42 @@ $(document).ready(function () {
       const originalFont = parseInt(text.style.font.replace("px", ""))
       $("#text_label").val(originalText)
       $("#text_size").val(originalFont)
-      $("#dialog").dialog({
+      $("#label_edit_dialog").dialog({
         modal: true,
         height: 250,
         width: 400,
         title: "Edit Label Text",
+        dialogClass: "no-close",
         buttons: {
           Cancel: function () {
             $(this).dialog("close")
           },
           OK: function () {
             text.textContent = $("#text_label").val()
-            text.style.font = $("#text_size").val() + "px 'san-serif'"
+            text.style.font = $("#text_size").val() + "px"
             $(this).dialog("close")
           },
         },
       })
     })
   }
+
+  // Help Manual Dialog
+  const helpIcon = document.getElementById("help_icon")
+  helpIcon.addEventListener("click", () => {
+    $("#help_dialog").dialog({
+      modal: false,
+      height: 550,
+      width: 700,
+      title: "Help Manual",
+      dialogClass: "no-close",
+      buttons: {
+        Close: function () {
+          $(this).dialog("close")
+        },
+      },
+    })
+  })
 
   // SVG Pan & Zoom setting
   const panzoom = Panzoom(svg, {

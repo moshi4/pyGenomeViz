@@ -135,9 +135,10 @@ class Feature:
             protein_id = qualifiers.get("protein_id", ["na"])[0].split(".")[0]
             product = qualifiers.get("product", ["na"])[0]
             # Replace special characters to underscore (For html ID tag selection)
-            trans_dict = {e: "_" for e in list(" /:()+.,'`\"\\!|^~[]{}<>#$&")}
+            trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
             trans_table = str.maketrans(trans_dict)
             gene = gene.translate(trans_table)
+            protein_id = protein_id.translate(trans_table)
             product = product.translate(trans_table)
 
         return (

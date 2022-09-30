@@ -45,7 +45,7 @@ def print_args(args: argparse.Namespace) -> None:
     header = "\n" + "*" * 20 + " Run Parameters " + "*" * 20
     print(header)
     for k, v in args.__dict__.items():
-        if type(v) == list:
+        if k != "format" and type(v) == list:
             print(f"{k}:")
             for i, f in enumerate(v, 1):
                 print(f"  {i:02d}. {f}")

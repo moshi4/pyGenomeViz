@@ -5,12 +5,12 @@ import argparse
 from pygenomeviz.genbank import Genbank
 
 
-def get_argparser(prog_name: str) -> argparse.ArgumentParser:
+def get_argparser(prog_name: str | None = None) -> argparse.ArgumentParser:
     """Get argument parser
 
     Parameters
     ----------
-    prog_name : str
+    prog_name : str | None
         Program name to be used
 
     Returns
@@ -23,7 +23,9 @@ def get_argparser(prog_name: str) -> argparse.ArgumentParser:
         def __init__(self, prog, indent_increment=2, max_help_position=40, width=None):
             super().__init__(prog, indent_increment, max_help_position, width)
 
-    desc = f"pyGenomeViz CLI utility for visualization workflow using {prog_name}"
+    desc = "pyGenomeViz CLI utility for visualization workflow"
+    if prog_name is not None:
+        desc += f" using {prog_name}"
     epilog = "[*] marker means the default value."
     parser = argparse.ArgumentParser(
         description=desc,

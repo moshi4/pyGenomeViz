@@ -141,7 +141,7 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
     args : argparse.Namespace
         Argument parameters
     """
-    parser = get_argparser(prog_name="MMseqs")
+    parser = get_argparser()
 
     #######################################################
     # General options

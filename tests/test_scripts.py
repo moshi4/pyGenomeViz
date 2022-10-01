@@ -18,6 +18,20 @@ def test_download_dataset_cli(tmp_path: Path):
     assert len(list(tmp_path.glob("*.gbk"))) == 4
 
 
+def test_simpleplot_cli(tmp_path: Path):
+    """Test simpleplot CLI (pgv-simpleplot)"""
+    gbk_files, _ = load_dataset("enterobacteria_phage")
+    gbk_files = [str(f) for f in gbk_files]
+
+    # Test PNG,HTML image output
+    for format in ("png", "html"):
+        outfile = tmp_path / f"test.{format}"
+        cmd = f"pgv-simpleplot --gbk_resources {' '.join((gbk_files))} -o {outfile}"
+        result = sp.run(cmd, shell=True)
+        assert result.returncode == 0
+        assert outfile.exists()
+
+
 @pytest.mark.skipif(
     condition=not MUMmer.check_installation(exit_on_false=False),
     reason="MUMmer is not installed in this environment.",

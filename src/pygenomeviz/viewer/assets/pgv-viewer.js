@@ -134,10 +134,12 @@ $(document).ready(function () {
     })
   }
 
-  // Edit Label Text Dialog
+  // Edit Label Text
   const allTexts = svg.getElementsByTagName("text")
   for (let text of allTexts) {
-    text.addEventListener("click", () => {
+    // Show edit label text & size dialog
+    text.addEventListener("contextmenu", (e) => {
+      e.preventDefault()
       const originalText = text.textContent
       const originalFont = parseInt(text.style.font)
       $("#text_label").val(originalText)
@@ -160,6 +162,10 @@ $(document).ready(function () {
         },
       })
     })
+    // Set picker color as label color
+    text.addEventListener("dblclick", () => {
+      text.style.fill = document.getElementById("colorpicker").style.color
+    })
   }
 
   // Help Manual Dialog
@@ -167,7 +173,7 @@ $(document).ready(function () {
   helpIcon.addEventListener("click", () => {
     $("#help_dialog").dialog({
       modal: false,
-      height: 550,
+      height: 600,
       width: 700,
       title: "Help Manual",
       dialogClass: "no-close",

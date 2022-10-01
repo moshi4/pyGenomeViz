@@ -25,7 +25,7 @@ def run(
     # General options
     gbk_resources: list[str | Path] | list[Genbank],
     outdir: str | Path,
-    format: str = "png",
+    format: list[str] = ["png", "html"],
     reuse: bool = False,
     # MUMmer alignment options
     seqtype: Literal["protein", "nucleotide"] = "protein",
@@ -58,8 +58,8 @@ def run(
         Input genome genbank files or Genbank objects
     outdir : [str | Path
         Output directory
-    format : str, optional
-        Output image format (`png`|`jpg`|`svg`|`pdf`)
+    format : list[str], optional
+        Output image format (`png`|`jpg`|`svg`|`pdf`|`html`)
     reuse : bool, optional
         If True, reuse previous result if available
     seqtype : str, optional
@@ -114,7 +114,6 @@ def run(
     # Setup output contents
     outdir = Path(outdir)
     os.makedirs(outdir, exist_ok=True)
-    result_fig_file = outdir / f"result.{format}"
     align_coords_file = outdir / "align_coords.tsv"
 
     # Setup Genbank objects
@@ -188,8 +187,13 @@ def run(
     gv.set_colorbar(fig, bar_colors, vmin=min_identity)
 
     # Save figure
-    fig.savefig(result_fig_file)
-    print(f"Save result figure ({result_fig_file}).")
+    for fmt in format:
+        output_file = outdir / f"result.{fmt}"
+        if fmt == "html":
+            gv.savefig_html(output_file, fig)
+        else:
+            fig.savefig(output_file)
+        print(f"Save {fmt} format result figure ({output_file}).")
 
     return gv
 
@@ -230,12 +234,13 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         required=True,
         metavar="OUT",
     )
-    default_format = "png"
-    format_list = ["png", "jpg", "svg", "pdf"]
+    default_format = ["png", "html"]
+    format_list = ["png", "jpg", "svg", "pdf", "html"]
     general_opts.add_argument(
         "--format",
         type=str,
-        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf')",
+        nargs="+",
+        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf'|`html`[*])",
         default=default_format,
         choices=format_list,
         metavar="",

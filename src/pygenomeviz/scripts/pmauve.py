@@ -27,7 +27,7 @@ def run(
     seq_files: list[str | Path],
     outdir: str | Path,
     refid: int = 0,
-    format: str = "png",
+    format: list[str] = ["png", "html"],
     reuse: bool = False,
     # Figure appearence options
     fig_width: float = 15,
@@ -54,8 +54,8 @@ def run(
         Input genome sequence files (Genbank or Fasta format)
     outdir : str | Path
         Output directory
-    format : str, optional
-        Output image format (`png`|`jpg`|`svg`|`pdf`)
+    format : list[str], optional
+        Output image format (`png`|`jpg`|`svg`|`pdf`|`html`)
     reuse : bool, optional
         If True, reuse previous result if available
     fig_width : float, optional
@@ -102,7 +102,6 @@ def run(
     pmauve_dir = outdir / "pmauve_result"
     os.makedirs(pmauve_dir, exist_ok=True)
     align_coords_file = outdir / "align_coords.tsv"
-    result_fig_file = outdir / f"result.{format}"
     ColorCycler.set_cmap(cmap)
 
     # progressiveMauve alignment
@@ -152,8 +151,13 @@ def run(
         )
 
     # Save figure
-    gv.savefig(result_fig_file, dpi=dpi)
-    print(f"Save result figure ({result_fig_file}).")
+    for fmt in format:
+        output_file = outdir / f"result.{fmt}"
+        if fmt == "html":
+            gv.savefig_html(output_file)
+        else:
+            gv.savefig(output_file)
+        print(f"Save {fmt} format result figure ({output_file}).")
 
     return gv
 
@@ -254,12 +258,13 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         default=default_refid,
         metavar="",
     )
-    default_format = "png"
-    format_list = ["png", "jpg", "svg", "pdf"]
+    default_format = ["png", "html"]
+    format_list = ["png", "jpg", "svg", "pdf", "html"]
     general_opts.add_argument(
         "--format",
         type=str,
-        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf')",
+        nargs="+",
+        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf'|`html`[*])",
         default=default_format,
         choices=format_list,
         metavar="",

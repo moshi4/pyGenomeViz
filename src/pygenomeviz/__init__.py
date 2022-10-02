@@ -8,7 +8,7 @@ from pygenomeviz.utils import load_dataset
 
 warnings.filterwarnings("ignore")
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 __all__ = [
     "GenomeViz",

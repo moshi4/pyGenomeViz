@@ -34,7 +34,7 @@ In Ubuntu, progressiveMauve can be installed with apt command below.
       --seq_files IN [IN ...]  Input genome sequence files (Genbank or Fasta format)
       -o OUT, --outdir OUT     Output directory
       --refid                  Reference genome index (Default: 0)
-      --format                 Output image format ('png'[*]|'jpg'|'svg'|'pdf')
+      --format  [ ...]         Output image format ('png'[*]|'jpg'|'svg'|'pdf'|`html`[*])
       --reuse                  Reuse previous result if available
       -v, --version            Print version information
       -h, --help               Show this help message and exit

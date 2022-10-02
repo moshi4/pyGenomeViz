@@ -19,6 +19,7 @@ nav:
       - FeatureTrack: api-docs/track.md
       - Genbank: api-docs/genbank.md
   - CLI Docs:
+      - pgv-simpleplot: cli-docs/pgv-simpleplot.md
       - pgv-mummer: cli-docs/pgv-mummer.md
       - pgv-mmseqs: cli-docs/pgv-mmseqs.md
       - pgv-pmauve: cli-docs/pgv-pmauve.md

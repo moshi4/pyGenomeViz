@@ -2,6 +2,7 @@ name: Publish to PyPI
 on:
   release:
     types: [released]
+  workflow_dispatch:
 
 jobs:
   publish_to_pypi:

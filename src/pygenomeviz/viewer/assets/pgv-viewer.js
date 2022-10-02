@@ -66,6 +66,11 @@ function saveAsSvg(svgNode, fileName = "image.svg") {
 }
 
 $(document).ready(function () {
+  // Remove unnecessary previous saved HTML elements
+  document.querySelectorAll(".ui-tooltip").forEach((e) => e.remove())
+  document.querySelectorAll(".sp-container").forEach((e) => e.remove())
+  document.querySelectorAll(".ui-helper-hidden-accessible").forEach((e) => e.remove())
+
   const svg = document.querySelector("#svg_canvas>svg")
 
   // Set colorpicker

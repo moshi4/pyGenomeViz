@@ -122,7 +122,7 @@ def run(
     if file_format == "html":
         gv.savefig_html(outfile)
     else:
-        gv.savefig(outfile, dpi=300)
+        gv.savefig(outfile, dpi=dpi)
     print(f"Save {file_format} format result figure ({outfile}).")
 
     return gv

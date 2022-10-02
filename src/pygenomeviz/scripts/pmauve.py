@@ -156,7 +156,7 @@ def run(
         if fmt == "html":
             gv.savefig_html(output_file)
         else:
-            gv.savefig(output_file)
+            gv.savefig(output_file, dpi=dpi)
         print(f"Save {fmt} format result figure ({output_file}).")
 
     return gv

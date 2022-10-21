@@ -338,6 +338,7 @@ class GenomeVizBase(metaclass=ABCMeta):
         tick_labelsize : float, optional
             Colorbar tick label size
         """
+        bar_colors = list(dict.fromkeys([colors.to_hex(c) for c in bar_colors]))
         for cnt, color in enumerate(bar_colors):
             left = bar_left + bar_width * cnt
             cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])

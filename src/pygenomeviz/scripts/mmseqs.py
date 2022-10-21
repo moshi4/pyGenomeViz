@@ -45,6 +45,8 @@ def run(
     arrow_shaft_ratio: float = 0.5,
     feature_color: str = "orange",
     feature_linewidth: float = 0,
+    colorbar_width: float = 0.01,
+    colorbar_height: float = 0.2,
     curve: bool = True,
     dpi: int = 300,
 ) -> GenomeViz:
@@ -65,7 +67,7 @@ def run(
     min_identity : float, optional
         Min-identity threshold to be plotted
     thread_num : int | None, optional
-        MMseqs thread number to be used
+        MMseqs thread number to be used. If None, MaxThread - 1.
     fig_width : float, optional
         Figure width
     fig_track_height : float, optional
@@ -96,6 +98,10 @@ def run(
         Feature color
     feature_linewidth : float, optional
         Feature edge line width
+    colorbar_width : float, optional
+        Colorbar width
+    colorbar_height : float, optional
+        Colorbar height
     curve : bool, optional
         If True, plot curved style link
     dpi : int, optional
@@ -157,7 +163,8 @@ def run(
         align_coords = AlignCoord.read(align_coords_file)
     else:
         print("Run MMseqs RBH search.\n")
-        align_coords = MMseqs(gbk_list, mmseqs_dir, 0, evalue, thread_num).run()
+        mmseqs = MMseqs(gbk_list, mmseqs_dir, 0, evalue, thread_num)
+        align_coords = mmseqs.run()
         AlignCoord.write(align_coords, align_coords_file)
     align_coords = AlignCoord.filter(align_coords, 0, min_identity)
 
@@ -182,7 +189,14 @@ def run(
     contain_inverted_align = any([ac.is_inverted for ac in align_coords])
     if contain_inverted_align:
         bar_colors.append(inverted_link_color)
-    gv.set_colorbar(fig, bar_colors, vmin=min_identity)
+    if colorbar_height != 0 and colorbar_width != 0:
+        gv.set_colorbar(
+            fig,
+            bar_colors,
+            vmin=min_identity,
+            bar_height=colorbar_height,
+            bar_width=colorbar_width,
+        )
 
     # Save figure
     for fmt in format:
@@ -282,7 +296,8 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         default=default_min_identity,
         metavar="",
     )
-    default_thread_num = None
+    cpu_num = os.cpu_count()
+    default_thread_num = 1 if cpu_num is None or cpu_num == 1 else cpu_num - 1
     mmseqs_opts.add_argument(
         "-t",
         "--thread_num",
@@ -418,6 +433,22 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         type=float,
         help=f"Feature edge line width (Default: {default_feature_linewidth})",
         default=default_feature_linewidth,
+        metavar="",
+    )
+    default_colorbar_width = 0.01
+    fig_opts.add_argument(
+        "--colorbar_width",
+        type=float,
+        help=f"Colorbar width (Default: {default_colorbar_width})",
+        default=default_colorbar_width,
+        metavar="",
+    )
+    default_colorbar_height = 0.2
+    fig_opts.add_argument(
+        "--colorbar_height",
+        type=float,
+        help=f"Colorbar height (Default: {default_colorbar_height})",
+        default=default_colorbar_height,
         metavar="",
     )
     fig_opts.add_argument(

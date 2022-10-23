@@ -9,6 +9,7 @@ from typing_extensions import Literal
 from pygenomeviz.config import LiteralTypes
 from pygenomeviz.feature import ExonFeature, Feature
 from pygenomeviz.genbank import Genbank
+from pygenomeviz.gff import Gff
 from pygenomeviz.link import Link
 
 
@@ -607,6 +608,132 @@ class FeatureTrack(Track):
                     feature,
                 )
             )
+
+    def add_gff_features(
+        self,
+        gff: Gff,
+        feature_type: str = "CDS",
+        parse_exon_intron: bool = False,
+        label_type: str | None = None,
+        label_handle_func: Callable[[str], str] | None = None,
+        labelsize: int = 15,
+        labelcolor: str = "black",
+        plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
+        facecolor: str = "orange",
+        edgecolor: str = "black",
+        linewidth: float = 0,
+        labelrotation: int = 45,
+        labelvpos: LiteralTypes.LABELVPOS = "strand",
+        labelhpos: LiteralTypes.LABELHPOS = "center",
+        labelha: LiteralTypes.LABELHA = "left",
+        arrow_shaft_ratio: float = 0.5,
+        size_ratio: float = 1.0,
+        patch_kws: dict[str, Any] | None = None,
+        intron_patch_kws: dict[str, Any] | None = None,
+    ):
+        """Add features from GFF record
+
+        Parameters
+        ----------
+        gff : Gff
+            GFF object
+        feature_type : str, optional
+            Feature type (e.g. `CDS`,`gene`,`mRNA`,etc...)
+        exon_intron : bool, optional
+            If True, try to parse and add exon-intron structured feature
+            (Expected to be used when feature_type=`mRNA`|`ncRNA`)
+        label_type : str | None, optional
+            Label type in attributes column (e.g. `ID`,`Name`,`product`,etc...)
+        label_handle_func : Callable[[str], str] | None, optional
+            Labels are handled by user defined function.
+            Useful for filtering out unnecesary labels such as `hypothetical ~~~`,
+            omitting labels with long characters, etc.
+        labelsize : int, optional
+            Feature label size
+        labelcolor : str, optional
+            Feature label color
+        plotstyle : str, optional
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
+        facecolor : str, optional
+            Feature facecolor
+        edgecolor : str, optional
+            Feature edgecolor
+        linewidth : float, optional
+            Feature edge linewidth
+        labelrotation : int, optional
+            Feature label rotation
+        labelvpos : str, optional
+            Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+        labelhpos : str, optional
+            Feature label horizontal position (`left`|`center`|`right`)
+        labelha : str, optional
+            Feature label horizontal alignment (`left`|`center`|`right`)
+        arrow_shaft_ratio : float, optional
+            Feature arrow shaft ratio
+        size_ratio : float, optional
+            Feature size ratio to track
+        patch_kws : dict[str, Any] | None, optional
+            Optional keyword arguments to pass to feature Patch object.
+            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
+            for detailed parameters.
+        intron_patch_kws : dict[str, Any] | None, optional
+            Optional keyword arguments to pass to intron feature Patch object.
+        """
+        # Extract target features
+        if parse_exon_intron:
+            features = gff.extract_exon_features(feature_type)
+        else:
+            features = gff.extract_features(feature_type)
+
+        # Add features in track
+        for feature in features:
+            # Get label
+            label = feature.qualifiers.get(label_type, "")
+            if label_handle_func is not None:
+                label = label_handle_func(label)
+            # Make feature common property
+            feature_props = dict(
+                label=label,
+                labelsize=labelsize,
+                labelcolor=labelcolor,
+                plotstyle=plotstyle,
+                facecolor=feature.qualifiers.get("color", facecolor),
+                edgecolor=edgecolor,
+                linewidth=linewidth,
+                labelrotation=labelrotation,
+                labelvpos=labelvpos,
+                labelhpos=labelhpos,
+                labelha=labelha,
+                arrow_shaft_ratio=arrow_shaft_ratio,
+                size_ratio=size_ratio,
+                patch_kws=patch_kws,
+            )
+
+            if parse_exon_intron:
+                # Extract exon regions
+                exon_regions = []
+                for loc in feature.location.parts:
+                    exon_region = (int(str(loc.start)), int(str(loc.end)))
+                    exon_regions.append(exon_region)
+                # Add exon feature
+                feature_props["intron_patch_kws"] = intron_patch_kws
+                self.features.append(
+                    ExonFeature(
+                        exon_regions,
+                        feature.strand,
+                        **feature_props,
+                    ),
+                )
+            else:
+                # Add feature
+                self.features.append(
+                    Feature(
+                        int(str(feature.location.start)),
+                        int(str(feature.location.end)),
+                        feature.strand,
+                        **feature_props,
+                    ),
+                )
 
     def __str__(self):
         return f"{self.name}:{self.start}-{self.end}"

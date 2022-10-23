@@ -2,9 +2,8 @@ import warnings
 
 import matplotlib as mpl
 
-from pygenomeviz.genbank import Genbank
 from pygenomeviz.genomeviz import GenomeViz
-from pygenomeviz.gff import Gff
+from pygenomeviz.parser import Genbank, Gff
 from pygenomeviz.utils import load_dataset
 
 warnings.filterwarnings("ignore")

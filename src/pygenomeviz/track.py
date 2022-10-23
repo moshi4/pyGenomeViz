@@ -8,9 +8,8 @@ from typing_extensions import Literal
 
 from pygenomeviz.config import LiteralTypes
 from pygenomeviz.feature import ExonFeature, Feature
-from pygenomeviz.genbank import Genbank
-from pygenomeviz.gff import Gff
 from pygenomeviz.link import Link
+from pygenomeviz.parser import Genbank, Gff
 
 
 class Track:

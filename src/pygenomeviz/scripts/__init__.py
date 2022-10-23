@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from pygenomeviz.genbank import Genbank
+from pygenomeviz.parser import Genbank
 
 
 def get_argparser(prog_name: str | None = None) -> argparse.ArgumentParser:

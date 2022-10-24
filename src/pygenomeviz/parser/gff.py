@@ -198,7 +198,7 @@ class GffRecord:
     type: str
     start: int
     end: int
-    score: int | None
+    score: float | None
     strand: int
     frame: int | None
     attrs: dict[str, list[str]]
@@ -285,7 +285,7 @@ class GffRecord:
         # start, end
         gff_elms[3], gff_elms[4] = int(gff_elms[3]) - 1, int(gff_elms[4])
         # score
-        gff_elms[5] = None if gff_elms[5] == "." else int(gff_elms[5])
+        gff_elms[5] = None if gff_elms[5] == "." else float(gff_elms[5])
         # strand
         if gff_elms[6] == "+":
             gff_elms[6] = 1

@@ -276,6 +276,7 @@ class FeatureTrack(Track):
         size: int = 15,
         color: str = "black",
         position: str = "bottom-left",
+        ymargin: float = 0.2,
         sublabel_kws: dict[str, Any] = {},
     ) -> None:
         """Set sublabel to feature track
@@ -290,6 +291,8 @@ class FeatureTrack(Track):
             Sublabel color
         position : str, optional
             Sublabel position (`[top|bottom]-[left|center|right]`)
+        ymargin : float, optional
+            Sublabel y-margin
         sublabel_kws: dict[str, Any], optional
             Optional keyword arguments to pass to Axes.text method for sublabel.
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html
@@ -308,7 +311,8 @@ class FeatureTrack(Track):
             err_msg = f"position='{position}' is invalid pattern. "
             err_msg += "position must be '[top|bottom]-[left|center|right]'"
             raise ValueError(err_msg)
-        vpos2y, vpos2va = {"top": 1, "bottom": -1}, {"top": "bottom", "bottom": "top"}
+        vpos2y = {"top": 1 + ymargin, "bottom": -1 - ymargin}
+        vpos2va = {"top": "bottom", "bottom": "top"}
         self._sublabel_y = vpos2y[vpos]
         self._sublabel_va = vpos2va[vpos]
         self._sublabel_ha = hpos

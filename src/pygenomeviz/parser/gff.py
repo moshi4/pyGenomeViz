@@ -125,7 +125,7 @@ class Gff:
                 FeatureLocation(rec.start, rec.end, rec.strand),
                 type=rec.type,
                 strand=rec.strand,
-                id=rec.attrs.get("ID", ""),
+                id=rec.attrs.get("ID", [""])[0],
                 qualifiers=rec.attrs,
             )
             features.append(feature)
@@ -155,10 +155,10 @@ class Gff:
             if not rec.is_within_range(self.min_range, self.max_range):
                 continue
             if rec.type == feature_type:
-                parent_id = rec.attrs["ID"]
+                parent_id = rec.attrs["ID"][0]
                 parent_id2record[parent_id] = rec
             if rec.type == "exon":
-                if parent_id is not None and parent_id == rec.attrs["Parent"]:
+                if parent_id is not None and parent_id == rec.attrs["Parent"][0]:
                     parent_id2exons[parent_id].append(rec)
 
         # Set exon features
@@ -169,7 +169,7 @@ class Gff:
             feature_props = dict(
                 type=feature_type,
                 strand=parent_record.strand,
-                id=parent_record.attrs.get("ID", ""),
+                id=parent_record.attrs.get("ID", [""])[0],
                 qualifiers=parent_record.attrs,
             )
             if len(exons) == 1:
@@ -201,7 +201,7 @@ class GffRecord:
     score: int | None
     strand: int
     frame: int | None
-    attrs: dict[str, str]
+    attrs: dict[str, list[str]]
 
     def is_within_range(self, min_range: int, max_range: int) -> bool:
         """Check within target range or not
@@ -296,12 +296,12 @@ class GffRecord:
         # frame
         gff_elms[7] = None if gff_elms[7] == "." else int(gff_elms[7])
         # attrs
-        attr_dict = {}
+        attr_dict: dict[str, list[str]] = {}
         attrs = str(gff_elms[8]).split(";")
         for attr in attrs:
             if attr != "":
                 key, value = attr.split("=")
-                attr_dict[key] = value
+                attr_dict[key] = value.split(",")
         gff_elms[8] = attr_dict
 
         return GffRecord(*gff_elms)

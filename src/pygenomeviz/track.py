@@ -687,7 +687,7 @@ class FeatureTrack(Track):
         # Add features in track
         for feature in features:
             # Get label
-            label = feature.qualifiers.get(label_type, "")
+            label = feature.qualifiers.get(label_type, [""])[0]
             if label_handle_func is not None:
                 label = label_handle_func(label)
             # Make feature common property
@@ -696,7 +696,7 @@ class FeatureTrack(Track):
                 labelsize=labelsize,
                 labelcolor=labelcolor,
                 plotstyle=plotstyle,
-                facecolor=feature.qualifiers.get("color", facecolor),
+                facecolor=feature.qualifiers.get("color", [facecolor])[0],
                 edgecolor=edgecolor,
                 linewidth=linewidth,
                 labelrotation=labelrotation,

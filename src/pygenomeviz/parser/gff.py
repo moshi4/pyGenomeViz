@@ -27,7 +27,7 @@ class Gff:
         Parameters
         ----------
         gff_file : str | Path
-            GFF file (`.gz`, `.bz2`, `.zip` format file is automatically uncompressed)
+            GFF file (`.gz`, `.bz2`, `.zip` compressed file can be readable)
         name : str | None, optional
             name (If None, `file name` is set)
         target_seqid : str | None, optional
@@ -39,16 +39,21 @@ class Gff:
         """
         self._gff_file = Path(gff_file)
         self._name = name
-        self.target_seqid = target_seqid
-        self._records = self._parse_gff(gff_file, min_range, max_range)
+        self._target_seqid = target_seqid
+        self._records, start, end = self._parse_gff(gff_file, target_seqid)
+        self.min_range = start if min_range is None else min_range
+        self.max_range = end if max_range is None else max_range
+        if not 0 <= self.min_range <= self.max_range:
+            err_msg = "Range must be '0 <= min_range <= max_range' "
+            err_msg += f"(min_range={self.min_range}, max_range={self.max_range})"
+            raise ValueError(err_msg)
 
     def _parse_gff(
         self,
         gff_file: str | Path,
-        min_range: int | None,
-        max_range: int | None,
-    ) -> list[GffRecord]:
-        """Parse GFF
+        target_seqid: str | None,
+    ) -> tuple[list[GffRecord], int, int]:
+        """Parse GFF file
 
         Only parse target seqid record.
         If target_record is None, only parse first seqid record.
@@ -57,36 +62,76 @@ class Gff:
         ----------
         gff_file : str | Path
             GFF file
-        min_range : int | None
-            Min range
-        max_range : int | None
-            Max range
+        target_seqid : str | None
+            Target seqid to be extracted
 
         Returns
         -------
-        list[GffRecord]
-            GFF record list
+        tuple[list[GffRecord], int, int]
+            GFF record list, start, end
         """
         gff_file = Path(gff_file)
         if gff_file.suffix == ".gz":
             with gzip.open(gff_file, mode="rt") as f:
-                gff_records, start, end = GffRecord._parse(f, self.target_seqid)
+                gff_records, start, end = self._parse_gff_textio(f, target_seqid)
         elif gff_file.suffix == ".bz2":
             with bz2.open(gff_file, mode="rt") as f:
-                gff_records, start, end = GffRecord._parse(f, self.target_seqid)
+                gff_records, start, end = self._parse_gff_textio(f, target_seqid)
         elif gff_file.suffix == ".zip":
             with zipfile.ZipFile(gff_file) as zip:
                 with zip.open(zip.namelist()[0]) as f:
                     io = TextIOWrapper(f)
-                    gff_records, start, end = GffRecord._parse(io, self.target_seqid)
+                    gff_records, start, end = self._parse_gff_textio(io, target_seqid)
         else:
             with open(gff_file) as f:
-                gff_records, start, end = GffRecord._parse(f, self.target_seqid)
+                gff_records, start, end = self._parse_gff_textio(f, target_seqid)
 
-        self.min_range = start if min_range is None else min_range
-        self.max_range = end if max_range is None else max_range
+        return gff_records, start, end
 
-        return gff_records
+    def _parse_gff_textio(
+        self,
+        handle: TextIO,
+        target_seqid: str | None = None,
+    ) -> tuple[list[GffRecord], int, int]:
+        """Parse GFF file TextIO
+
+        Parameters
+        ----------
+        handle : TextIO
+            GFF TextIO handle
+        target_seqid : str | None, optional
+            GFF target seqid
+
+        Returns
+        -------
+        tuple[list[GffRecord], int, int]
+            GFF record list, start, end
+        """
+        gff_all_lines = handle.read().splitlines()
+        gff_record_lines = filter(GffRecord.is_gff_record_line, gff_all_lines)
+        gff_records = list(map(GffRecord.parse_line, gff_record_lines))
+        if len(gff_records) == 0:
+            err_msg = f"Failed to parse '{self._gff_file}' as GFF file "
+            raise ValueError(err_msg)
+
+        seqid_list = list(dict.fromkeys([rec.seqid for rec in gff_records]))
+        self._seqid_list = seqid_list
+        if target_seqid is None:
+            target_seqid = seqid_list[0]
+        if target_seqid not in seqid_list:
+            err_msg = f"Not found target_seqid='{target_seqid}' in '{self._gff_file}'"
+            raise ValueError(err_msg)
+        gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
+
+        try:
+            target = f"##sequence-region\t{target_seqid}\t"
+            region_line = [ln for ln in gff_all_lines if ln.startswith(target)][0]
+            region_elms = region_line.split("\t")
+            start, end = int(region_elms[2]) - 1, int(region_elms[3])
+        except Exception:
+            start, end = 0, max([r.end for r in gff_records])
+
+        return gff_records, start, end
 
     @property
     def name(self) -> str:
@@ -99,9 +144,19 @@ class Gff:
             return self._gff_file.with_suffix("").name
 
     @property
+    def records(self) -> list[GffRecord]:
+        """GFF records"""
+        return self._records
+
+    @property
     def range_size(self) -> int:
-        """Range size"""
+        """Range size (`max_range - min_range`)"""
         return self.max_range - self.min_range
+
+    @property
+    def seqid_list(self) -> list[str]:
+        """seqid list"""
+        return self._seqid_list
 
     def extract_features(self, feature_type: str = "CDS") -> list[SeqFeature]:
         """Extract features
@@ -166,7 +221,7 @@ class Gff:
         for parent_id in parent_id2record.keys():
             parent_record = parent_id2record[parent_id]
             exons = parent_id2exons[parent_id]
-            feature_props = dict(
+            feature_kws = dict(
                 type=feature_type,
                 strand=parent_record.strand,
                 id=parent_record.attrs.get("ID", [""])[0],
@@ -174,11 +229,11 @@ class Gff:
             )
             if len(exons) == 1:
                 loc = FeatureLocation(exons[0].start, exons[0].end, exons[0].strand)
-                exon_feature = SeqFeature(loc, **feature_props)
+                exon_feature = SeqFeature(loc, **feature_kws)
             elif len(exons) >= 2:
                 exons = sorted(exons, key=lambda e: e.start)
                 locs = [FeatureLocation(e.start, e.end, e.strand) for e in exons]
-                exon_feature = SeqFeature(CompoundLocation(locs), **feature_props)
+                exon_feature = SeqFeature(CompoundLocation(locs), **feature_kws)
             else:
                 # If no exon exists, skip feature extraction
                 continue
@@ -224,51 +279,26 @@ class GffRecord:
             return False
 
     @staticmethod
-    def _parse(
-        handle: TextIO,
-        target_seqid: str | None = None,
-    ) -> tuple[list[GffRecord], int, int]:
-        """Parse GFF file TextIO
+    def is_gff_record_line(line: str) -> bool:
+        """Check GFF record line or not
 
         Parameters
         ----------
-        handle : TextIO
-            GFF TextIO handle
-        target_seqid : str | None, optional
-            GFF target seqid
+        line : str
+            GFF line
 
         Returns
         -------
-        tuple[list[GffRecord], int, int]
-            GFF record list, start, end
+        bool
+            Check result
         """
-
-        def is_gff_record_line(line: str) -> bool:
-            if line.startswith("#") or len(line.split("\t")) < 9:
-                return False
-            else:
-                return True
-
-        gff_all_lines = handle.read().splitlines()
-        gff_record_lines = [ln for ln in gff_all_lines if is_gff_record_line(ln)]
-        gff_records = [GffRecord._parse_line(ln) for ln in gff_record_lines]
-
-        seqid_list = list(dict.fromkeys([rec.seqid for rec in gff_records]))
-        target_seqid = seqid_list[0] if target_seqid is None else target_seqid
-        gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
-
-        try:
-            target = f"##sequence-region\t{target_seqid}\t"
-            region_line = [ln for ln in gff_all_lines if ln.startswith(target)][0]
-            region_elms = region_line.split("\t")
-            start, end = int(region_elms[2]) - 1, int(region_elms[3])
-        except Exception:
-            start, end = 0, max([r.end for r in gff_records])
-
-        return gff_records, start, end
+        if line.startswith("#") or len(line.split("\t")) < 9:
+            return False
+        else:
+            return True
 
     @staticmethod
-    def _parse_line(gff_line: str) -> GffRecord:
+    def parse_line(gff_line: str) -> GffRecord:
         """Parse GFF record line
 
         Parameters
@@ -279,7 +309,7 @@ class GffRecord:
         Returns
         -------
         GffRecord
-            Gff record (0-based index)
+            GFF record (0-based index)
         """
         gff_elms: list[Any] = gff_line.split("\t")[0:9]
         # start, end

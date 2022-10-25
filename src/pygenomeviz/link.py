@@ -29,10 +29,13 @@ class Link:
     curve: bool = False
     size_ratio: float = 1.0
     patch_kws: dict[str, Any] | None = None
-    track_offset1: int = 0
-    track_offset2: int = 0
 
     def __post_init__(self):
+        # start-end value for HTML display
+        self._display_track_start1 = self.track_start1
+        self._display_track_end1 = self.track_end1
+        self._display_track_start2 = self.track_start2
+        self._display_track_end2 = self.track_end2
         # Check color string
         if not colors.is_color_like(self.normal_color):
             err_msg = f"'normal_color={self.normal_color}' is not color like."
@@ -69,11 +72,11 @@ class Link:
         trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
         trans_table = str.maketrans(trans_dict)
         name1 = self.track_name1.translate(trans_table)
-        start1 = self.track_start1 - self.track_offset1
-        end1 = self.track_end1 - self.track_offset1
+        start1 = self._display_track_start1
+        end1 = self._display_track_end1
         name2 = self.track_name2.translate(trans_table)
-        start2 = self.track_start2 - self.track_offset2
-        end2 = self.track_end2 - self.track_offset2
+        start2 = self._display_track_start2
+        end2 = self._display_track_end2
         track_info = f"{name1}_{start1}_{end1}_{name2}_{start2}_{end2}"
         identity = "na" if self.v is None else int(self.v)
         return f"Link_{track_info}_{identity}"
@@ -180,10 +183,8 @@ class Link:
             Offset added Link object
         """
         link = deepcopy(self)
-        link.track_offset1 = track_name2offset[self.track_name1]
-        link.track_offset2 = track_name2offset[self.track_name2]
-        link.track_start1 += link.track_offset1
-        link.track_end1 += link.track_offset1
-        link.track_start2 += link.track_offset2
-        link.track_end2 += link.track_offset2
+        link.track_start1 += track_name2offset[self.track_name1]
+        link.track_end1 += track_name2offset[self.track_name1]
+        link.track_start2 += track_name2offset[self.track_name2]
+        link.track_end2 += track_name2offset[self.track_name2]
         return link

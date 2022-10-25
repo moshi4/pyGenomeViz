@@ -79,7 +79,7 @@ class MUMmer(AlignToolBase):
 
     def __init__(
         self,
-        genome_resources: list[str | Path] | list[Genbank],
+        gbk_resources: list[Genbank],
         outdir: str | Path,
         seqtype: Literal["protein", "nucleotide"] = "protein",
         maptype: Literal["many-to-many", "one-to-one"] = "many-to-many",
@@ -88,8 +88,8 @@ class MUMmer(AlignToolBase):
         """
         Parameters
         ----------
-        genome_resources : list[str | Path] | list[Genbank]
-            Genome fasta files or Genbank objects
+        gbk_resources : list[Genbank]
+            Genbank objects
         outdir : str | Path
             Output directory
         seqtype : str, optional
@@ -101,7 +101,7 @@ class MUMmer(AlignToolBase):
         """
         self.check_installation()
 
-        self.genome_resources = genome_resources
+        self.gbk_resources = gbk_resources
         self.outdir = Path(outdir)
         self.seqtype = seqtype
         self.maptype = maptype
@@ -110,22 +110,19 @@ class MUMmer(AlignToolBase):
     @property
     def genome_num(self) -> int:
         """Input genome fasta file number"""
-        return len(self.genome_resources)
+        return len(self.gbk_resources)
 
     @property
     def _genome_fasta_files(self) -> list[Path]:
         """Genome fasta file list"""
         genome_fasta_files = []
-        for gr in self.genome_resources:
-            if isinstance(gr, Genbank):
-                suffix = "_reverse.fna" if gr.reverse else ".fna"
-                filename = f"{gr.name}_{gr.min_range}-{gr.max_range}{suffix}"
-                genome_fasta_file = self.outdir / filename
-                if not genome_fasta_file.exists():
-                    gr.write_genome_fasta(genome_fasta_file)
-                genome_fasta_files.append(genome_fasta_file)
-            else:
-                genome_fasta_files.append(Path(gr))
+        for gr in self.gbk_resources:
+            suffix = "_reverse.fna" if gr.reverse else ".fna"
+            filename = f"{gr.name}_{gr.min_range}-{gr.max_range}{suffix}"
+            genome_fasta_file = self.outdir / filename
+            if not genome_fasta_file.exists():
+                gr.write_genome_fasta(genome_fasta_file)
+            genome_fasta_files.append(genome_fasta_file)
         return genome_fasta_files
 
     @property
@@ -167,7 +164,17 @@ class MUMmer(AlignToolBase):
         with mp.Pool(processes=self.process_num) as p:
             results = p.starmap(self._run_mummer, mp_data_list)
 
-        return list(itertools.chain.from_iterable(results))
+        align_coords = list(itertools.chain.from_iterable(results))
+
+        # Add min_range to start, end coordinates
+        gbk_name2min_range = {gbk.name: gbk.min_range for gbk in self.gbk_resources}
+        for ac in align_coords:
+            ac.ref_start = ac.ref_start + gbk_name2min_range[ac.ref_name]
+            ac.ref_end = ac.ref_end + gbk_name2min_range[ac.ref_name]
+            ac.query_start = ac.query_start + gbk_name2min_range[ac.query_name]
+            ac.query_end = ac.query_end + gbk_name2min_range[ac.query_name]
+
+        return align_coords
 
     def _run_mummer(self, fa_file1: Path, fa_file2: Path, idx: int) -> list[AlignCoord]:
         """Run MUMmer function for multiprocessing
@@ -316,7 +323,7 @@ class MMseqs(AlignToolBase):
         cds_fasta_files: list[Path] = []
         for gbk in self.gbk_list:
             cds_fasta_file = self.outdir / (gbk.name + ".faa")
-            gbk.write_cds_fasta(cds_fasta_file, fix_position=True)
+            gbk.write_cds_fasta(cds_fasta_file)
             cds_fasta_files.append(cds_fasta_file)
 
         align_coords = []

@@ -35,9 +35,11 @@ class Feature:
     size_ratio: float = 0.9
     patch_kws: dict[str, Any] | None = None
     seq_feature: SeqFeature | None = None
-    offset: float = 0
 
     def __post_init__(self):
+        # start-end value for HTML display
+        self._display_start = self.start
+        self._display_end = self.end
         # Change unknown strand value to 1
         if self.strand not in (1, -1):
             self.strand = 1
@@ -126,7 +128,7 @@ class Feature:
     @property
     def gid(self) -> str:
         """Group ID"""
-        start, end = self.start - self.offset, self.end - self.offset
+        start, end = self._display_start, self._display_end
         type, gene, protein_id, product = "na", "na", "na", "na"
         if self.seq_feature is not None:
             type = self.seq_feature.type
@@ -134,6 +136,8 @@ class Feature:
             gene = qualifiers.get("gene", ["na"])[0]
             protein_id = qualifiers.get("protein_id", ["na"])[0].split(".")[0]
             product = qualifiers.get("product", ["na"])[0]
+            if product == "na":
+                product = qualifiers.get("Name", ["na"])[0]
             # Replace special characters to underscore (For html ID tag selection)
             trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
             trans_table = str.maketrans(trans_dict)
@@ -389,7 +393,6 @@ class Feature:
         feature = deepcopy(self)
         feature.start += offset
         feature.end += offset
-        feature.offset = offset
         return feature
 
 
@@ -417,6 +420,7 @@ class ExonFeature(Feature):
         exon_label_kws: dict[str, Any] | None = None,
         patch_kws: dict[str, Any] | None = None,
         intron_patch_kws: dict[str, Any] | None = None,
+        seq_feature: SeqFeature | None = None,
     ):
         self.exon_regions = exon_regions
         self.exon_labels = exon_labels
@@ -441,6 +445,7 @@ class ExonFeature(Feature):
             arrow_shaft_ratio,
             size_ratio,
             patch_kws,
+            seq_feature,
         )
 
         if exon_labels is not None and len(exon_regions) != len(exon_labels):
@@ -583,7 +588,6 @@ class ExonFeature(Feature):
         # Add offset to start & end
         feature.start += offset
         feature.end += offset
-        feature.offset = offset
         # Add offset to exon regions
         exon_regions = []
         for (exon_start, exon_end) in feature.exon_regions:

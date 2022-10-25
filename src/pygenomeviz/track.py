@@ -202,7 +202,9 @@ class FeatureTrack(Track):
             **self._sublabel_kws,
         }
 
-    def _within_valid_range(self, start: int, end: int) -> bool:
+    def _within_valid_range(
+        self, start: int, end: int, raise_error_on_false: bool = False
+    ) -> bool:
         """Check if start-end position within valid track range
 
         Parameters
@@ -211,6 +213,8 @@ class FeatureTrack(Track):
             Start position
         end : int
             End position
+        raise_error_on_false : bool, optional
+            If start-end range is invalid in track, raise error
 
         Returns
         -------
@@ -220,6 +224,11 @@ class FeatureTrack(Track):
         if self.start <= start <= self.end and self.start <= end <= self.end:
             return True
         else:
+            if raise_error_on_false:
+                err_msg = f"'{self.name}' track start-end range must be "
+                err_msg += f"'{self.start} <= start <= end <= {self.end}' "
+                err_msg += f"(start={start}, end={end} is invalid)"
+                raise ValueError(err_msg)
             return False
 
     def add_subtrack(
@@ -380,11 +389,7 @@ class FeatureTrack(Track):
             for detailed parameters.
         """
         # Check if start & end positions are within appropriate track range
-        if not self.start <= start <= end <= self.end:
-            err_msg = f"'{self.name}' track start-end range must be "
-            err_msg += f"'{self.start} <= start <= end <= {self.end}' "
-            err_msg += f"(start={start}, end={end})"
-            raise ValueError(err_msg)
+        self._within_valid_range(start, end, raise_error_on_false=True)
 
         self.features.append(
             Feature(
@@ -481,11 +486,7 @@ class FeatureTrack(Track):
         """
         # Check if start & end positions are within appropriate track range
         for (exon_start, exon_end) in exon_regions:
-            if not self.start <= exon_start <= exon_end <= self.end:
-                err_msg = "Exon start-end must be "
-                err_msg += f"'{self.start} <= start <= end <= {self.size}' "
-                err_msg += f"(exon_regions={exon_regions})"
-                raise ValueError(err_msg)
+            self._within_valid_range(exon_start, exon_end, raise_error_on_false=True)
 
         self.features.append(
             ExonFeature(
@@ -517,7 +518,7 @@ class FeatureTrack(Track):
         feature_type: str = "CDS",
         label_type: str | None = None,
         label_handle_func: Callable[[str], str] | None = None,
-        allow_partial: bool = True,
+        allow_partial: bool = False,
         labelsize: int = 15,
         labelcolor: str = "black",
         plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
@@ -577,11 +578,15 @@ class FeatureTrack(Track):
             See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
             for detailed parameters.
         """
-        target_features = gbk.extract_features(feature_type, None, True, allow_partial)
+        target_features = gbk.extract_features(feature_type, None, False, allow_partial)
         for feature in target_features:
             start = int(str(feature.location.start))
             end = int(str(feature.location.end))
             strand = feature.strand
+
+            # Check if start & end positions are within appropriate track range
+            self._within_valid_range(start, end, raise_error_on_false=True)
+
             if label_type is None:
                 label = ""
             else:
@@ -695,7 +700,7 @@ class FeatureTrack(Track):
             if label_handle_func is not None:
                 label = label_handle_func(label)
             # Make feature common property
-            feature_props = dict(
+            feature_kws = dict(
                 label=label,
                 labelsize=labelsize,
                 labelcolor=labelcolor,
@@ -710,21 +715,23 @@ class FeatureTrack(Track):
                 arrow_shaft_ratio=arrow_shaft_ratio,
                 size_ratio=size_ratio,
                 patch_kws=patch_kws,
+                seq_feature=feature,
             )
 
             if parse_exon_intron:
                 # Extract exon regions
                 exon_regions = []
                 for loc in feature.location.parts:
-                    exon_region = (int(str(loc.start)), int(str(loc.end)))
-                    exon_regions.append(exon_region)
+                    start, end = int(str(loc.start)), int(str(loc.end))
+                    self._within_valid_range(start, end, raise_error_on_false=True)
+                    exon_regions.append((start, end))
                 # Add exon feature
-                feature_props["intron_patch_kws"] = intron_patch_kws
+                feature_kws["intron_patch_kws"] = intron_patch_kws
                 self.features.append(
                     ExonFeature(
                         exon_regions,
                         feature.strand,
-                        **feature_props,
+                        **feature_kws,
                     ),
                 )
             else:
@@ -734,7 +741,7 @@ class FeatureTrack(Track):
                         int(str(feature.location.start)),
                         int(str(feature.location.end)),
                         feature.strand,
-                        **feature_props,
+                        **feature_kws,
                     ),
                 )
 

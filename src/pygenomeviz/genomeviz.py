@@ -110,11 +110,11 @@ class GenomeVizBase(metaclass=ABCMeta):
             raise NotImplementedError
 
     @property
-    def _track_name2offset(self) -> dict[str, int]:
-        """Track name & offset dict"""
+    def _track_name2link_offset(self) -> dict[str, int]:
+        """Track name & link offset dict"""
         track_name2offset = {}
-        for track in self.get_tracks(subtrack=True):
-            track_name2offset[track.name] = self._get_track_offset(track)
+        for track in self.get_feature_tracks():
+            track_name2offset[track.name] = self._get_track_offset(track) - track.start
         return track_name2offset
 
     def _get_link_track(
@@ -205,10 +205,20 @@ class GenomeVizBase(metaclass=ABCMeta):
                 tracks.append(track)
         return tracks
 
+    def get_feature_tracks(self) -> list[FeatureTrack]:
+        """Get feature tracks
+
+        Returns
+        -------
+        list[FeatureTrack]
+            Feature track list
+        """
+        return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+
     @property
     def top_track(self) -> FeatureTrack:
         """Top feature track"""
-        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+        feature_tracks = self.get_feature_tracks()
         if len(feature_tracks) == 0:
             err_msg = "No track found. Can't access 'top_track' property."
             raise ValueError(err_msg)
@@ -217,7 +227,7 @@ class GenomeVizBase(metaclass=ABCMeta):
     @property
     def bottom_track(self) -> FeatureTrack:
         """Bottom feature track"""
-        feature_tracks = [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+        feature_tracks = self.get_feature_tracks()
         if len(feature_tracks) == 0:
             err_msg = "No track found. Can't access 'bottom_track' property."
             raise ValueError(err_msg)
@@ -512,11 +522,11 @@ class GenomeViz(GenomeVizBase):
         link_track.add_link(
             Link(
                 above_track_name,
-                above_link_start - above_track.start,
-                above_link_end - above_track.start,
+                above_link_start,
+                above_link_end,
                 below_track_name,
-                below_link_start - below_track.start,
-                below_link_end - below_track.start,
+                below_link_start,
+                below_link_end,
                 normal_color,
                 inverted_color,
                 alpha,
@@ -624,7 +634,7 @@ class GenomeViz(GenomeVizBase):
                     length1, length2 = link.track_length1, link.track_length2
                     if 0 < length1 < plot_length_thr or 0 < length2 < plot_length_thr:
                         continue
-                    link = link.add_offset(self._track_name2offset)
+                    link = link.add_offset(self._track_name2link_offset)
                     link.plot_link(ax, ylim)
 
             elif isinstance(track, TickTrack):

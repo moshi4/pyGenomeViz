@@ -149,7 +149,10 @@ def run(
     # Set tracks & features
     for gbk in gbk_list:
         track = gv.add_feature_track(
-            gbk.name, gbk.genome_length, labelsize=track_labelsize
+            gbk.name,
+            size=gbk.range_size,
+            start_pos=gbk.min_range,
+            labelsize=track_labelsize,
         )
         track.add_genbank_features(
             gbk,

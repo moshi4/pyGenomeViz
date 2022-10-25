@@ -114,8 +114,13 @@ class Genbank:
 
     @property
     def genome_length(self) -> int:
-        """Range genome sequence length"""
+        """Range genome sequence length (Same as `range_size`)"""
         return len(self.genome_seq)
+
+    @property
+    def range_size(self) -> int:
+        """Range size (`max_range - min_range`)"""
+        return self.max_range - self.min_range
 
     @property
     def full_genome_seq(self) -> str:
@@ -217,7 +222,7 @@ class Genbank:
         self,
         feature_type: str = "CDS",
         target_strand: int | None = None,
-        fix_position: bool = True,
+        fix_position: bool = False,
         allow_partial: bool = True,
     ) -> list[SeqFeature]:
         """Extract features

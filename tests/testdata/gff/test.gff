@@ -1,0 +1,103 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ViralProj266720
+#!genome-build-accession NCBI_Assembly:GCA_000925795.1
+##sequence-region JX128258.1 1 66854
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1204521
+JX128258.1	Genbank	region	1	66854	.	+	.	ID=JX128258.1:1..66854;Dbxref=taxon:1204521;gbkey=Src;genome=genomic;isolation-source=fresh and salt water samples;mol_type=genomic DNA;nat-host=Escherichia coli O157:H7
+JX128258.1	Genbank	CDS	117	464	.	+	0	ID=cds-AFO10434.1;Dbxref=NCBI_GP:AFO10434.1;Name=AFO10434.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10434.1;transl_table=11
+JX128258.1	Genbank	CDS	464	700	.	+	0	ID=cds-AFO10435.1;Dbxref=NCBI_GP:AFO10435.1;Name=AFO10435.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10435.1;transl_table=11
+JX128258.1	Genbank	CDS	700	1029	.	+	0	ID=cds-AFO10436.1;Dbxref=NCBI_GP:AFO10436.1;Name=AFO10436.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10436.1;transl_table=11
+JX128258.1	Genbank	CDS	1115	1432	.	+	0	ID=cds-AFO10437.1;Dbxref=NCBI_GP:AFO10437.1;Name=AFO10437.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10437.1;transl_table=11
+JX128258.1	Genbank	CDS	1429	1647	.	+	0	ID=cds-AFO10438.1;Dbxref=NCBI_GP:AFO10438.1;Name=AFO10438.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10438.1;transl_table=11
+JX128258.1	Genbank	CDS	1644	1928	.	+	0	ID=cds-AFO10439.1;Dbxref=NCBI_GP:AFO10439.1;Name=AFO10439.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10439.1;transl_table=11
+JX128258.1	Genbank	CDS	1936	2307	.	+	0	ID=cds-AFO10440.1;Dbxref=NCBI_GP:AFO10440.1;Name=AFO10440.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10440.1;transl_table=11
+JX128258.1	Genbank	CDS	2304	2564	.	+	0	ID=cds-AFO10441.1;Dbxref=NCBI_GP:AFO10441.1;Name=AFO10441.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10441.1;transl_table=11
+JX128258.1	Genbank	CDS	2643	2948	.	+	0	ID=cds-AFO10442.1;Dbxref=NCBI_GP:AFO10442.1;Name=AFO10442.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10442.1;transl_table=11
+JX128258.1	Genbank	CDS	2945	3130	.	+	0	ID=cds-AFO10443.1;Dbxref=NCBI_GP:AFO10443.1;Name=AFO10443.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10443.1;transl_table=11
+JX128258.1	Genbank	CDS	3127	3420	.	+	0	ID=cds-AFO10444.1;Dbxref=NCBI_GP:AFO10444.1;Name=AFO10444.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10444.1;transl_table=11
+JX128258.1	Genbank	CDS	3404	3568	.	+	0	ID=cds-AFO10445.1;Dbxref=NCBI_GP:AFO10445.1;Name=AFO10445.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10445.1;transl_table=11
+JX128258.1	Genbank	CDS	3587	4099	.	+	0	ID=cds-AFO10446.1;Dbxref=NCBI_GP:AFO10446.1;Name=AFO10446.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10446.1;transl_table=11
+JX128258.1	Genbank	CDS	4099	4548	.	+	0	ID=cds-AFO10447.1;Dbxref=NCBI_GP:AFO10447.1;Name=AFO10447.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10447.1;transl_table=11
+JX128258.1	Genbank	CDS	5390	5863	.	+	0	ID=cds-AFO10448.1;Dbxref=NCBI_GP:AFO10448.1;Name=AFO10448.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10448.1;transl_table=11
+JX128258.1	Genbank	CDS	6292	6918	.	-	0	ID=cds-AFO10449.1;Dbxref=NCBI_GP:AFO10449.1;Name=AFO10449.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10449.1;transl_table=11
+JX128258.1	Genbank	CDS	7144	7446	.	+	0	ID=cds-AFO10450.1;Dbxref=NCBI_GP:AFO10450.1;Name=AFO10450.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10450.1;transl_table=11
+JX128258.1	Genbank	CDS	7554	7844	.	+	0	ID=cds-AFO10451.1;Dbxref=NCBI_GP:AFO10451.1;Name=AFO10451.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10451.1;transl_table=11
+JX128258.1	Genbank	CDS	7856	8065	.	+	0	ID=cds-AFO10452.1;Dbxref=NCBI_GP:AFO10452.1;Name=AFO10452.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10452.1;transl_table=11
+JX128258.1	Genbank	CDS	8768	9148	.	-	0	ID=cds-AFO10453.1;Dbxref=NCBI_GP:AFO10453.1;Name=AFO10453.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10453.1;transl_table=11
+JX128258.1	Genbank	CDS	9209	9469	.	-	0	ID=cds-AFO10454.1;Dbxref=NCBI_GP:AFO10454.1;Name=AFO10454.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10454.1;transl_table=11
+JX128258.1	Genbank	CDS	9477	9872	.	-	0	ID=cds-AFO10455.1;Dbxref=NCBI_GP:AFO10455.1;Name=AFO10455.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10455.1;transl_table=11
+JX128258.1	Genbank	CDS	9966	10175	.	-	0	ID=cds-AFO10456.1;Dbxref=NCBI_GP:AFO10456.1;Name=AFO10456.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10456.1;transl_table=11
+JX128258.1	Genbank	CDS	10257	12614	.	-	0	ID=cds-AFO10457.1;Dbxref=NCBI_GP:AFO10457.1;Name=AFO10457.1;gbkey=CDS;product=phage tail fiber protein;protein_id=AFO10457.1;transl_table=11
+JX128258.1	Genbank	CDS	12653	12994	.	-	0	ID=cds-AFO10458.1;Dbxref=NCBI_GP:AFO10458.1;Name=AFO10458.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10458.1;transl_table=11
+JX128258.1	Genbank	CDS	13039	13194	.	-	0	ID=cds-AFO10459.1;Dbxref=NCBI_GP:AFO10459.1;Name=AFO10459.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10459.1;transl_table=11
+JX128258.1	Genbank	CDS	13191	13424	.	-	0	ID=cds-AFO10460.1;Dbxref=NCBI_GP:AFO10460.1;Name=AFO10460.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10460.1;transl_table=11
+JX128258.1	Genbank	CDS	13414	13635	.	-	0	ID=cds-AFO10461.1;Dbxref=NCBI_GP:AFO10461.1;Name=AFO10461.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10461.1;transl_table=11
+JX128258.1	Genbank	CDS	13635	13850	.	-	0	ID=cds-AFO10462.1;Dbxref=NCBI_GP:AFO10462.1;Name=AFO10462.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10462.1;transl_table=11
+JX128258.1	Genbank	CDS	13940	14170	.	-	0	ID=cds-AFO10463.1;Dbxref=NCBI_GP:AFO10463.1;Name=AFO10463.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10463.1;transl_table=11
+JX128258.1	Genbank	CDS	14289	15749	.	+	0	ID=cds-AFO10464.1;Dbxref=NCBI_GP:AFO10464.1;Name=AFO10464.1;gbkey=CDS;product=phage terminase large subunit;protein_id=AFO10464.1;transl_table=11
+JX128258.1	Genbank	CDS	15753	15992	.	-	0	ID=cds-AFO10465.1;Dbxref=NCBI_GP:AFO10465.1;Name=AFO10465.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10465.1;transl_table=11
+JX128258.1	Genbank	CDS	15989	16405	.	-	0	ID=cds-AFO10466.1;Dbxref=NCBI_GP:AFO10466.1;Name=AFO10466.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10466.1;transl_table=11
+JX128258.1	Genbank	CDS	16568	18943	.	+	0	ID=cds-AFO10467.1;Dbxref=NCBI_GP:AFO10467.1;Name=AFO10467.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10467.1;transl_table=11
+JX128258.1	Genbank	CDS	18945	19796	.	+	0	ID=cds-AFO10468.1;Dbxref=NCBI_GP:AFO10468.1;Name=AFO10468.1;gbkey=CDS;product=phage minor capsid protein;protein_id=AFO10468.1;transl_table=11
+JX128258.1	Genbank	CDS	19804	20724	.	+	0	ID=cds-AFO10469.1;Dbxref=NCBI_GP:AFO10469.1;Name=AFO10469.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10469.1;transl_table=11
+JX128258.1	Genbank	CDS	20735	20872	.	+	0	ID=cds-AFO10470.1;Dbxref=NCBI_GP:AFO10470.1;Name=AFO10470.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10470.1;transl_table=11
+JX128258.1	Genbank	CDS	21296	22708	.	+	0	ID=cds-AFO10471.1;Dbxref=NCBI_GP:AFO10471.1;Name=AFO10471.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10471.1;transl_table=11
+JX128258.1	Genbank	CDS	22711	23328	.	+	0	ID=cds-AFO10472.1;Dbxref=NCBI_GP:AFO10472.1;Name=AFO10472.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10472.1;transl_table=11
+JX128258.1	Genbank	CDS	23343	24482	.	+	0	ID=cds-AFO10473.1;Dbxref=NCBI_GP:AFO10473.1;Name=AFO10473.1;gbkey=CDS;product=phage capsid and scaffold protein;protein_id=AFO10473.1;transl_table=11
+JX128258.1	Genbank	CDS	24598	25062	.	+	0	ID=cds-AFO10474.1;Dbxref=NCBI_GP:AFO10474.1;Name=AFO10474.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10474.1;transl_table=11
+JX128258.1	Genbank	CDS	25077	25532	.	+	0	ID=cds-AFO10475.1;Dbxref=NCBI_GP:AFO10475.1;Name=AFO10475.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10475.1;transl_table=11
+JX128258.1	Genbank	CDS	25529	25915	.	+	0	ID=cds-AFO10476.1;Dbxref=NCBI_GP:AFO10476.1;Name=AFO10476.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10476.1;transl_table=11
+JX128258.1	Genbank	CDS	25923	26498	.	+	0	ID=cds-AFO10477.1;Dbxref=NCBI_GP:AFO10477.1;Name=AFO10477.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10477.1;transl_table=11
+JX128258.1	Genbank	CDS	26500	26985	.	+	0	ID=cds-AFO10478.1;Dbxref=NCBI_GP:AFO10478.1;Name=AFO10478.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10478.1;transl_table=11
+JX128258.1	Genbank	CDS	26998	28536	.	+	0	ID=cds-AFO10479.1;Dbxref=NCBI_GP:AFO10479.1;Name=AFO10479.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10479.1;transl_table=11
+JX128258.1	Genbank	CDS	28584	29051	.	+	0	ID=cds-AFO10480.1;Dbxref=NCBI_GP:AFO10480.1;Name=AFO10480.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10480.1;transl_table=11
+JX128258.1	Genbank	CDS	29051	29380	.	+	0	ID=cds-AFO10481.1;Dbxref=NCBI_GP:AFO10481.1;Name=AFO10481.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10481.1;transl_table=11
+JX128258.1	Genbank	CDS	29377	29733	.	+	0	ID=cds-AFO10482.1;Dbxref=NCBI_GP:AFO10482.1;Name=AFO10482.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10482.1;transl_table=11
+JX128258.1	Genbank	CDS	29733	29999	.	+	0	ID=cds-AFO10483.1;Dbxref=NCBI_GP:AFO10483.1;Name=AFO10483.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10483.1;transl_table=11
+JX128258.1	Genbank	CDS	30002	30499	.	+	0	ID=cds-AFO10484.1;Dbxref=NCBI_GP:AFO10484.1;Name=AFO10484.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10484.1;transl_table=11
+JX128258.1	Genbank	CDS	30499	31032	.	+	0	ID=cds-AFO10485.1;Dbxref=NCBI_GP:AFO10485.1;Name=AFO10485.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10485.1;transl_table=11
+JX128258.1	Genbank	CDS	31032	31592	.	+	0	ID=cds-AFO10486.1;Dbxref=NCBI_GP:AFO10486.1;Name=AFO10486.1;Note=similar to conserved hypothetical protein ORF036;gbkey=CDS;product=hypothetical protein;protein_id=AFO10486.1;transl_table=11
+JX128258.1	Genbank	CDS	31594	32010	.	+	0	ID=cds-AFO10487.1;Dbxref=NCBI_GP:AFO10487.1;Name=AFO10487.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10487.1;transl_table=11
+JX128258.1	Genbank	CDS	32014	34194	.	+	0	ID=cds-AFO10488.1;Dbxref=NCBI_GP:AFO10488.1;Name=AFO10488.1;gbkey=CDS;product=soluble lytic murein transglycosylase;protein_id=AFO10488.1;transl_table=11
+JX128258.1	Genbank	CDS	34199	35071	.	+	0	ID=cds-AFO10489.1;Dbxref=NCBI_GP:AFO10489.1;Name=AFO10489.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10489.1;transl_table=11
+JX128258.1	Genbank	CDS	35074	35595	.	+	0	ID=cds-AFO10490.1;Dbxref=NCBI_GP:AFO10490.1;Name=AFO10490.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10490.1;transl_table=11
+JX128258.1	Genbank	CDS	35656	36381	.	+	0	ID=cds-AFO10491.1;Dbxref=NCBI_GP:AFO10491.1;Name=AFO10491.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10491.1;transl_table=11
+JX128258.1	Genbank	CDS	36378	37649	.	+	0	ID=cds-AFO10492.1;Dbxref=NCBI_GP:AFO10492.1;Name=AFO10492.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10492.1;transl_table=11
+JX128258.1	Genbank	CDS	37656	40394	.	+	0	ID=cds-AFO10493.1;Dbxref=NCBI_GP:AFO10493.1;Name=AFO10493.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10493.1;transl_table=11
+JX128258.1	Genbank	CDS	40405	42189	.	+	0	ID=cds-AFO10494.1;Dbxref=NCBI_GP:AFO10494.1;Name=AFO10494.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10494.1;transl_table=11
+JX128258.1	Genbank	CDS	42198	42842	.	+	0	ID=cds-AFO10495.1;Dbxref=NCBI_GP:AFO10495.1;Name=AFO10495.1;gbkey=CDS;product=lytic enzyme;protein_id=AFO10495.1;transl_table=11
+JX128258.1	Genbank	CDS	42868	43080	.	-	0	ID=cds-AFO10496.1;Dbxref=NCBI_GP:AFO10496.1;Name=AFO10496.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10496.1;transl_table=11
+JX128258.1	Genbank	CDS	43095	43637	.	-	0	ID=cds-AFO10497.1;Dbxref=NCBI_GP:AFO10497.1;Name=AFO10497.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10497.1;transl_table=11
+JX128258.1	Genbank	CDS	43812	44786	.	-	0	ID=cds-AFO10498.1;Dbxref=NCBI_GP:AFO10498.1;Name=AFO10498.1;gbkey=CDS;product=ATP-dependent DNA ligase;protein_id=AFO10498.1;transl_table=11
+JX128258.1	Genbank	CDS	44786	45379	.	-	0	ID=cds-AFO10499.1;Dbxref=NCBI_GP:AFO10499.1;Name=AFO10499.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10499.1;transl_table=11
+JX128258.1	Genbank	CDS	45376	45894	.	-	0	ID=cds-AFO10500.1;Dbxref=NCBI_GP:AFO10500.1;Name=AFO10500.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10500.1;transl_table=11
+JX128258.1	Genbank	CDS	45952	46812	.	-	0	ID=cds-AFO10501.1;Dbxref=NCBI_GP:AFO10501.1;Name=AFO10501.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10501.1;transl_table=11
+JX128258.1	Genbank	CDS	46872	47429	.	-	0	ID=cds-AFO10502.1;Dbxref=NCBI_GP:AFO10502.1;Name=AFO10502.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10502.1;transl_table=11
+JX128258.1	Genbank	CDS	47426	47689	.	-	0	ID=cds-AFO10503.1;Dbxref=NCBI_GP:AFO10503.1;Name=AFO10503.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10503.1;transl_table=11
+JX128258.1	Genbank	CDS	47764	49287	.	-	0	ID=cds-AFO10504.1;Dbxref=NCBI_GP:AFO10504.1;Name=AFO10504.1;Note=phage-associated;gbkey=CDS;product=DNA helicase;protein_id=AFO10504.1;transl_table=11
+JX128258.1	Genbank	CDS	49284	49706	.	-	0	ID=cds-AFO10505.1;Dbxref=NCBI_GP:AFO10505.1;Name=AFO10505.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10505.1;transl_table=11
+JX128258.1	Genbank	CDS	49693	52590	.	-	0	ID=cds-AFO10506.1;Dbxref=GO:3887,NCBI_GP:AFO10506.1;Name=AFO10506.1;gbkey=CDS;product=DNA polymerase III alpha subunit;protein_id=AFO10506.1;transl_table=11
+JX128258.1	Genbank	CDS	52590	53132	.	-	0	ID=cds-AFO10507.1;Dbxref=NCBI_GP:AFO10507.1;Name=AFO10507.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10507.1;transl_table=11
+JX128258.1	Genbank	CDS	53187	53738	.	-	0	ID=cds-AFO10508.1;Dbxref=NCBI_GP:AFO10508.1;Name=AFO10508.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10508.1;transl_table=11
+JX128258.1	Genbank	CDS	53835	54518	.	-	0	ID=cds-AFO10509.1;Dbxref=NCBI_GP:AFO10509.1;Name=AFO10509.1;gbkey=CDS;product=putative 3-oxoacyl-(acyl-carrier-protein) reductase;protein_id=AFO10509.1;transl_table=11
+JX128258.1	Genbank	CDS	54584	55456	.	-	0	ID=cds-AFO10510.1;Dbxref=NCBI_GP:AFO10510.1;Name=AFO10510.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10510.1;transl_table=11
+JX128258.1	Genbank	CDS	55453	56256	.	-	0	ID=cds-AFO10511.1;Dbxref=NCBI_GP:AFO10511.1;Name=AFO10511.1;Note=thyX;gbkey=CDS;product=thymidylate synthase;protein_id=AFO10511.1;transl_table=11
+JX128258.1	Genbank	CDS	56270	56716	.	-	0	ID=cds-AFO10512.1;Dbxref=NCBI_GP:AFO10512.1;Name=AFO10512.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10512.1;transl_table=11
+JX128258.1	Genbank	CDS	56782	57771	.	-	0	ID=cds-AFO10513.1;Dbxref=NCBI_GP:AFO10513.1;Name=AFO10513.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10513.1;transl_table=11
+JX128258.1	Genbank	CDS	57910	58749	.	-	0	ID=cds-AFO10514.1;Dbxref=NCBI_GP:AFO10514.1;Name=AFO10514.1;gbkey=CDS;product=TolA protein;protein_id=AFO10514.1;transl_table=11
+JX128258.1	Genbank	CDS	58909	60093	.	-	0	ID=cds-AFO10515.1;Dbxref=NCBI_GP:AFO10515.1;Name=AFO10515.1;Note=similar to Atu2026;gbkey=CDS;product=RecD-like DNA helicase;protein_id=AFO10515.1;transl_table=11
+JX128258.1	Genbank	CDS	60093	60419	.	-	0	ID=cds-AFO10516.1;Dbxref=NCBI_GP:AFO10516.1;Name=AFO10516.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10516.1;transl_table=11
+JX128258.1	Genbank	CDS	60580	61662	.	+	0	ID=cds-AFO10517.1;Dbxref=NCBI_GP:AFO10517.1;Name=AFO10517.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10517.1;transl_table=11
+JX128258.1	Genbank	CDS	61721	61867	.	+	0	ID=cds-AFO10518.1;Dbxref=NCBI_GP:AFO10518.1;Name=AFO10518.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10518.1;transl_table=11
+JX128258.1	Genbank	CDS	61870	62160	.	+	0	ID=cds-AFO10519.1;Dbxref=NCBI_GP:AFO10519.1;Name=AFO10519.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10519.1;transl_table=11
+JX128258.1	Genbank	CDS	62162	62425	.	+	0	ID=cds-AFO10520.1;Dbxref=NCBI_GP:AFO10520.1;Name=AFO10520.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10520.1;transl_table=11
+JX128258.1	Genbank	CDS	62545	62835	.	+	0	ID=cds-AFO10521.1;Dbxref=NCBI_GP:AFO10521.1;Name=AFO10521.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10521.1;transl_table=11
+JX128258.1	Genbank	CDS	62972	64642	.	+	0	ID=cds-AFO10522.1;Dbxref=NCBI_GP:AFO10522.1;Name=AFO10522.1;Note=phage-associated;gbkey=CDS;product=DNA primase;protein_id=AFO10522.1;transl_table=11
+JX128258.1	Genbank	CDS	64642	65289	.	+	0	ID=cds-AFO10523.1;Dbxref=NCBI_GP:AFO10523.1;Name=AFO10523.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10523.1;transl_table=11
+JX128258.1	Genbank	CDS	65329	65553	.	+	0	ID=cds-AFO10524.1;Dbxref=NCBI_GP:AFO10524.1;Name=AFO10524.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10524.1;transl_table=11
+JX128258.1	Genbank	CDS	65725	66003	.	+	0	ID=cds-AFO10525.1;Dbxref=NCBI_GP:AFO10525.1;Name=AFO10525.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10525.1;transl_table=11
+JX128258.1	Genbank	CDS	66011	66232	.	+	0	ID=cds-AFO10526.1;Dbxref=NCBI_GP:AFO10526.1;Name=AFO10526.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10526.1;transl_table=11
+JX128258.1	Genbank	CDS	66229	66384	.	+	0	ID=cds-AFO10527.1;Dbxref=NCBI_GP:AFO10527.1;Name=AFO10527.1;gbkey=CDS;product=hypothetical protein;protein_id=AFO10527.1;transl_table=11
+###

@@ -3,6 +3,12 @@ from pathlib import Path
 
 from typing_extensions import Literal
 
+###########################################################
+# GitHub Genbank Dataset & GFF Files Config
+###########################################################
+
+GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pygenomeviz-data/master/"
+
 DATASETS = {
     "escherichia_phage": [
         "JX128258.gbk",
@@ -45,6 +51,15 @@ DATASETS = {
     ],
 }
 
+EXAMPLE_GFF_FILES = [
+    "enterobacteria_phage.gff",
+    "escherichia_coli.gff.gz",
+]
+
+###########################################################
+# Literal Types Config
+###########################################################
+
 
 @dataclass
 class LiteralTypes:
@@ -56,6 +71,10 @@ class LiteralTypes:
     ALIGN_TYPE = Literal["left", "center", "right"]
     TICK_STYLE = Literal["axis", "bar", None]
 
+
+###########################################################
+# HTML Viewer Template & Assets Config
+###########################################################
 
 _viewer_dir = Path(__file__).parent / "viewer"
 _assets_dir = _viewer_dir / "assets"

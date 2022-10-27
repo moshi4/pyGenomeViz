@@ -12,7 +12,58 @@ import numpy as np
 from Bio import Entrez
 from matplotlib.colors import to_hex
 
-from pygenomeviz.config import DATASETS
+from pygenomeviz.config import DATASETS, EXAMPLE_GFF_FILES, GITHUB_DATA_URL
+
+
+def load_example_gff(
+    filename: str,
+    cache_dir: str | Path | None = None,
+    overwrite_cache: bool = False,
+) -> Path:
+    """Load pygenomeviz example GFF file
+
+    Load example GFF file from https://github.com/moshi4/pygenomeviz-data/
+    and cache GFF file in local directory (Default: `~/.cache/pygenomeviz/`).
+
+    List of example GFF filename
+    - `enterobacteria_phage.gff`
+    - `escherichia_coli.gff.gz`
+
+    Parameters
+    ----------
+    filename : str
+        GFF filename (e.g. `enterobacteria_phage.gff`)
+    cache_dir : str | Path | None, optional
+        Output cache directory (Default: `~/.cache/pygenomeviz/`)
+    overwrite_cache : bool, optional
+        If True, overwrite cached GFF file
+
+    Returns
+    -------
+    gff_file : Path
+        GFF file
+    """
+    # Check specified filename exists or not
+    if filename not in EXAMPLE_GFF_FILES:
+        err_msg = f"filename='{filename}' not found."
+        raise ValueError(err_msg)
+
+    # Cache local directory
+    if cache_dir is None:
+        package_name = __name__.split(".")[0]
+        cache_base_dir = Path.home() / ".cache" / package_name
+        cache_dir = cache_base_dir / "gff"
+        os.makedirs(cache_dir, exist_ok=True)
+    else:
+        cache_dir = Path(cache_dir)
+
+    # Download GFF file
+    gff_file_url = GITHUB_DATA_URL + f"gff/{filename}"
+    gff_file_path = cache_dir / filename
+    if overwrite_cache or not gff_file_path.exists():
+        urlretrieve(gff_file_url, gff_file_path)
+
+    return gff_file_path
 
 
 def load_dataset(
@@ -20,10 +71,10 @@ def load_dataset(
     cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
 ) -> tuple[list[Path], list[DatasetLink]]:
-    """Load pygenomeviz example dataset
+    """Load pygenomeviz example genbank dataset
 
-    Download and load datasets from https://github.com/moshi4/pygenomeviz-data
-    and cache datasets in local directory (Default: '~/.cache/pygenomeviz/').
+    Load genbank datasets from https://github.com/moshi4/pygenomeviz-data
+    and cache datasets in local directory (Default: `~/.cache/pygenomeviz/`).
 
     List of dataset name
     - `escherichia_phage`
@@ -38,7 +89,7 @@ def load_dataset(
         Dataset name (e.g. `escherichia_phage`)
 
     cache_dir : str | Path | None, optional
-        Cache directory (Default: `~/.cache/pygenomeviz/`)
+        Output cache directory (Default: `~/.cache/pygenomeviz/`)
 
     overwrite_cache : bool
         If True, overwrite cached dataset
@@ -62,15 +113,11 @@ def load_dataset(
     else:
         cache_dir = Path(cache_dir)
 
-    # Dataset GitHub URL
-    base_url = "https://raw.githubusercontent.com/moshi4/pygenomeviz-data/master/"
-    target_url = base_url + f"{name}/"
-
     # Download & cache dataset
     gbk_files: list[Path] = []
     links: list[DatasetLink] = []
     for filename in DATASETS[name]:
-        file_url = target_url + filename
+        file_url = GITHUB_DATA_URL + f"{name}/{filename}"
         file_path = cache_dir / filename
         if overwrite_cache or not file_path.exists():
             urlretrieve(file_url, file_path)
@@ -84,7 +131,7 @@ def load_dataset(
 
 @dataclass
 class DatasetLink:
-    """Dataset Link DataClass (Only used in load_dataset() function)"""
+    """Dataset Link DataClass (Only used in `load_dataset()` function)"""
 
     ref_name: str
     ref_start: int

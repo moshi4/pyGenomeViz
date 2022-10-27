@@ -565,6 +565,7 @@ class FeatureTrack(Track):
             Feature label rotation
         labelvpos : str, optional
             Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+            If 'strand' is set, 'top' or 'bottom' is auto selected by strand.
         labelhpos : str, optional
             Feature label horizontal position (`left`|`center`|`right`)
         labelha : str, optional
@@ -647,9 +648,9 @@ class FeatureTrack(Track):
             GFF object
         feature_type : str, optional
             Feature type (e.g. `CDS`,`gene`,`mRNA`,etc...)
-        exon_intron : bool, optional
+        parse_exon_intron : bool, optional
             If True, try to parse and add exon-intron structured feature
-            (Expected to be used when feature_type=`mRNA`|`ncRNA`)
+            (Expected to be used for eukaryote with feature_type=`mRNA`|`ncRNA`)
         label_type : str | None, optional
             Label type in attributes column (e.g. `ID`,`Name`,`product`,etc...)
         label_handle_func : Callable[[str], str] | None, optional
@@ -663,7 +664,9 @@ class FeatureTrack(Track):
         plotstyle : str, optional
             Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
         facecolor : str, optional
-            Feature facecolor
+            Feature facecolor.
+            If GFF attributes column has facecolor tag (e.g. `facecolor=red;`),
+            facecolor tag value is applied preferentially.
         edgecolor : str, optional
             Feature edgecolor
         linewidth : float, optional
@@ -672,6 +675,7 @@ class FeatureTrack(Track):
             Feature label rotation
         labelvpos : str, optional
             Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+            If 'strand' is set, 'top' or 'bottom' is auto selected by strand.
         labelhpos : str, optional
             Feature label horizontal position (`left`|`center`|`right`)
         labelha : str, optional
@@ -699,13 +703,13 @@ class FeatureTrack(Track):
             label = feature.qualifiers.get(label_type, [""])[0]
             if label_handle_func is not None:
                 label = label_handle_func(label)
-            # Make feature common property
+            # Create feature property dict
             feature_kws = dict(
                 label=label,
                 labelsize=labelsize,
                 labelcolor=labelcolor,
                 plotstyle=plotstyle,
-                facecolor=feature.qualifiers.get("color", [facecolor])[0],
+                facecolor=feature.qualifiers.get("facecolor", [facecolor])[0],
                 edgecolor=edgecolor,
                 linewidth=linewidth,
                 labelrotation=labelrotation,

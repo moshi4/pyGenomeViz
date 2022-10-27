@@ -15,7 +15,7 @@ from Bio.SeqRecord import SeqRecord
 
 
 class Genbank:
-    """Genbank Class"""
+    """Genbank Parser Class"""
 
     def __init__(
         self,
@@ -30,7 +30,7 @@ class Genbank:
         ----------
         gbk_source : str | Path | TextIOWrapper
             Genbank file or source
-            (`.gz`, `.bz2`, `.zip` format file is automatically uncompressed)
+            (`*.gz`, `*.bz2`, `*.zip` compressed file can be readable)
         name : str | None
             name (If None, `file name` or `record name` is set)
         reverse : bool, optional

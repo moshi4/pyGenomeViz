@@ -9,13 +9,13 @@ def test_gff_load_default(gff_file: Path):
     gff = Gff(gff_file)
     assert gff.name == "test"
     assert gff.min_range == 0
-    assert gff.max_range == 66854
-    assert gff.range_size == 66854
+    assert gff.max_range == 60942
+    assert gff.range_size == 60942
 
 
 def test_gff_load_user_params(gff_file: Path):
     """Test gff load user params"""
-    name, seqid, min_range, max_range = "user", "JX128258.1", 10000, 30000
+    name, seqid, min_range, max_range = "user", "NC_000902.1", 10000, 30000
     gff = Gff(
         gff_file,
         name=name,
@@ -50,7 +50,7 @@ def test_extract_features(gff_file: Path):
     """Test extract_features"""
     gff = Gff(gff_file)
     cds_features = gff.extract_features()
-    assert len(cds_features) == 94
+    assert len(cds_features) == 83
 
     no_features = gff.extract_features("no_data")
     assert len(no_features) == 0
@@ -58,9 +58,9 @@ def test_extract_features(gff_file: Path):
 
 def test_extract_features_restrict_range(gff_file: Path):
     """Test extract_features with restrict range"""
-    gff = Gff(gff_file, min_range=0, max_range=10000)
+    gff = Gff(gff_file, min_range=10000, max_range=30000)
     features = gff.extract_features()
-    assert len(features) == 22
+    assert len(features) == 28
 
 
 def test_parse_bzfile(gff_bzfile: Path):

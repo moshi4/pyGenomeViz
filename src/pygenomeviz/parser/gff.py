@@ -13,7 +13,7 @@ from Bio.SeqFeature import CompoundLocation, FeatureLocation, SeqFeature
 
 
 class Gff:
-    """GFF Class"""
+    """GFF Parser Class"""
 
     def __init__(
         self,
@@ -27,7 +27,7 @@ class Gff:
         Parameters
         ----------
         gff_file : str | Path
-            GFF file (`.gz`, `.bz2`, `.zip` compressed file can be readable)
+            GFF file (`*.gz`, `*.bz2`, `*.zip` compressed file can be readable)
         name : str | None, optional
             name (If None, `file name` is set)
         target_seqid : str | None, optional
@@ -39,10 +39,10 @@ class Gff:
         """
         self._gff_file = Path(gff_file)
         self._name = name
-        self._target_seqid = target_seqid
         self._records, start, end = self._parse_gff(gff_file, target_seqid)
         self.min_range = start if min_range is None else min_range
         self.max_range = end if max_range is None else max_range
+
         if not 0 <= self.min_range <= self.max_range:
             err_msg = "Range must be '0 <= min_range <= max_range' "
             err_msg += f"(min_range={self.min_range}, max_range={self.max_range})"
@@ -67,7 +67,7 @@ class Gff:
 
         Returns
         -------
-        tuple[list[GffRecord], int, int]
+        gff_records, start, end : tuple[list[GffRecord], int, int]
             GFF record list, start, end
         """
         gff_file = Path(gff_file)
@@ -104,7 +104,7 @@ class Gff:
 
         Returns
         -------
-        tuple[list[GffRecord], int, int]
+        gff_records, start, end : tuple[list[GffRecord], int, int]
             GFF record list, start, end
         """
         gff_all_lines = handle.read().splitlines()
@@ -118,12 +118,14 @@ class Gff:
         self._seqid_list = seqid_list
         if target_seqid is None:
             target_seqid = seqid_list[0]
+            self._target_seqid = target_seqid
         if target_seqid not in seqid_list:
             err_msg = f"Not found target_seqid='{target_seqid}' in '{self._gff_file}'"
             raise ValueError(err_msg)
         gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
 
         try:
+            # Try to get start-end region from '##sequence-region' annotation line
             target = f"##sequence-region\t{target_seqid}\t"
             region_line = [ln for ln in gff_all_lines if ln.startswith(target)][0]
             region_elms = region_line.split("\t")
@@ -149,9 +151,23 @@ class Gff:
         return self._records
 
     @property
+    def records_within_range(self) -> list[GffRecord]:
+        """GFF records within min-max range"""
+        target_gff_records: list[GffRecord] = []
+        for rec in self.records:
+            if rec.is_within_range(self.min_range, self.max_range):
+                target_gff_records.append(rec)
+        return target_gff_records
+
+    @property
     def range_size(self) -> int:
         """Range size (`max_range - min_range`)"""
         return self.max_range - self.min_range
+
+    @property
+    def target_seqid(self) -> str:
+        """Target seqid"""
+        return self._target_seqid
 
     @property
     def seqid_list(self) -> list[str]:
@@ -159,7 +175,7 @@ class Gff:
         return self._seqid_list
 
     def extract_features(self, feature_type: str = "CDS") -> list[SeqFeature]:
-        """Extract features
+        """Extract features within min-max range
 
         Parameters
         ----------
@@ -168,27 +184,25 @@ class Gff:
 
         Returns
         -------
-        list[SeqFeature]
+        features : list[SeqFeature]
             Feature list
         """
-        gff_records = [rec for rec in self._records if rec.type == feature_type]
         features: list[SeqFeature] = []
-        for rec in gff_records:
-            if not rec.is_within_range(self.min_range, self.max_range):
-                continue
-            feature = SeqFeature(
-                FeatureLocation(rec.start, rec.end, rec.strand),
-                type=rec.type,
-                strand=rec.strand,
-                id=rec.attrs.get("ID", [""])[0],
-                qualifiers=rec.attrs,
-            )
-            features.append(feature)
+        for rec in self.records_within_range:
+            if rec.type == feature_type:
+                feature = SeqFeature(
+                    FeatureLocation(rec.start, rec.end, rec.strand),
+                    type=rec.type,
+                    strand=rec.strand,
+                    id=rec.attrs.get("ID", [""])[0],
+                    qualifiers=rec.attrs,
+                )
+                features.append(feature)
 
         return features
 
     def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
-        """Extract exon structure features
+        """Extract exon structure features within min-max range
 
         Extract exons based on `parent feature` and `exon` ID-Parent relation
 
@@ -199,18 +213,18 @@ class Gff:
 
         Returns
         -------
-        list[SeqFeature]
+        features : list[SeqFeature]
             Feature list
         """
         # Extract exon features by mRNA-exon relation
         parent_id = None
         parent_id2record: dict[str, GffRecord] = {}
         parent_id2exons: dict[str, list[GffRecord]] = defaultdict(list)
-        for rec in self._records:
-            if not rec.is_within_range(self.min_range, self.max_range):
-                continue
+        for rec in self.records_within_range:
             if rec.type == feature_type:
-                parent_id = rec.attrs["ID"][0]
+                parent_id = rec.attrs.get("ID", [None])[0]
+                if parent_id is None:
+                    continue
                 parent_id2record[parent_id] = rec
             if rec.type == "exon":
                 if parent_id is not None and parent_id == rec.attrs["Parent"][0]:
@@ -248,6 +262,8 @@ class Gff:
 
 @dataclass
 class GffRecord:
+    """GFF Record DataClass"""
+
     seqid: str
     source: str
     type: str
@@ -255,7 +271,7 @@ class GffRecord:
     end: int
     score: float | None
     strand: int
-    frame: int | None
+    phase: int | None
     attrs: dict[str, list[str]]
 
     def is_within_range(self, min_range: int, max_range: int) -> bool:
@@ -270,7 +286,7 @@ class GffRecord:
 
         Returns
         -------
-        bool
+        check_result : bool
             Check result
         """
         if min_range <= self.start <= self.end <= max_range:
@@ -289,7 +305,7 @@ class GffRecord:
 
         Returns
         -------
-        bool
+        check_result : bool
             Check result
         """
         if line.startswith("#") or len(line.split("\t")) < 9:
@@ -308,7 +324,7 @@ class GffRecord:
 
         Returns
         -------
-        GffRecord
+        gff_record : GffRecord
             GFF record (0-based index)
         """
         gff_elms: list[Any] = gff_line.split("\t")[0:9]
@@ -329,7 +345,7 @@ class GffRecord:
         attr_dict: dict[str, list[str]] = {}
         attrs = str(gff_elms[8]).split(";")
         for attr in attrs:
-            if attr != "":
+            if attr != "" and "=" in attr:
                 key, value = attr.split("=")
                 attr_dict[key] = value.split(",")
         gff_elms[8] = attr_dict

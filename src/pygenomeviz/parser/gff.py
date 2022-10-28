@@ -33,9 +33,11 @@ class Gff:
         target_seqid : str | None, optional
             Target seqid to be extracted. If None, only first seqid record is extracted.
         min_range : int | None, optional
-            Min range to be extracted
+            Min range to be extracted.
+            If None, appropriate value is taken from GFF records.
         max_range : int | None, optional
-            Max range to be extracted
+            Max range to be extracted.
+            If None, appropriate value is taken from GFF records.
         """
         self._gff_file = Path(gff_file)
         self._name = name
@@ -190,15 +192,7 @@ class Gff:
         features: list[SeqFeature] = []
         for rec in self.records_within_range:
             if rec.type == feature_type:
-                feature = SeqFeature(
-                    FeatureLocation(rec.start, rec.end, rec.strand),
-                    type=rec.type,
-                    strand=rec.strand,
-                    id=rec.attrs.get("ID", [""])[0],
-                    qualifiers=rec.attrs,
-                )
-                features.append(feature)
-
+                features.append(rec.to_seq_feature())
         return features
 
     def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
@@ -235,19 +229,20 @@ class Gff:
         for parent_id in parent_id2record.keys():
             parent_record = parent_id2record[parent_id]
             exons = parent_id2exons[parent_id]
-            feature_kws = dict(
-                type=feature_type,
-                strand=parent_record.strand,
-                id=parent_record.attrs.get("ID", [""])[0],
-                qualifiers=parent_record.attrs,
-            )
+
+            parent_feature = parent_record.to_seq_feature()
             if len(exons) == 1:
-                loc = FeatureLocation(exons[0].start, exons[0].end, exons[0].strand)
-                exon_feature = SeqFeature(loc, **feature_kws)
+                exon_feature = parent_feature
             elif len(exons) >= 2:
                 exons = sorted(exons, key=lambda e: e.start)
-                locs = [FeatureLocation(e.start, e.end, e.strand) for e in exons]
-                exon_feature = SeqFeature(CompoundLocation(locs), **feature_kws)
+                locs = [e.to_feature_location() for e in exons]
+                exon_feature = SeqFeature(
+                    location=CompoundLocation(locs),
+                    type=parent_feature.type,
+                    strand=parent_feature.strand,
+                    id=parent_feature.id,
+                    qualifiers=parent_feature.qualifiers,
+                )
             else:
                 # If no exon exists, skip feature extraction
                 continue
@@ -293,6 +288,26 @@ class GffRecord:
             return True
         else:
             return False
+
+    def to_seq_feature(self) -> SeqFeature:
+        """Convert GffRecord to SeqFeature"""
+        return SeqFeature(
+            location=self.to_feature_location(),
+            type=self.type,
+            strand=self.strand,
+            id=self.attrs.get("ID", [""])[0],
+            qualifiers=self.attrs,
+        )
+
+    def to_feature_location(self) -> FeatureLocation:
+        """Convert GffRecord to FeatureLocation
+
+        Returns
+        -------
+        feature_location : FeatureLocation
+            Feature location
+        """
+        return FeatureLocation(self.start, self.end, self.strand)
 
     @staticmethod
     def is_gff_record_line(line: str) -> bool:

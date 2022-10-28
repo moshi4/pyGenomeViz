@@ -223,9 +223,9 @@ class Genbank:
         feature_type: str = "CDS",
         target_strand: int | None = None,
         fix_position: bool = False,
-        allow_partial: bool = True,
+        allow_partial: bool = False,
     ) -> list[SeqFeature]:
-        """Extract features
+        """Extract features within min-max range
 
         Parameters
         ----------

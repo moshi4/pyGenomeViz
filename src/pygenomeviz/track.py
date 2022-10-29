@@ -94,8 +94,7 @@ class Track:
         -------
         ax : Axes
             Track matplotlib axes object
-            - xlim = `(0, gv.max_track_size)`
-            - ylim = `(-1, 1)`
+            (Default: xlim=`(0, gv.max_track_size)`, ylim=`(-1, 1)`)
         """
         if self._ax is None:
             err_msg = "Can't access ax property before calling 'plotfig' method."
@@ -287,7 +286,7 @@ class FeatureTrack(Track):
         color: str = "black",
         position: str = "bottom-left",
         ymargin: float = 0.2,
-        sublabel_kws: dict[str, Any] = {},
+        sublabel_kws: dict[str, Any] | None = None,
     ) -> None:
         """Set sublabel to feature track
 
@@ -303,17 +302,17 @@ class FeatureTrack(Track):
             Sublabel position (`[top|bottom]-[left|center|right]`)
         ymargin : float, optional
             Sublabel y-margin
-        sublabel_kws: dict[str, Any], optional
+        sublabel_kws: dict[str, Any] | None, optional
             Optional keyword arguments to pass to Axes.text method for sublabel.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html)
         """
         # Sublabel text setting (e.g. '0 - 1000 bp')
         default_text = f"{self.start} - {self.end} bp"
         self._sublabel_text = default_text if text is None else text
         self._sublabel_size = size
         self._sublabel_color = color
-        self._sublabel_kws = sublabel_kws
+        self._sublabel_kws = {} if sublabel_kws is None else sublabel_kws
         # Sublabel position setting
         vpos, hpos = position.split("-")
         vpos_types, hpos_types = ("top", "bottom"), ("left", "center", "right")
@@ -386,8 +385,8 @@ class FeatureTrack(Track):
             Feature size ratio to track
         patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to feature Patch object.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
         """
         # Check if start & end positions are within appropriate track range
         self._within_valid_range(start, end, raise_error_on_false=True)
@@ -476,12 +475,12 @@ class FeatureTrack(Track):
         exon_label_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to Axes.text method for exon label.
             Use this option when plotting both Feature & Exon labels.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html)
         patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to exon feature Patch object.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
         intron_patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to intron feature Patch object.
         """
@@ -534,7 +533,7 @@ class FeatureTrack(Track):
         arrow_shaft_ratio: float = 0.5,
         size_ratio: float = 1.0,
         patch_kws: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         """Add features from genbank record
 
         Parameters
@@ -582,11 +581,12 @@ class FeatureTrack(Track):
             Feature size ratio to track
         patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to feature Patch object.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
         """
         target_features = gbk.extract_features(feature_type, None, False, allow_partial)
         for feature in target_features:
+            # Check if start & end positions are within appropriate track range
             start = int(str(feature.location.start))
             end = int(str(feature.location.end))
             self._within_valid_range(start, end, raise_error_on_false=True)
@@ -645,7 +645,7 @@ class FeatureTrack(Track):
         size_ratio: float = 1.0,
         patch_kws: dict[str, Any] | None = None,
         intron_patch_kws: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         """Add features from GFF record
 
         Parameters
@@ -694,8 +694,8 @@ class FeatureTrack(Track):
             Feature size ratio to track
         patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to feature Patch object.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
         intron_patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to intron feature Patch object.
         """

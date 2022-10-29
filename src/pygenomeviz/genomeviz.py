@@ -45,7 +45,7 @@ class GenomeVizBase(metaclass=ABCMeta):
             Figure track height
             (Figure height = `track number` * `fig track height`)
         align_type : str, optional
-            Track align type (`left`|`center`|`height`)
+            Track align type (`left`|`center`|`right`)
         feature_track_ratio : float, optional
             Feature track ratio
         link_track_ratio : float, optional
@@ -210,7 +210,7 @@ class GenomeVizBase(metaclass=ABCMeta):
 
         Returns
         -------
-        list[FeatureTrack]
+        feature_tracks : list[FeatureTrack]
             Feature track list
         """
         return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
@@ -461,7 +461,7 @@ class GenomeViz(GenomeVizBase):
         size_ratio: float = 1.0,
         patch_kws: dict[str, Any] | None = None,
     ) -> None:
-        """Add link data to link track
+        """Add link data to link track between adjacent feature tracks
 
         Parameters
         ----------
@@ -487,8 +487,8 @@ class GenomeViz(GenomeVizBase):
             Link size ratio to track
         patch_kws : dict[str, Any] | None, optional
             Optional keyword arguments to pass to link Patch object.
-            See https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
-            for detailed parameters.
+            See matplotlib API document for detailed parameters
+            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         tracks = [t.name for t in self.get_tracks()]
@@ -656,7 +656,11 @@ class GenomeViz(GenomeVizBase):
 
         return figure
 
-    def savefig_html(self, html_outfile: str | Path, fig: Figure | None = None):
+    def savefig_html(
+        self,
+        html_outfile: str | Path,
+        fig: Figure | None = None,
+    ) -> None:
         """Save figure in html format
 
         Parameters

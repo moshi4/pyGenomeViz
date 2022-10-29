@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from typing import Any, Callable
 
+from Bio.SeqFeature import SeqFeature
 from matplotlib.axes import Axes
 from typing_extensions import Literal
 
@@ -523,6 +524,7 @@ class FeatureTrack(Track):
         labelcolor: str = "black",
         plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
         facecolor: str = "orange",
+        facecolor_handle_func: Callable[[SeqFeature], str] | None = None,
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 45,
@@ -544,7 +546,7 @@ class FeatureTrack(Track):
         label_type : str | None, optional
             Label type (e.g. `gene`,`protein_id`,`product`,etc...)
         label_handle_func : Callable[[str], str] | None, optional
-            Labels are handled by user defined function.
+            User defined function to handle label.
             Useful for filtering out unnecesary labels such as `hypothetical ~~~`,
             omitting labels with long characters, etc.
         allow_partial : bool, optional
@@ -556,7 +558,11 @@ class FeatureTrack(Track):
         plotstyle : str, optional
             Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
         facecolor : str, optional
-            Feature facecolor
+            Feature facecolor.
+            If Genbank qualifiers has facecolor key (e.g. `/facecolor="red"`),
+            facecolor key value is applied preferentially.
+        facecolor_handle_func : Callable[[SeqFeature], str] | None, optional
+            User defined function to handle feature facecolor.
         edgecolor : str, optional
             Feature edgecolor
         linewidth : float, optional
@@ -583,23 +589,22 @@ class FeatureTrack(Track):
         for feature in target_features:
             start = int(str(feature.location.start))
             end = int(str(feature.location.end))
-            strand = feature.strand
-
-            # Check if start & end positions are within appropriate track range
             self._within_valid_range(start, end, raise_error_on_false=True)
 
-            if label_type is None:
-                label = ""
-            else:
-                label = feature.qualifiers.get(label_type, [""])[0]
-                if label_handle_func is not None:
-                    label = label_handle_func(label)
+            # Get label value & apply handle func if exists
+            label = feature.qualifiers.get(label_type, [""])[0]
+            if label_handle_func is not None:
+                label = label_handle_func(label)
+            # Get facecolor & apply handle func if exists
+            facecolor = feature.qualifiers.get("facecolor", [facecolor])[0]
+            if facecolor_handle_func is not None:
+                facecolor = facecolor_handle_func(feature)
 
             self.features.append(
                 Feature(
                     start,
                     end,
-                    strand,
+                    feature.strand,
                     label,
                     labelsize,
                     labelcolor,
@@ -629,6 +634,7 @@ class FeatureTrack(Track):
         labelcolor: str = "black",
         plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
         facecolor: str = "orange",
+        facecolor_handle_func: Callable[[SeqFeature], str] | None = None,
         edgecolor: str = "black",
         linewidth: float = 0,
         labelrotation: int = 45,
@@ -654,7 +660,7 @@ class FeatureTrack(Track):
         label_type : str | None, optional
             Label type in attributes column (e.g. `ID`,`Name`,`product`,etc...)
         label_handle_func : Callable[[str], str] | None, optional
-            Labels are handled by user defined function.
+            User defined function to handle label.
             Useful for filtering out unnecesary labels such as `hypothetical ~~~`,
             omitting labels with long characters, etc.
         labelsize : int, optional
@@ -667,6 +673,8 @@ class FeatureTrack(Track):
             Feature facecolor.
             If GFF attributes column has facecolor tag (e.g. `facecolor=red;`),
             facecolor tag value is applied preferentially.
+        facecolor_handle_func : Callable[[SeqFeature], str] | None, optional
+            User defined function to handle feature facecolor.
         edgecolor : str, optional
             Feature edgecolor
         linewidth : float, optional
@@ -699,17 +707,22 @@ class FeatureTrack(Track):
 
         # Add features in track
         for feature in features:
-            # Get label
+            # Get label value & apply handle func if exists
             label = feature.qualifiers.get(label_type, [""])[0]
             if label_handle_func is not None:
                 label = label_handle_func(label)
-            # Create feature property dict
+            # Get facecolor & apply handle func if exists
+            facecolor = feature.qualifiers.get("facecolor", [facecolor])[0]
+            if facecolor_handle_func is not None:
+                facecolor = facecolor_handle_func(feature)
+            # Create feature plot property dict
             feature_kws = dict(
+                strand=feature.strand,
                 label=label,
                 labelsize=labelsize,
                 labelcolor=labelcolor,
                 plotstyle=plotstyle,
-                facecolor=feature.qualifiers.get("facecolor", [facecolor])[0],
+                facecolor=facecolor,
                 edgecolor=edgecolor,
                 linewidth=linewidth,
                 labelrotation=labelrotation,
@@ -724,30 +737,20 @@ class FeatureTrack(Track):
 
             if parse_exon_intron:
                 # Extract exon regions
-                exon_regions = []
+                exon_regions: list[tuple[int, int]] = []
                 for loc in feature.location.parts:
                     start, end = int(str(loc.start)), int(str(loc.end))
                     self._within_valid_range(start, end, raise_error_on_false=True)
                     exon_regions.append((start, end))
                 # Add exon feature
                 feature_kws["intron_patch_kws"] = intron_patch_kws
-                self.features.append(
-                    ExonFeature(
-                        exon_regions,
-                        feature.strand,
-                        **feature_kws,
-                    ),
-                )
+                self.features.append(ExonFeature(exon_regions, **feature_kws))
             else:
+                start = int(str(feature.location.start))
+                end = int(str(feature.location.end))
+                self._within_valid_range(start, end, raise_error_on_false=True)
                 # Add feature
-                self.features.append(
-                    Feature(
-                        int(str(feature.location.start)),
-                        int(str(feature.location.end)),
-                        feature.strand,
-                        **feature_kws,
-                    ),
-                )
+                self.features.append(Feature(start, end, **feature_kws))
 
     def __str__(self):
         return f"{self.name}:{self.start}-{self.end}"

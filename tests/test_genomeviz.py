@@ -2,7 +2,7 @@ import random
 from pathlib import Path
 
 import pytest
-from pygenomeviz import Genbank, GenomeViz, load_dataset
+from pygenomeviz import Genbank, GenomeViz, Gff, load_dataset
 
 random.seed(0)
 
@@ -197,6 +197,23 @@ def test_add_exon_feature(tmp_path: Path):
     fig_outfile = tmp_path / "exon_feature.svg"
     gv.savefig(fig_outfile)
     assert fig_outfile.exists()
+
+
+def test_gff_genomeviz(gff_file: Path, tmp_path: Path):
+    """Test add_gff_features"""
+    gff = Gff(gff_file)
+
+    gv = GenomeViz()
+    track = gv.add_feature_track(gff.name, gff.range_size)
+    track.add_gff_features(gff)
+
+    fig_pngfile = tmp_path / "gff_feature.png"
+    gv.savefig(fig_pngfile)
+    assert fig_pngfile.exists()
+
+    fig_htmlfile = fig_pngfile.with_suffix(".html")
+    gv.savefig_html(fig_htmlfile)
+    assert fig_htmlfile.exists()
 
 
 def test_get_track_error():

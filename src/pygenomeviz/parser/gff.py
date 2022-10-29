@@ -130,12 +130,8 @@ class Gff:
         start, end = None, None
         for line in gff_all_lines:
             if line.startswith("##sequence-region") and target_seqid in line:
-                if len(line.split("\t")) == 4:
-                    start, end = line.split("\t")[2:4]
-                    start, end = int(start) - 1, int(end)
-                    break
-                elif len(line.split(" ")) == 4:
-                    start, end = line.split(" ")[2:4]
+                if len(line.split()) == 4:
+                    start, end = line.split()[2:4]
                     start, end = int(start) - 1, int(end)
                     break
         if start is None or end is None:

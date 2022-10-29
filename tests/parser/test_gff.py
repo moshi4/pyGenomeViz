@@ -2,6 +2,11 @@ from pathlib import Path
 
 import pytest
 from pygenomeviz import Gff
+from pygenomeviz.parser.gff import GffRecord
+
+###########################################################
+# Test Gff
+###########################################################
 
 
 def test_gff_load_default(gff_file: Path):
@@ -28,6 +33,57 @@ def test_gff_load_user_params(gff_file: Path):
     assert gff.max_range == max_range
     assert gff.range_size == max_range - min_range
     assert seqid == gff.seqid_list[0]
+
+
+def _write_test_gff_file(
+    test_gff_file: Path, delimiter: str = " ", annotation: bool = True
+):
+    gff_lines = (
+        delimiter.join(("##sequence-region", "seqid1", "101", "1000")),
+        "seqid1\tsource\tCDS\t501\t800\t.\t+\t.\tID=test1",
+        delimiter.join(("##sequence-region", "seqid2", "201", "2000")),
+        "seqid2\tsource\tCDS\t1001\t1300\t.\t+\t.\tID=test2",
+        "seqid2\tsource\tCDS\t1401\t1820\t.\t+\t.\tID=test2",
+    )
+    if not annotation:
+        gff_lines = [ln for ln in gff_lines if not ln.startswith("#")]
+    with open(test_gff_file, "w") as f:
+        f.write("\n".join(gff_lines))
+
+
+def test_sequence_region_extract(tmp_path: Path):
+    """Test sequence region extraction"""
+    # Case1. Available sequence-region annotation line (delimiter: ' ' or '\t')
+    gff_tmp_file = tmp_path / "test.gff"
+    for delimiter in (" ", "\t"):
+        _write_test_gff_file(gff_tmp_file, delimiter)
+        gff = Gff(gff_tmp_file)
+        assert gff.min_range == 100 and gff.max_range == 1000
+        gff = Gff(gff_tmp_file, target_seqid="seqid2")
+        assert gff.min_range == 200 and gff.max_range == 2000
+
+    # Case2. Not available sequence-region annotation line
+    _write_test_gff_file(gff_tmp_file, annotation=False)
+    gff = Gff(gff_tmp_file)
+    assert gff.min_range == 0 and gff.max_range == 800
+    gff = Gff(gff_tmp_file, target_seqid="seqid2")
+    assert gff.min_range == 0 and gff.max_range == 1820
+
+
+def test_seqid_extract(tmp_path: Path):
+    """Test seqid extraction"""
+    gff_tmp_file = tmp_path / "test.gff"
+    _write_test_gff_file(gff_tmp_file)
+
+    # Case1. No specify target_seqid
+    gff = Gff(gff_tmp_file)
+    assert gff.target_seqid == "seqid1"
+    assert gff.seqid_list == ["seqid1", "seqid2"]
+
+    # Case2. Specify target_seqid
+    gff = Gff(gff_tmp_file, target_seqid="seqid2")
+    assert gff.target_seqid == "seqid2"
+    assert gff.seqid_list == ["seqid1", "seqid2"]
 
 
 def test_gff_load_seqid_exist_error(gff_file: Path):
@@ -79,3 +135,51 @@ def test_parse_zipfile(gff_zipfile: Path):
     """Test parse GFF file (zip compressed)"""
     gff = Gff(gff_zipfile)
     assert gff.name == "test"
+
+
+###########################################################
+# Test GffRecord
+###########################################################
+
+
+def test_to_gff_line():
+    """Test GffRecord to_gff_line"""
+    # Case1. score=None, strand=1, phase=None, attrs='ID=test'
+    gff_record = GffRecord("1", "ncbi", "CDS", 10, 20, None, 1, None, {"ID": ["test"]})
+    expected_gff_line = "1\tncbi\tCDS\t11\t20\t.\t+\t.\tID=test"
+    assert gff_record.to_gff_line() == expected_gff_line
+
+    # Case2. score=1e-10, strand=-1, phase=10, attrs='ID=test;Dbxref=ref1,ref2'
+    attrs = {"ID": ["test"], "Dbxref": ["ref1", "ref2"]}
+    gff_record = GffRecord("2", "ncbi", "mRNA", 20, 30, 1e-10, -1, 10, attrs)
+    expected_gff_line = "2\tncbi\tmRNA\t21\t30\t1e-10\t-\t10\tID=test;Dbxref=ref1,ref2"
+    assert gff_record.to_gff_line() == expected_gff_line
+
+
+def test_parse_gff_line():
+    """Test GffRecord parse_gff_line"""
+    # Case1. score='.', strand='+', phase='.', attrs='ID=test'
+    gff_line = "1\tncbi\tCDS\t11\t20\t.\t+\t.\tID=test"
+    gff_record = GffRecord.parse_gff_line(gff_line)
+    expected_gff_record = GffRecord(
+        "1", "ncbi", "CDS", 10, 20, None, 1, None, {"ID": ["test"]}
+    )
+    assert gff_record == expected_gff_record
+
+    # Case2. score=1e-10, strand='-', phase=10, attrs='ID=test;Dbxref=ref1,ref2'
+    gff_line = "2\tncbi\tmRNA\t21\t30\t1e-10\t-\t10\tID=test;Dbxref=ref1,ref2"
+    gff_record = GffRecord.parse_gff_line(gff_line)
+    attrs = {"ID": ["test"], "Dbxref": ["ref1", "ref2"]}
+    expected_gff_record = GffRecord("2", "ncbi", "mRNA", 20, 30, 1e-10, -1, 10, attrs)
+    assert gff_record == expected_gff_record
+
+
+def test_parse_and_to_gff_line():
+    """Test `parse_gff_line` and `to_gff_line` results are compatible"""
+    gff_line = "1\tncbi\tCDS\t11\t20\t.\t+\t.\tID=test"
+    gff_record = GffRecord.parse_gff_line(gff_line)
+    assert gff_line == gff_record.to_gff_line()
+
+    gff_line = "2\tncbi\tmRNA\t21\t30\t1e-10\t-\t10\tID=test;Dbxref=ref1,ref2"
+    gff_record = GffRecord.parse_gff_line(gff_line)
+    assert gff_line == gff_record.to_gff_line()

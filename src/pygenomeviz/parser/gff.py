@@ -120,7 +120,7 @@ class Gff:
         self._seqid_list = seqid_list
         if target_seqid is None:
             target_seqid = seqid_list[0]
-            self._target_seqid = target_seqid
+        self._target_seqid = target_seqid
         if target_seqid not in seqid_list:
             err_msg = f"Not found target_seqid='{target_seqid}' in '{self._gff_file}'"
             raise ValueError(err_msg)

@@ -110,8 +110,8 @@ class Gff:
             GFF record list, start, end
         """
         gff_all_lines = handle.read().splitlines()
-        gff_record_lines = filter(GffRecord.is_gff_record_line, gff_all_lines)
-        gff_records = list(map(GffRecord.parse_line, gff_record_lines))
+        gff_record_lines = filter(GffRecord.is_gff_line, gff_all_lines)
+        gff_records = list(map(GffRecord.parse_gff_line, gff_record_lines))
         if len(gff_records) == 0:
             err_msg = f"Failed to parse '{self._gff_file}' as GFF file "
             raise ValueError(err_msg)
@@ -338,7 +338,7 @@ class GffRecord:
         )
 
     @staticmethod
-    def is_gff_record_line(line: str) -> bool:
+    def is_gff_line(line: str) -> bool:
         """Check GFF record line or not
 
         Parameters
@@ -357,18 +357,18 @@ class GffRecord:
             return True
 
     @staticmethod
-    def parse_line(gff_line: str) -> GffRecord:
+    def parse_gff_line(gff_line: str) -> GffRecord:
         """Parse GFF record line
 
         Parameters
         ----------
         gff_line : str
-            GFF record line
+            GFF record line (1-based coordinates)
 
         Returns
         -------
         gff_record : GffRecord
-            GFF record (0-based index)
+            GFF record (0-based coordinates)
         """
         gff_elms: list[Any] = gff_line.split("\t")[0:9]
         # start, end

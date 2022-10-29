@@ -315,6 +315,28 @@ class GffRecord:
         """
         return FeatureLocation(self.start, self.end, self.strand)
 
+    def to_gff_line(self) -> str:
+        """Convert GffRecord to GFF record line
+
+        Returns
+        -------
+        gff_line : str
+            GFF record line (1-based coordinates)
+        """
+        return "\t".join(
+            (
+                self.seqid,
+                self.source,
+                self.type,
+                str(self.start + 1),
+                str(self.end),
+                "." if self.score is None else str(self.score),
+                "-" if self.strand == -1 else "+",
+                "." if self.phase is None else str(self.phase),
+                ";".join([f"{k}={','.join(v)}" for k, v in self.attrs.items()]),
+            )
+        )
+
     @staticmethod
     def is_gff_record_line(line: str) -> bool:
         """Check GFF record line or not

@@ -126,13 +126,19 @@ class Gff:
             raise ValueError(err_msg)
         gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
 
-        try:
-            # Try to get start-end region from '##sequence-region' annotation line
-            target = f"##sequence-region\t{target_seqid}\t"
-            region_line = [ln for ln in gff_all_lines if ln.startswith(target)][0]
-            region_elms = region_line.split("\t")
-            start, end = int(region_elms[2]) - 1, int(region_elms[3])
-        except Exception:
+        # Try to get start-end region from '##sequence-region' annotation line
+        start, end = None, None
+        for line in gff_all_lines:
+            if line.startswith("##sequence-region") and target_seqid in line:
+                if len(line.split("\t")) == 4:
+                    start, end = line.split("\t")[2:4]
+                    start, end = int(start) - 1, int(end)
+                    break
+                elif len(line.split(" ")) == 4:
+                    start, end = line.split(" ")[2:4]
+                    start, end = int(start) - 1, int(end)
+                    break
+        if start is None or end is None:
             start, end = 0, max([r.end for r in gff_records])
 
         return gff_records, start, end

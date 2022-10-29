@@ -44,6 +44,7 @@ class Gff:
         self._records, start, end = self._parse_gff(gff_file, target_seqid)
         self.min_range = start if min_range is None else min_range
         self.max_range = end if max_range is None else max_range
+        self._seq_region = (start, end)
 
         if not 0 <= self.min_range <= self.max_range:
             err_msg = "Range must be '0 <= min_range <= max_range' "
@@ -148,6 +149,14 @@ class Gff:
             return self._gff_file.with_suffix("").with_suffix("").name
         else:
             return self._gff_file.with_suffix("").name
+
+    @property
+    def seq_region(self) -> tuple[int, int]:
+        """GFF sequence-region start & end tuple
+
+        If `##sequence-region` pragma is not found, seq_region=`(0, max_coords_value)`
+        """
+        return self._seq_region
 
     @property
     def records(self) -> list[GffRecord]:

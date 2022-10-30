@@ -197,14 +197,13 @@ def run(
     contain_inverted_align = any([ac.is_inverted for ac in align_coords])
     if contain_inverted_align:
         bar_colors.append(inverted_link_color)
-    if colorbar_height != 0 and colorbar_width != 0:
-        gv.set_colorbar(
-            fig,
-            bar_colors,
-            vmin=min_identity,
-            bar_height=colorbar_height,
-            bar_width=colorbar_width,
-        )
+    gv.set_colorbar(
+        fig,
+        bar_colors,
+        vmin=min_identity,
+        bar_height=colorbar_height,
+        bar_width=colorbar_width,
+    )
 
     # Save figure
     for fmt in format:

@@ -58,6 +58,8 @@ After pip installation, download MMseqs binary from [release page](https://githu
       --arrow_shaft_ratio          Feature arrow shaft ratio (Default: 0.5)
       --feature_color              Feature color (Default: 'orange')
       --feature_linewidth          Feature edge line width (Default: 0.0)
+      --colorbar_width             Colorbar width (Default: 0.01)
+      --colorbar_height            Colorbar height (Default: 0.2)
       --curve                      Plot curved style link (Default: OFF)
       --dpi                        Figure DPI (Default: 300)
 

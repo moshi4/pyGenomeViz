@@ -58,7 +58,7 @@ Download four *Enterobacteria phage* genbank files
 
 ### Example 2
 
-Download four *Enterobacteria phage* genbank files
+Download six *Enterobacteria phage* genbank files
 
     pgv-download-dataset -n enterobacteria_phage
 

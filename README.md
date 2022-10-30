@@ -21,7 +21,7 @@
 pyGenomeViz is a genome visualization python package for comparative genomics implemented based on matplotlib.
 This package is developed for the purpose of easily and beautifully plotting genomic
 features and sequence similarity comparison links between multiple genomes.
-It supports genome visualization of Genbank format file from both API & CLI, and can be saved figure in various formats (JPG/PNG/SVG/PDF/HTML).
+It supports genome visualization of Genbank/GFF format file and can be saved figure in various formats (JPG/PNG/SVG/PDF/HTML).
 User can use pyGenomeViz for interactive genome visualization figure plotting on jupyter notebook,
 or automatic genome visualization figure plotting in genome analysis scripts/pipelines.
 
@@ -130,7 +130,7 @@ gv.savefig("example03.png")
 
 ### Practical Example
 
-#### Single Track from Genbank file
+#### Add Features from Genbank file
 
 ```python
 from pygenomeviz import Genbank, GenomeViz, load_dataset
@@ -139,13 +139,31 @@ gbk_files, _ = load_dataset("enterobacteria_phage")
 gbk = Genbank(gbk_files[0])
 
 gv = GenomeViz()
-track = gv.add_feature_track(gbk.name, gbk.genome_length)
+track = gv.add_feature_track(gbk.name, gbk.range_size)
 track.add_genbank_features(gbk)
 
 gv.savefig("example04.png")
 ```
 
 ![example04.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example04.png)
+
+#### Add Features from GFF file
+
+```python
+from pygenomeviz import Gff, GenomeViz, load_example_gff
+
+gff_file = load_example_gff("enterobacteria_phage.gff")
+gff = Gff(gff_file, min_range=5000, max_range=25000)
+
+gv = GenomeViz(fig_track_height=0.7, tick_track_ratio=0.5, tick_style="bar")
+track = gv.add_feature_track(gff.name, size=gff.range_size, start_pos=gff.min_range)
+track.add_gff_features(gff, plotstyle="arrow", facecolor="tomato")
+track.set_sublabel()
+
+gv.savefig("example05.png")
+```
+
+![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)
 
 #### Multiple Tracks & Links from Genbank files
 
@@ -163,7 +181,7 @@ gv = GenomeViz(
 gbk_files, links = load_dataset("escherichia_phage")
 for gbk_file in gbk_files:
     gbk = Genbank(gbk_file)
-    track = gv.add_feature_track(gbk.name, gbk.genome_length)
+    track = gv.add_feature_track(gbk.name, gbk.range_size)
     track.add_genbank_features(gbk, facecolor="limegreen", linewidth=0.5, arrow_shaft_ratio=1.0)
 
 for link in links:
@@ -171,10 +189,10 @@ for link in links:
     link_data2 = (link.query_name, link.query_start, link.query_end)
     gv.add_link(link_data1, link_data2, v=link.identity, curve=True)
 
-gv.savefig("example05.png")
+gv.savefig("example06.png")
 ```
 
-![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)
+![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)
 
 ### Customization Tips
 
@@ -205,7 +223,7 @@ gv = GenomeViz(
 gbk_files, links = load_dataset("erwinia_phage")
 gbk_list = [Genbank(gbk_file) for gbk_file in gbk_files]
 for gbk in gbk_list:
-    track = gv.add_feature_track(gbk.name, gbk.genome_length, labelsize=15)
+    track = gv.add_feature_track(gbk.name, gbk.range_size, labelsize=15)
     track.add_genbank_features(gbk, plotstyle="arrow")
 
 min_identity = int(min(link.identity for link in links))
@@ -215,8 +233,8 @@ for link in links:
     gv.add_link(link_data1, link_data2, v=link.identity, vmin=min_identity)
 
 # Add subtracks to top track for plotting 'GC content' & 'GC skew'
-gv.top_track.add_subtrack(ratio=0.7)
-gv.top_track.add_subtrack(ratio=0.7)
+gv.top_track.add_subtrack(ratio=0.7, name="gc_content")
+gv.top_track.add_subtrack(ratio=0.7, name="gc_skew")
 
 fig = gv.plotfig()
 
@@ -232,31 +250,31 @@ x, y = (start, start, end, end), (1, -1, -1, 1)
 top_track.ax.fill(x, y, fc="lime", linewidth=0, alpha=0.1, zorder=-10)
 
 # Plot GC content for top track
-gc_content_ax = gv.top_track.subtracks[0].ax
 pos_list, gc_content_list = gbk_list[0].calc_gc_content()
-gc_content_ax.set_ylim(bottom=0, top=max(gc_content_list))
 pos_list += gv.top_track.offset  # Offset is required if align_type is not 'left'
+gc_content_ax = gv.top_track.subtracks[0].ax
+gc_content_ax.set_ylim(bottom=0, top=max(gc_content_list))
 gc_content_ax.fill_between(pos_list, gc_content_list, alpha=0.2, color="blue")
 gc_content_ax.text(gv.top_track.offset, max(gc_content_list) / 2, "GC(%) ", ha="right", va="center", color="blue")
 
 # Plot GC skew for top track
-gc_skew_ax = gv.top_track.subtracks[1].ax
 pos_list, gc_skew_list = gbk_list[0].calc_gc_skew()
-gc_skew_abs_max = max(abs(gc_skew_list))
-gc_skew_ax.set_ylim(bottom=-gc_skew_abs_max, top=gc_skew_abs_max)
 pos_list += gv.top_track.offset  # Offset is required if align_type is not 'left'
+gc_skew_abs_max = max(abs(gc_skew_list))
+gc_skew_ax = gv.top_track.subtracks[1].ax
+gc_skew_ax.set_ylim(bottom=-gc_skew_abs_max, top=gc_skew_abs_max)
 gc_skew_ax.fill_between(pos_list, gc_skew_list, alpha=0.2, color="red")
 gc_skew_ax.text(gv.top_track.offset, 0, "GC skew ", ha="right", va="center", color="red")
 
 # Set coloarbar for link
 gv.set_colorbar(fig, vmin=min_identity)
 
-fig.savefig("example06.png")
+fig.savefig("example07.png")
 ```
 
 </details>
 
-![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)
+![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)
 
 #### Customization Tips 02
 
@@ -285,7 +303,7 @@ gv = GenomeViz(
 gbk_files, links = load_dataset("enterobacteria_phage")
 for idx, gbk_file in enumerate(gbk_files):
     gbk = Genbank(gbk_file)
-    track = gv.add_feature_track(gbk.name, gbk.genome_length, labelsize=10)
+    track = gv.add_feature_track(gbk.name, gbk.range_size, labelsize=10)
     track.add_genbank_features(
         gbk,
         label_type="product" if idx == 0 else None,  # Labeling only top track
@@ -316,12 +334,12 @@ fig.legend(handles=handles, bbox_to_anchor=(1, 1))
 # Set colorbar for link
 gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmin=min_identity, bar_label="Identity", bar_labelsize=10)
 
-fig.savefig("example07.png")
+fig.savefig("example08.png")
 ```
 
 </details>
 
-![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)
+![example08.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example08.png)
 
 ## CLI Examples
 

@@ -1,3 +1,3 @@
 # Genbank Class
 
-::: pygenomeviz.genbank
+::: pygenomeviz.parser.genbank.Genbank

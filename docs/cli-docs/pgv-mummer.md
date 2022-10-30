@@ -42,6 +42,7 @@ In Ubuntu, MUMmer can be installed with apt command below.
       --seqtype                    MUMmer alignment sequence type ('protein'[*]|'nucleotide')
       --min_length                 Min-length threshold to be plotted (Default: 0)
       --min_identity               Min-identity threshold to be plotted (Default: 0)
+      -t , --thread_num            Threads number parameter (Default: MaxThread - 1)
 
     Figure Appearence Options:
       --fig_width                  Figure width (Default: 15)
@@ -59,6 +60,8 @@ In Ubuntu, MUMmer can be installed with apt command below.
       --arrow_shaft_ratio          Feature arrow shaft ratio (Default: 0.5)
       --feature_color              Feature color (Default: 'orange')
       --feature_linewidth          Feature edge line width (Default: 0.0)
+      --colorbar_width             Colorbar width (Default: 0.01)
+      --colorbar_height            Colorbar height (Default: 0.2)
       --curve                      Plot curved style link (Default: OFF)
       --dpi                        Figure DPI (Default: 300)
 

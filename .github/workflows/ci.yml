@@ -27,7 +27,7 @@ jobs:
       - name: Install dependent tools for CLI workflow
         run: |
           sudo apt update -y
-          sudo apt install -y mummer mmseqs2 progressivemauve
+          sudo apt install -y mummer mmseqs2 progressivemauve gawk libsigsegv2
         if: ${{ matrix.os=='ubuntu-latest'}}
 
       - name: Install Poetry

@@ -224,6 +224,7 @@ class Genbank:
         target_strand: int | None = None,
         fix_position: bool = False,
         allow_partial: bool = False,
+        pseudogene: bool = False,
     ) -> list[SeqFeature]:
         """Extract features within min-max range
 
@@ -237,7 +238,10 @@ class Genbank:
             If True, fix feature start & end position by specified min_range parameter
             (fixed_start = start - min_range, fixed_end = end - min_range)
         allow_partial : bool, optional
-            If True, features that are partially included in range are also extracted
+            If True, allow extraction of features that are partially included in range
+        pseudogene : bool, optional
+            If True and `feature_type='CDS'`, only extract CDS features with
+            `/pseudo` or `/pseudogene` qualifiers.
 
         Returns
         -------
@@ -251,10 +255,16 @@ class Genbank:
             features = [f for f in record.features if f.type == feature_type]
             for f in features:
                 if feature_type == "CDS":
-                    # Exclude pseudogene (no translated gene)
-                    translation = f.qualifiers.get("translation", [None])[0]
-                    if translation is None:
-                        continue
+                    if pseudogene:
+                        # Only extract pseudogene
+                        qual = f.qualifiers
+                        if "pseudo" not in qual and "pseudogene" not in qual:
+                            continue
+                    else:
+                        # Exclude pseudogene (no translated gene)
+                        translation = f.qualifiers.get("translation", [None])[0]
+                        if translation is None:
+                            continue
                 if f.strand == -1:
                     # Handle rare case (complement & join)
                     # Found in NC_00913 protein_id=NP_417367.1

@@ -519,6 +519,7 @@ class FeatureTrack(Track):
         label_type: str | None = None,
         label_handle_func: Callable[[str], str] | None = None,
         allow_partial: bool = False,
+        pseudogene: bool = False,
         labelsize: int = 15,
         labelcolor: str = "black",
         plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
@@ -550,6 +551,9 @@ class FeatureTrack(Track):
             omitting labels with long characters, etc.
         allow_partial : bool, optional
             If True, features that are partially included in range are also extracted
+        pseudogene : bool, optional
+            If True and `feature_type='CDS'`, only add CDS features with
+            `/pseudo` or `/pseudogene` qualifiers.
         labelsize : int, optional
             Feature label size
         labelcolor : str, optional
@@ -584,7 +588,9 @@ class FeatureTrack(Track):
             See matplotlib API document for detailed parameters
             (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
         """
-        target_features = gbk.extract_features(feature_type, None, False, allow_partial)
+        target_features = gbk.extract_features(
+            feature_type, None, False, allow_partial, pseudogene
+        )
         for feature in target_features:
             # Check if start & end positions are within appropriate track range
             start = int(str(feature.location.start))

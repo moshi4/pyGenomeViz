@@ -477,7 +477,7 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
     fig_opts.add_argument(
         "--pseudo_color",
         type=str,
-        help=f"Pseudogene feature color (Default: {default_pseudo_color})",
+        help=f"Pseudogene feature color (Default: '{default_pseudo_color}')",
         default=default_pseudo_color,
         metavar="",
     )

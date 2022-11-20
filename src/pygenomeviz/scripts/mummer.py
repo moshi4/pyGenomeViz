@@ -5,11 +5,12 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from typing_extensions import Literal
+
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, MUMmer
 from pygenomeviz.config import LiteralTypes
 from pygenomeviz.scripts import gbk_files2gbk_objects, get_argparser, print_args
-from typing_extensions import Literal
 
 
 def main():
@@ -48,6 +49,8 @@ def run(
     arrow_shaft_ratio: float = 0.5,
     feature_color: str = "orange",
     feature_linewidth: float = 0,
+    pseudo: bool = False,
+    pseudo_color: str = "grey",
     colorbar_width: float = 0.01,
     colorbar_height: float = 0.2,
     curve: bool = True,
@@ -103,6 +106,10 @@ def run(
         Feature color
     feature_linewidth : float, optional
         Feature edge line width
+    pseudo : bool, optional
+        Show pseudogene feature
+    pseudo_color : str, optional
+        Pseudogene feature color
     colorbar_width : float, optional
         Colorbar width
     colorbar_height : float, optional
@@ -163,6 +170,17 @@ def run(
             linewidth=feature_linewidth,
             allow_partial=False,
         )
+        if pseudo:
+            track.add_genbank_features(
+                gbk,
+                feature_type="CDS",
+                plotstyle=feature_plotstyle,
+                arrow_shaft_ratio=arrow_shaft_ratio,
+                facecolor=pseudo_color,
+                linewidth=feature_linewidth,
+                allow_partial=False,
+                pseudogene=True,
+            )
 
     # MUMmer alignment
     if align_coords_file.exists() and reuse:
@@ -448,6 +466,19 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         type=float,
         help=f"Feature edge line width (Default: {default_feature_linewidth})",
         default=default_feature_linewidth,
+        metavar="",
+    )
+    fig_opts.add_argument(
+        "--pseudo",
+        help="Show pseudogene feature",
+        action="store_true",
+    )
+    default_pseudo_color = "grey"
+    fig_opts.add_argument(
+        "--pseudo_color",
+        type=str,
+        help=f"Pseudogene feature color (Default: {default_pseudo_color})",
+        default=default_pseudo_color,
         metavar="",
     )
     default_colorbar_width = 0.01

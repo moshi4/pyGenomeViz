@@ -379,7 +379,7 @@ class GffRecord:
         # start, end
         gff_elms[3], gff_elms[4] = int(gff_elms[3]) - 1, int(gff_elms[4])
         # score
-        gff_elms[5] = None if gff_elms[5] == "." else float(gff_elms[5])
+        gff_elms[5] = None if gff_elms[5] in (".", "") else float(gff_elms[5])
         # strand
         if gff_elms[6] == "+":
             gff_elms[6] = 1
@@ -388,7 +388,7 @@ class GffRecord:
         else:
             gff_elms[6] = 0
         # frame
-        gff_elms[7] = None if gff_elms[7] == "." else int(gff_elms[7])
+        gff_elms[7] = None if gff_elms[7] in (".", "") else int(gff_elms[7])
         # attrs
         attr_dict: dict[str, list[str]] = {}
         attrs = str(gff_elms[8]).split(";")

@@ -187,13 +187,19 @@ class Gff:
         """seqid list"""
         return self._seqid_list
 
-    def extract_features(self, feature_type: str = "CDS") -> list[SeqFeature]:
+    def extract_features(
+        self,
+        feature_type: str = "CDS",
+        target_strand: int | None = None,
+    ) -> list[SeqFeature]:
         """Extract features within min-max range
 
         Parameters
         ----------
         feature_type : str, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
+        target_strand : int | None, optional
+            Extract target strand
 
         Returns
         -------
@@ -203,7 +209,8 @@ class Gff:
         features: list[SeqFeature] = []
         for rec in self.records_within_range:
             if rec.type == feature_type:
-                features.append(rec.to_seq_feature())
+                if target_strand is None or rec.strand == target_strand:
+                    features.append(rec.to_seq_feature())
         return features
 
     def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:

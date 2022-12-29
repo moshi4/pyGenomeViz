@@ -220,6 +220,35 @@ class ColorCycler:
     def __new__(cls, n: int | None = None) -> str:
         """Get hexcolor cyclically from cmap by counter or user specified number
 
+        `ColorCycler()` works same as `ColorCycler.get_color()` (syntactic sugar)
+
+        Parameters
+        ----------
+        n : int | None, optional
+            Number for color cycle. If None, counter class variable is used.
+
+        Returns
+        -------
+        hexcolor : str
+            Cyclic hexcolor string
+        """
+        return cls.get_color(n)
+
+    @classmethod
+    def reset_cycle(cls) -> None:
+        """Reset cycle counter"""
+        cls.counter = 0
+
+    @classmethod
+    def set_cmap(cls, name: str) -> None:
+        """Set colormap (Default: `tab10`)"""
+        cls.cmap = plt.get_cmap(name)
+        cls.counter = 0
+
+    @classmethod
+    def get_color(cls, n: int | None = None) -> str:
+        """Get hexcolor cyclically from cmap by counter or user specified number
+
         Parameters
         ----------
         n : int | None, optional
@@ -234,17 +263,6 @@ class ColorCycler:
             n = cls.counter
             cls.counter += 1
         return to_hex(cls.cmap(n % cls.cmap.N), keep_alpha=True)
-
-    @classmethod
-    def reset_cycle(cls) -> None:
-        """Reset cycle counter"""
-        cls.counter = 0
-
-    @classmethod
-    def set_cmap(cls, name: str) -> None:
-        """Set colormap (Default: `tab10`)"""
-        cls.cmap = plt.get_cmap(name)
-        cls.counter = 0
 
     @classmethod
     def get_color_list(cls, n: int | None = None) -> list[str]:

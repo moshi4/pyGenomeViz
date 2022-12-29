@@ -88,7 +88,7 @@ class Link:
         ----------
         ax : Axes
             Matplotlib axes object to be plotted
-        ylim: tuple[flaot, float], optional
+        ylim: tuple[float, float], optional
             Min-Max y coordinatess
         """
         ymin, ymax = ylim[0] * self.size_ratio, ylim[1] * self.size_ratio

@@ -303,9 +303,8 @@ class FeatureTrack(Track):
         ymargin : float, optional
             Sublabel y-margin
         sublabel_kws: dict[str, Any] | None, optional
-            Optional keyword arguments to pass to Axes.text method for sublabel.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html)
+            Text properties (e.g. `dict(size=12, color="red", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # Sublabel text setting (e.g. '0 - 1000 bp')
         default_text = f"{self.start} - {self.end} bp"
@@ -384,9 +383,8 @@ class FeatureTrack(Track):
         size_ratio : float, optional
             Feature size ratio to track
         patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to feature Patch object.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
+            Patch properties (e.g. `fc="red", ec="black", lw=0.5, ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Check if start & end positions are within appropriate track range
         self._within_valid_range(start, end, raise_error_on_false=True)
@@ -473,16 +471,14 @@ class FeatureTrack(Track):
         exon_labels: list[str] | None, optional
             Exon labels. Array length must be same as `exon_regions`.
         exon_label_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to Axes.text method for exon label.
-            Use this option when plotting both Feature & Exon labels.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html)
+            Text properties (e.g. `dict(size=12, color="red", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to exon feature Patch object.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
+            Exon patch properties (e.g. `dict(fc="red", ec="black", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         intron_patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to intron feature Patch object.
+            Intron patch properties (e.g. `dict(ec="red", lw=2, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Check if start & end positions are within appropriate track range
         for (exon_start, exon_end) in exon_regions:
@@ -584,9 +580,8 @@ class FeatureTrack(Track):
         size_ratio : float, optional
             Feature size ratio to track
         patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to feature Patch object.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
+            Patch properties (e.g. `dict(fc="red", ec="black", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         target_features = gbk.extract_features(
             feature_type, None, False, allow_partial, pseudogene
@@ -699,11 +694,11 @@ class FeatureTrack(Track):
         size_ratio : float, optional
             Feature size ratio to track
         patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to feature Patch object.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
+            Patch properties (e.g. `dict(fc="red", ec="black", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         intron_patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to intron feature Patch object.
+            Intron patch properties (e.g. `dict(ec="red", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Extract target features
         if parse_exon_intron:

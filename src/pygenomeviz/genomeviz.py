@@ -407,7 +407,7 @@ class GenomeViz(GenomeVizBase):
             Track label size
         labelcolor : str, optional
             Track label color
-        labelmargin : flaot, optional
+        labelmargin : float, optional
             Track label margin
         linewidth : int, optional
             Track line width
@@ -488,9 +488,8 @@ class GenomeViz(GenomeVizBase):
         size_ratio : float, optional
             Link size ratio to track
         patch_kws : dict[str, Any] | None, optional
-            Optional keyword arguments to pass to link Patch object.
-            See matplotlib API document for detailed parameters
-            (https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html)
+            Patch properties (e.g. `dict(fc="red", ec="black", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         link_track = self._get_link_track(track_link1[0], track_link2[0])
         tracks = [t.name for t in self.get_tracks()]

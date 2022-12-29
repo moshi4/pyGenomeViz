@@ -191,6 +191,7 @@ class Gff:
         self,
         feature_type: str = "CDS",
         target_strand: int | None = None,
+        pseudogene: bool = False,
     ) -> list[SeqFeature]:
         """Extract features within min-max range
 
@@ -200,6 +201,9 @@ class Gff:
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
         target_strand : int | None, optional
             Extract target strand
+        pseudogene : bool, optional
+            If True, `pseudo=`, `pseudogne=` tagged record only extract.
+            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
 
         Returns
         -------
@@ -208,9 +212,15 @@ class Gff:
         """
         features: list[SeqFeature] = []
         for rec in self.records_within_range:
-            if rec.type == feature_type:
-                if target_strand is None or rec.strand == target_strand:
-                    features.append(rec.to_seq_feature())
+            if rec.type != feature_type:
+                continue
+            if target_strand is not None and rec.strand != target_strand:
+                continue
+            if pseudogene and ("pseudo" in rec.attrs or "pseudogene" in rec.attrs):
+                features.append(rec.to_seq_feature())
+            else:
+                features.append(rec.to_seq_feature())
+
         return features
 
     def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:

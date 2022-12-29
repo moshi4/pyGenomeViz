@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from Bio.SeqFeature import SeqFeature
 from matplotlib.axes import Axes
-from typing_extensions import Literal
 
 from pygenomeviz.config import LiteralTypes
 from pygenomeviz.feature import ExonFeature, Feature

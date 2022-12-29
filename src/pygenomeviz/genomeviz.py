@@ -4,7 +4,7 @@ import datetime
 import io
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
 
 import matplotlib.pyplot as plt
 from matplotlib import colors, gridspec
@@ -12,7 +12,6 @@ from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
 from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
-from typing_extensions import get_args
 
 import pygenomeviz
 from pygenomeviz.config import ASSETS_FILES, TEMPLATE_HTML_FILE, LiteralTypes

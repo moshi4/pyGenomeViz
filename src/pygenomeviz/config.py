@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-
-from typing_extensions import Literal
+from typing import Literal
 
 ###########################################################
 # GitHub Genbank Dataset & GFF Files Config

@@ -4,8 +4,7 @@ import argparse
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-
-from typing_extensions import Literal
+from typing import Literal
 
 from pygenomeviz import Genbank, GenomeViz, __version__
 from pygenomeviz.align import AlignCoord, MUMmer

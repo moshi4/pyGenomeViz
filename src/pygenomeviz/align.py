@@ -11,9 +11,7 @@ import tempfile
 from abc import ABCMeta, abstractmethod
 from dataclasses import astuple, dataclass
 from pathlib import Path
-from typing import ClassVar
-
-from typing_extensions import Literal
+from typing import ClassVar, Literal
 
 from pygenomeviz import Genbank
 

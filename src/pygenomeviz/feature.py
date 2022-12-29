@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, get_args
 
 from Bio.SeqFeature import SeqFeature
 from matplotlib.axes import Axes
 from matplotlib.patches import FancyArrow, PathPatch, Rectangle
 from matplotlib.path import Path
-from typing_extensions import get_args
 
 from pygenomeviz.config import LiteralTypes
 

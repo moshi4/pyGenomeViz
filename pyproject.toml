@@ -34,11 +34,10 @@ pgv-simpleplot = "pygenomeviz.scripts.simpleplot:main"
 pgv-download-dataset = "pygenomeviz.scripts.download_dataset:main"
 
 [tool.poetry.dependencies]
-python = "^3.7.1"
+python = "^3.8"
 matplotlib = "^3.5.2"
 biopython = "^1.79"
 numpy = "^1.21"
-typing-extensions = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

@@ -32,7 +32,7 @@ For more information, please see full documentation [here](https://moshi4.github
 
 ## Installation
 
-`Python 3.7 or later` is required for installation.
+`Python 3.8 or later` is required for installation.
 
 **Install PyPI package:**
 

@@ -226,7 +226,7 @@ class FeatureTrack(Track):
             if raise_error_on_false:
                 err_msg = f"'{self.name}' track start-end range must be "
                 err_msg += f"'{self.start} <= start <= end <= {self.end}' "
-                err_msg += f"(start={start}, end={end} is invalid)"
+                err_msg += f"({start=}, {end=} is invalid)"
                 raise ValueError(err_msg)
             return False
 
@@ -252,7 +252,7 @@ class FeatureTrack(Track):
         if name in [t.name for t in self.subtracks]:
             raise ValueError(f"subtrack.name='{name}' is already exists.")
         if position not in ("above", "below"):
-            raise ValueError(f"position='{position}' is invalid ('above'|'below').")
+            raise ValueError(f"{position=} is invalid ('above'|'below').")
 
         subtrack = FeatureSubTrack(
             name, self.size, self.spines, subtrack_ratio, position
@@ -315,7 +315,7 @@ class FeatureTrack(Track):
         vpos, hpos = position.split("-")
         vpos_types, hpos_types = ("top", "bottom"), ("left", "center", "right")
         if vpos not in vpos_types or hpos not in hpos_types:
-            err_msg = f"position='{position}' is invalid pattern. "
+            err_msg = f"{position=} is invalid pattern. "
             err_msg += "position must be '[top|bottom]-[left|center|right]'"
             raise ValueError(err_msg)
         vpos2y = {"top": 1 + ymargin, "bottom": -1 - ymargin}

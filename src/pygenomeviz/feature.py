@@ -48,28 +48,27 @@ class Feature:
             raise ValueError(err_msg)
         # Check labelvpos
         if self.labelvpos not in get_args(LiteralTypes.LABELVPOS):
-            raise ValueError(f"'labelvpos={self.labelvpos}' is invalid parameter.")
+            raise ValueError(f"{self.labelvpos=} is invalid parameter.")
         # Check labelhpos
         if self.labelhpos not in get_args(LiteralTypes.LABELHPOS):
-            raise ValueError(f"'labelhpos={self.labelhpos}' is invalid parameter.")
+            raise ValueError(f"{self.labelhpos} is invalid parameter.")
         # Check labelha
         if self.labelha not in get_args(LiteralTypes.LABELHA):
-            raise ValueError(f"'labelha={self.labelha}' is invalid parameter.")
+            raise ValueError(f"{self.labelha=} is invalid parameter.")
         # Check feature plot style
         plotstyle_list = get_args(LiteralTypes.PLOTSTYLE)
         if self.plotstyle not in plotstyle_list:
             err_msg = f"'plotstyle must be '{'|'.join(plotstyle_list)}'.\n"
-            err_msg += f"plotstyle='{self.plotstyle}' is invalid."
+            err_msg += f"{self.plotstyle=} is invalid."
             raise ValueError(err_msg)
         # Check arrow shaft ratio
         if not 0 <= self.arrow_shaft_ratio <= 1:
             err_msg = "'arrow_shaft_ratio' must be '0 <= value <= 1' "
-            err_msg += f"(value={self.arrow_shaft_ratio})"
+            err_msg += f"({self.arrow_shaft_ratio=})"
             raise ValueError(err_msg)
         # Check size ratio
         if not 0 <= self.size_ratio <= 1:
-            err_msg = "'size_ratio' must be '0 <= value <= 1' "
-            err_msg += f"(value={self.size_ratio})"
+            err_msg = f"'size_ratio' must be '0 <= value <= 1' ({self.size_ratio=})"
             raise ValueError(err_msg)
 
     def plot_feature(
@@ -96,7 +95,7 @@ class Feature:
         elif self.plotstyle in ("bigrbox", "rbox"):
             p = self._rbox_patch(start, end, ylim, max_track_size)
         else:
-            raise ValueError(f"'{self.plotstyle}' is invalid plotstyle.")
+            raise ValueError(f"{self.plotstyle=} is invalid.")
 
         ax.add_patch(p)
 
@@ -483,7 +482,7 @@ class ExonFeature(Feature):
             elif self.plotstyle in ("bigrbox", "rbox"):
                 p = self._rbox_patch(start, end, ylim, max_track_size)
             else:
-                raise ValueError(f"'{self.plotstyle}' is invalid plotstyle.")
+                raise ValueError(f"{self.plotstyle=} is invalid.")
             ax.add_patch(p)
 
     def plot_label(self, ax: Axes, ylim: tuple[float, float]) -> None:

@@ -38,22 +38,22 @@ class Link:
         self._display_track_end2 = self.track_end2
         # Check color string
         if not colors.is_color_like(self.normal_color):
-            err_msg = f"'normal_color={self.normal_color}' is not color like."
+            err_msg = f"{self.normal_color=} is not color like."
             raise ValueError(err_msg)
         if not colors.is_color_like(self.inverted_color):
-            err_msg = f"'inverted_color={self.inverted_color}' is not color like."
+            err_msg = f"{self.inverted_color=} is not color like."
             raise ValueError(err_msg)
         # Check size ratio
         if not 0 <= self.size_ratio <= 1:
             err_msg = "'size_ratio' must be '0 <= value <= 1' "
-            err_msg += f"(value={self.size_ratio})"
+            err_msg += f"({self.size_ratio=})"
             raise ValueError(err_msg)
         # Check range of interpolation value
         if self.v is not None:
             if not 0 <= self.vmin <= self.v <= self.vmax <= 100:
                 err_msg = "'Interpolation value must be "
                 err_msg += "'0 <= vmin <= value <= vmax <= 100' "
-                err_msg += f" (value={self.v}, vmin={self.vmin}, vmax={self.vmax})"
+                err_msg += f" ({self.v=}, {self.vmin=}, {self.vmax=})"
                 raise ValueError(err_msg)
 
     @property

@@ -45,7 +45,7 @@ def load_example_gff(
     """
     # Check specified filename exists or not
     if filename not in EXAMPLE_GFF_FILES:
-        err_msg = f"filename='{filename}' not found."
+        err_msg = f"{filename=} not found."
         raise ValueError(err_msg)
 
     # Cache local directory
@@ -284,6 +284,6 @@ class ColorCycler:
         elif n > 0:
             cmap_idx_list = [int(i) for i in np.linspace(0, cls.cmap.N, n)]
         else:
-            raise ValueError(f"n={n} is invalid number (Must be 'n > 0').")
+            raise ValueError(f"{n=} is invalid number (Must be 'n > 0').")
 
         return [to_hex(cls.cmap(i), keep_alpha=True) for i in cmap_idx_list]

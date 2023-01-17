@@ -48,7 +48,7 @@ class Gff:
 
         if not 0 <= self.min_range <= self.max_range:
             err_msg = "Range must be '0 <= min_range <= max_range' "
-            err_msg += f"(min_range={self.min_range}, max_range={self.max_range})"
+            err_msg += f"({self.min_range=}, {self.max_range=})"
             raise ValueError(err_msg)
 
     def _parse_gff(
@@ -123,7 +123,7 @@ class Gff:
             target_seqid = seqid_list[0]
         self._target_seqid = target_seqid
         if target_seqid not in seqid_list:
-            err_msg = f"Not found target_seqid='{target_seqid}' in '{self._gff_file}'"
+            err_msg = f"Not found {target_seqid=} in '{self._gff_file}'"
             raise ValueError(err_msg)
         gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
 

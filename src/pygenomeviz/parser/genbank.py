@@ -353,7 +353,7 @@ class Genbank:
             elif seqtype == "nucleotide":
                 seq = Seq(feature.location.extract(self.genome_seq))
             else:
-                raise ValueError(f"seqtype='{seqtype}' is invalid.")
+                raise ValueError(f"{seqtype=} is invalid.")
 
             cds_seq_record = SeqRecord(seq=seq, id=seq_id, description=product)
             cds_seq_records.append(cds_seq_record)

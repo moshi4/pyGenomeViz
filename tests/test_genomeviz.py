@@ -2,6 +2,7 @@ import random
 from pathlib import Path
 
 import pytest
+
 from pygenomeviz import Genbank, GenomeViz, Gff, load_dataset
 
 random.seed(0)
@@ -221,7 +222,7 @@ def test_get_track_error():
     gv = GenomeViz()
     with pytest.raises(ValueError) as e:
         gv.get_track("test")
-    assert str(e.value).startswith("track.name='test' is not found.")
+    assert str(e.value).startswith("track_name='test' is not found")
 
 
 def test_top_track_error():

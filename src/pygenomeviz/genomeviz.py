@@ -79,11 +79,11 @@ class GenomeVizBase(metaclass=ABCMeta):
     def _check_init_values(self) -> None:
         """Check initial values"""
         if self.align_type not in get_args(LiteralTypes.ALIGN_TYPE):
-            err_msg = f"Invalid align type '{self.align_type}'."
+            err_msg = f"{self.align_type=} is invalid."
             raise ValueError(err_msg)
 
         if self.tick_style not in get_args(LiteralTypes.TICK_STYLE):
-            err_msg = f"Invalid tick type '{self.tick_style}'."
+            err_msg = f"{self.tick_style=} is invalid."
             raise ValueError(err_msg)
 
     def _get_track_offset(self, track: Track) -> int:
@@ -143,10 +143,10 @@ class GenomeVizBase(metaclass=ABCMeta):
                 return target_link_track
             else:
                 err_msg = "LinkTrack is not found between target feature tracks "
-                err_msg += f"(`{feature_track_name1}` and '{feature_track_name2}')"
+                err_msg += f"({feature_track_name1=}, {feature_track_name2=})"
                 raise ValueError(err_msg)
         else:
-            err_msg = f"`{feature_track_name1}` and '{feature_track_name2}' "
+            err_msg = f"{feature_track_name1=} and {feature_track_name2=} "
             err_msg += "are not adjacent feature tracks."
             raise ValueError(err_msg)
 
@@ -174,8 +174,9 @@ class GenomeVizBase(metaclass=ABCMeta):
             Target track
         """
         name2track = {t.name: t for t in self.get_tracks()}
-        if track_name not in name2track.keys():
-            err_msg = f"track.name='{track_name}' is not found."
+        track_names = name2track.keys()
+        if track_name not in track_names:
+            err_msg = f"{track_name=} is not found ({track_names=})."
             raise ValueError(err_msg)
         return name2track[track_name]
 

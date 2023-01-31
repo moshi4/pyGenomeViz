@@ -267,7 +267,6 @@ class Gff:
                 exon_feature = SeqFeature(
                     location=CompoundLocation(locs),
                     type=parent_feature.type,
-                    strand=parent_feature.strand,
                     id=parent_feature.id,
                     qualifiers=parent_feature.qualifiers,
                 )
@@ -322,7 +321,6 @@ class GffRecord:
         return SeqFeature(
             location=self.to_feature_location(),
             type=self.type,
-            strand=self.strand,
             id=self.attrs.get("ID", [""])[0],
             qualifiers=self.attrs,
         )

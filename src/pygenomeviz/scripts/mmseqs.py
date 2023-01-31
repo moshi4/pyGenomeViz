@@ -235,7 +235,10 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
         "--gbk_resources",
         type=str,
         help="Input genome genbank file resources\n"
-        "(Target range can be set as follows 'file:100-1000')",
+        "User can optionally specify genome range and reverse complement.\n"
+        "- Example1. Set 100 - 1000 range 'file:100-1000'\n"
+        "- Example2. Set reverse complement 'file::-1'\n"
+        "- Example3. Set 100 - 1000 range of reverse complement 'file:100-1000:-1'",
         nargs="+",
         required=True,
         metavar="IN",

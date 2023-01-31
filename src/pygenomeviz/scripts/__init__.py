@@ -62,7 +62,11 @@ def gbk_files2gbk_objects(gbk_files: list[str]) -> list[Genbank]:
     Parameters
     ----------
     gbk_files : list[str]
-        Genbank files (Target range can be set as follows 'file:100-1000')
+        Genbank files.
+        User can optionally specify genome range and reverse complement.
+        - Example1. Set 100 - 1000 range `file:100-1000`
+        - Example2. Set reverse complement `file::-1`
+        - Example3. Set 100 - 1000 range of reverse complement `file:100-1000:-1`
 
     Returns
     -------
@@ -75,8 +79,19 @@ def gbk_files2gbk_objects(gbk_files: list[str]) -> list[Genbank]:
         gbk_file = contents[0]
         if len(contents) == 1:
             gbk_list.append(Genbank(gbk_file))
-        else:
+        elif len(contents) == 2:
             ranges = contents[1].split("-")
             min_range, max_range = int(ranges[0]), int(ranges[1])
             gbk_list.append(Genbank(gbk_file, min_range=min_range, max_range=max_range))
+        else:
+            reverse = True if int(contents[2]) == -1 else False
+            if contents[1] == "":
+                gbk_list.append(Genbank(gbk_file, reverse=reverse))
+            else:
+                ranges = contents[1].split("-")
+                min_range, max_range = int(ranges[0]), int(ranges[1])
+                gbk = Genbank(
+                    gbk_file, min_range=min_range, max_range=max_range, reverse=reverse
+                )
+                gbk_list.append(gbk)
     return gbk_list

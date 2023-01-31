@@ -31,7 +31,10 @@ In Ubuntu, MUMmer can be installed with apt command below.
 
     General Options:
       --gbk_resources IN [IN ...]  Input genome genbank file resources
-                                   (Target range can be set as follows 'file:100-1000')
+                                   User can optionally specify genome range and reverse complement.
+                                   - Example1. Set 100 - 1000 range 'file:100-1000'
+                                   - Example2. Set reverse complement 'file::-1'
+                                   - Example3. Set 100 - 1000 range of reverse complement 'file:100-1000:-1'
       -o OUT, --outdir OUT         Output directory
       --format  [ ...]             Output image format ('png'[*]|'jpg'|'svg'|'pdf'|`html`[*])
       --reuse                      Reuse previous result if available

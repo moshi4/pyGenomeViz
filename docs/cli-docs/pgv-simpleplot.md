@@ -14,7 +14,10 @@
 
     General Options:
       --gbk_resources IN [IN ...]  Input genome genbank file resources
-                                   (Target range can be set as follows 'file:100-1000')
+                                   User can optionally specify genome range and reverse complement.
+                                   - Example1. Set 100 - 1000 range 'file:100-1000'
+                                   - Example2. Set reverse complement 'file::-1'
+                                   - Example3. Set 100 - 1000 range of reverse complement 'file:100-1000:-1'
       -o OUT, --outfile OUT        Output file ('*.png'|'*.jpg'|'*.svg'|'*.pdf'|'*.html')
       -v, --version                Print version information
       -h, --help                   Show this help message and exit

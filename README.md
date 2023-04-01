@@ -15,6 +15,7 @@
 - [CLI Examples](#cli-examples)
 - [Interactive HTML Viewer](#interactive-html-viewer)
 - [Inspiration](#inspiration)
+- [Circular Genome Visualization](#circular-genome-visualization)
 
 ## Overview
 
@@ -404,3 +405,11 @@ pyGenomeViz was inspired by
 - [Easyfig](http://mjsull.github.io/Easyfig/)
 - [genoplotR](https://genoplotr.r-forge.r-project.org/)
 - [gggenomes](https://github.com/thackl/gggenomes)
+
+## Circular Genome Visualization
+
+pyGenomeViz is a python package designed for linear genome visualization.
+If you are interested in circular genome visualization, check out my other python package [pyCirclize](https://github.com/moshi4/pyCirclize).
+
+![pycirclize_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pycirclize_example.png)  
+**Fig. pyCirclize example plot gallery**

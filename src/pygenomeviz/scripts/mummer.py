@@ -25,7 +25,7 @@ def run(
     # General options
     gbk_resources: list[str | Path] | list[Genbank],
     outdir: str | Path,
-    format: list[str] = ["png", "html"],
+    format: list[str] | None = None,
     reuse: bool = False,
     # MUMmer alignment options
     seqtype: Literal["protein", "nucleotide"] = "protein",
@@ -63,7 +63,7 @@ def run(
         Input genome genbank files or Genbank objects
     outdir : [str | Path
         Output directory
-    format : list[str], optional
+    format : list[str] | None, optional
         Output image format (`png`|`jpg`|`svg`|`pdf`|`html`)
     reuse : bool, optional
         If True, reuse previous result if available
@@ -123,6 +123,7 @@ def run(
     gv : GenomeViz
         GenomeViz instance
     """
+    format = ["png", "html"] if format is None else format
     # Check MUMmer installation
     MUMmer.check_installation()
 

@@ -305,7 +305,7 @@ class GenomeVizBase(metaclass=ABCMeta):
     def set_colorbar(
         self,
         figure: Figure,
-        bar_colors: list[str] = ["grey", "red"],
+        bar_colors: list[str] | None = None,
         alpha: float = 0.8,
         vmin: float = 0,
         vmax: float = 100,
@@ -325,7 +325,7 @@ class GenomeVizBase(metaclass=ABCMeta):
         ----------
         figure : Figure
             Matplotlib figure
-        bar_colors : list[str], optional
+        bar_colors : list[str] | None, optional
             Bar color list
         alpha : float, optional
             Color transparency
@@ -350,6 +350,7 @@ class GenomeVizBase(metaclass=ABCMeta):
         """
         if bar_height == 0 or bar_width == 0:
             return
+        bar_colors = ["grey", "red"] if bar_colors is None else bar_colors
         bar_colors = list(dict.fromkeys([colors.to_hex(c) for c in bar_colors]))
         for cnt, color in enumerate(bar_colors):
             left = bar_left + bar_width * cnt
@@ -574,7 +575,7 @@ class GenomeViz(GenomeVizBase):
         track_num = len(self.get_tracks(subtrack=True))
         figsize = (self.fig_width, self.fig_track_height * track_num)
         tight_layout = False if track_num < 3 else True
-        figure: Figure = plt.figure(
+        figure: Figure = plt.figure(  # type: ignore
             figsize=figsize, facecolor="white", dpi=dpi, tight_layout=tight_layout
         )
 

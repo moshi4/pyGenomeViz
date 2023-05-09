@@ -467,7 +467,7 @@ class ExonFeature(Feature):
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
 
         # Plot intron feature
-        for (start, end) in self.intron_regions:
+        for start, end in self.intron_regions:
             p = self._intron_patch(start, end, ylim)
             ax.add_patch(p)
 
@@ -519,7 +519,7 @@ class ExonFeature(Feature):
     def _check_exon_regions(self) -> None:
         """Check exon_regions values are properly set"""
         max_pos_record = None
-        for (exon_start, exon_end) in self.exon_regions:
+        for exon_start, exon_end in self.exon_regions:
             if exon_start >= exon_end:
                 err_msg = "Exon start-end value must be 'start < end'."
                 raise ValueError(err_msg)
@@ -588,7 +588,7 @@ class ExonFeature(Feature):
         feature.end += offset
         # Add offset to exon regions
         exon_regions = []
-        for (exon_start, exon_end) in feature.exon_regions:
+        for exon_start, exon_end in feature.exon_regions:
             exon_regions.append((exon_start + offset, exon_end + offset))
         feature.exon_regions = exon_regions
         return feature

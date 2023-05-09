@@ -3,7 +3,6 @@ from __future__ import annotations
 import bz2
 import gzip
 import zipfile
-from functools import lru_cache
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Any
@@ -133,7 +132,6 @@ class Genbank:
         seq = "".join(str(r.seq) for r in self.records)
         return seq[self.min_range : self.max_range]
 
-    @lru_cache(maxsize=None)
     def calc_genome_gc_content(self) -> float:
         """Calculate genome GC content"""
         return SeqUtils.gc_fraction(self.genome_seq) * 100

@@ -1,4 +1,5 @@
 import pytest
+
 from pygenomeviz.track import FeatureTrack
 
 

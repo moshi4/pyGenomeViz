@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from pygenomeviz import Gff
 from pygenomeviz.parser.gff import GffRecord
 

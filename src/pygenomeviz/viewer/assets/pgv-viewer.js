@@ -4,19 +4,8 @@
  * @returns {string} Feature info for tooltip display
  */
 function convertFeatureIdToLabel(featureId) {
-  const matchResult = featureId.match(/Feature_(\d+)_(\d+)_(-*\d+)_type_(.+)_gene_(.+)_protein_id_(.+)_product_(.+)/)
-  let [start, end, strand, type, gene, proteinId, product] = matchResult.slice(1, 8)
-  const locale = "en-US"
-  length = Number(end - start).toLocaleString(locale)
-  start = Number(start).toLocaleString(locale)
-  end = Number(end).toLocaleString(locale)
-  strand = strand === "-1" ? "-" : "+"
-  product = product.replaceAll("_", " ")
-  let label = `location: ${start} - ${end} (${strand})\nlength: ${length} bp`
-  if (type !== "na") {
-    label += `\ntype: ${type}\ngene: ${gene}\nprotein_id: ${proteinId}\nproduct: ${product}`
-  }
-  return label
+  const feature_tooltip_json = {}
+  return feature_tooltip_json[featureId]
 }
 /**
  * Convert link ID to proper label for tooltip display
@@ -24,18 +13,8 @@ function convertFeatureIdToLabel(featureId) {
  * @returns {string} Link info for tooltip display
  */
 function convertLinkIdToLabel(linkId) {
-  const matchResult = linkId.match(/Link_(.+)_(\d+)_(\d+)_(.+)_(\d+)_(\d+)_(.+)$/)
-  let [n1, s1, e1, n2, s2, e2, ident] = matchResult.slice(1, 8)
-  const locale = "en-US"
-  s1 = Number(s1).toLocaleString(locale)
-  e1 = Number(e1).toLocaleString(locale)
-  s2 = Number(s2).toLocaleString(locale)
-  e2 = Number(e2).toLocaleString(locale)
-  let label = `1. ${n1} (${s1} - ${e1} bp)\n2. ${n2} (${s2} - ${e2} bp)`
-  if (ident !== "na") {
-    label += `\nIdentity: ${ident}%`
-  }
-  return label
+  const link_tooltip_json = {}
+  return link_tooltip_json[linkId]
 }
 /**
  * Save as PNG image

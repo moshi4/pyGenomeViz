@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import io
+import json
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import Any, get_args
@@ -109,6 +110,24 @@ class GenomeVizBase(metaclass=ABCMeta):
             raise NotImplementedError
 
     @property
+    def feature_tooltip_json(self) -> str:
+        """Feature tooltip json"""
+        uuid2tooltip = {}
+        for track in self.get_feature_tracks():
+            for feature in track.features:
+                uuid2tooltip[feature.gid] = feature.tooltip
+        return json.dumps(uuid2tooltip)
+
+    @property
+    def link_tooltip_json(self) -> str:
+        """Link tooltip json"""
+        uuid2tooltip = {}
+        for track in self.get_link_tracks():
+            for link in track.links:
+                uuid2tooltip[link.gid] = link.tooltip
+        return json.dumps(uuid2tooltip)
+
+    @property
     def _track_name2link_offset(self) -> dict[str, int]:
         """Track name & link offset dict"""
         track_name2offset = {}
@@ -214,6 +233,16 @@ class GenomeVizBase(metaclass=ABCMeta):
             Feature track list
         """
         return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+
+    def get_link_tracks(self) -> list[LinkTrack]:
+        """Get link tracks
+
+        Returns
+        -------
+        link_tracks : list[LinkTrack]
+            Link track list
+        """
+        return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
 
     @property
     def top_track(self) -> FeatureTrack:
@@ -697,6 +726,14 @@ class GenomeViz(GenomeVizBase):
                 style_contents += contents + "\n"
             elif file.suffix == ".js":
                 script_contents += contents + "\n"
+                script_contents = script_contents.replace(
+                    "feature_tooltip_json = {}",
+                    f"feature_tooltip_json = {self.feature_tooltip_json}",
+                )
+                script_contents = script_contents.replace(
+                    "link_tooltip_json = {}",
+                    f"link_tooltip_json = {self.link_tooltip_json}",
+                )
         viewer_html = viewer_html.replace(
             "<style></style>", f"<style>{style_contents}</style>"
         )

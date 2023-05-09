@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, get_args
@@ -34,8 +35,10 @@ class Feature:
     size_ratio: float = 0.9
     patch_kws: dict[str, Any] | None = None
     seq_feature: SeqFeature | None = None
+    tooltip: str | None = None
 
     def __post_init__(self):
+        self._uuid = uuid.uuid4()
         # start-end value for HTML display
         self._display_start = self.start
         self._display_end = self.end
@@ -70,6 +73,8 @@ class Feature:
         if not 0 <= self.size_ratio <= 1:
             err_msg = f"'size_ratio' must be '0 <= value <= 1' ({self.size_ratio=})"
             raise ValueError(err_msg)
+
+        self._set_tooltip()
 
     def plot_feature(
         self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
@@ -114,6 +119,11 @@ class Feature:
             ax.text(**self._label_kwargs(start, end, self.label, ylim))
 
     @property
+    def gid(self) -> str:
+        """Group ID"""
+        return "Feature-" + str(self._uuid)
+
+    @property
     def length(self) -> int:
         """Feature length"""
         return self.end - self.start
@@ -123,11 +133,18 @@ class Feature:
         """Check plotstyle is 'big~~~' or not"""
         return self.plotstyle.startswith("big")
 
-    @property
-    def gid(self) -> str:
-        """Group ID"""
-        start, end = self._display_start, self._display_end
-        type, gene, protein_id, product = "na", "na", "na", "na"
+    def _set_tooltip(self) -> None:
+        """Set tooltip"""
+        # Skip if tooltip already exists
+        if self.tooltip is not None:
+            return
+        # Set basic tooltip info
+        strand = "-" if self.strand == -1 else "+"
+        self.tooltip = (
+            f"location: {self._display_start} - {self._display_end} ({strand})\n"
+            + f"length: {self.length}"
+        )
+        # If SeqFeature exists, set extra tooltip info
         if self.seq_feature is not None:
             type = self.seq_feature.type
             qualifiers = self.seq_feature.qualifiers
@@ -136,17 +153,12 @@ class Feature:
             product = qualifiers.get("product", ["na"])[0]
             if product == "na":
                 product = qualifiers.get("Name", ["na"])[0]
-            # Replace special characters to underscore (For html ID tag selection)
-            trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
-            trans_table = str.maketrans(trans_dict)
-            gene = gene.translate(trans_table)
-            protein_id = protein_id.translate(trans_table)
-            product = product.translate(trans_table)
-
-        return (
-            f"Feature_{start}_{end}_{self.strand}_"
-            + f"type_{type}_gene_{gene}_protein_id_{protein_id}_product_{product}"
-        )
+            self.tooltip += (
+                f"\ntype: {type}\n"
+                + f"gene: {gene}\n"
+                + f"protein_id: {protein_id}\n"
+                + f"product: {product}"
+            )
 
     def _box_patch(self, start: int, end: int, ylim: tuple[float, float]) -> Rectangle:
         """Box patch

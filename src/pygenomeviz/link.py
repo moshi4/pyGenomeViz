@@ -61,6 +61,10 @@ class Link:
 
         self._set_tooltip()
 
+    ############################################################
+    # Property
+    ############################################################
+
     @property
     def gid(self) -> str:
         """Group ID"""
@@ -75,6 +79,43 @@ class Link:
     def track_length2(self) -> int:
         """Track length2"""
         return abs(self.track_end2 - self.track_start2)
+
+    @property
+    def color(self) -> str:
+        """Get conditional hexcolor code"""
+        color = self.inverted_color if self.is_inverted else self.normal_color
+        if self.v is None:
+            rgba = colors.to_rgba(color, alpha=self.alpha)
+            return colors.to_hex(rgba, keep_alpha=True)
+        else:
+
+            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
+                """Convert target color to nearly white"""
+                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                return colors.to_hex(cmap(nearly_value))
+
+            nearly_white = to_nearly_white(color)
+            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
+            norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+            norm_value = norm(self.v)
+            return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
+
+    @property
+    def is_inverted(self) -> bool:
+        """Check inverted link or not
+
+        Returns
+        -------
+        is_inverted : bool
+            Check result
+        """
+        track_link_length1 = self.track_end1 - self.track_start1
+        track_link_length2 = self.track_end2 - self.track_start2
+        return track_link_length1 * track_link_length2 < 0
+
+    ############################################################
+    # Public Method
+    ############################################################
 
     def plot_link(self, ax: Axes, ylim: tuple[float, float] = (-1.0, 1.0)) -> None:
         """Plot link
@@ -113,6 +154,30 @@ class Link:
         codes, verts = zip(*path_data)
         ax.add_patch(PathPatch(Path(verts, codes), **self._patch_kwargs()))
 
+    def add_offset(self, track_name2offset: dict[str, int]) -> Link:
+        """Add offset to each link position
+
+        Parameters
+        ----------
+        track_name2offset : dict[str, int]
+            Track name & offset dict
+
+        Returns
+        -------
+        link : Link
+            Offset added Link object
+        """
+        link = deepcopy(self)
+        link.track_start1 += track_name2offset[self.track_name1]
+        link.track_end1 += track_name2offset[self.track_name1]
+        link.track_start2 += track_name2offset[self.track_name2]
+        link.track_end2 += track_name2offset[self.track_name2]
+        return link
+
+    ############################################################
+    # Private Method
+    ############################################################
+
     def _set_tooltip(self) -> None:
         """Set tooltip"""
         if self.tooltip is None:
@@ -142,56 +207,3 @@ class Link:
             "gid": self.gid,
             **patch_kws,
         }
-
-    @property
-    def color(self) -> str:
-        """Get conditional hexcolor code"""
-        color = self.inverted_color if self.is_inverted else self.normal_color
-        if self.v is None:
-            rgba = colors.to_rgba(color, alpha=self.alpha)
-            return colors.to_hex(rgba, keep_alpha=True)
-        else:
-
-            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
-                """Convert target color to nearly white"""
-                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
-                return colors.to_hex(cmap(nearly_value))
-
-            nearly_white = to_nearly_white(color)
-            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
-            norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-            norm_value = norm(self.v)
-            return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
-
-    @property
-    def is_inverted(self) -> bool:
-        """Check inverted link or not
-
-        Returns
-        -------
-        is_inverted : bool
-            Check result
-        """
-        track_link_length1 = self.track_end1 - self.track_start1
-        track_link_length2 = self.track_end2 - self.track_start2
-        return track_link_length1 * track_link_length2 < 0
-
-    def add_offset(self, track_name2offset: dict[str, int]) -> Link:
-        """Add offset to each link position
-
-        Parameters
-        ----------
-        track_name2offset : dict[str, int]
-            Track name & offset dict
-
-        Returns
-        -------
-        link : Link
-            Offset added Link object
-        """
-        link = deepcopy(self)
-        link.track_start1 += track_name2offset[self.track_name1]
-        link.track_end1 += track_name2offset[self.track_name1]
-        link.track_start2 += track_name2offset[self.track_name2]
-        link.track_end2 += track_name2offset[self.track_name2]
-        return link

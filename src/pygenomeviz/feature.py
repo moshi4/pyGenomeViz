@@ -76,6 +76,29 @@ class Feature:
 
         self._set_tooltip()
 
+    ############################################################
+    # Property
+    ############################################################
+
+    @property
+    def gid(self) -> str:
+        """Group ID"""
+        return "Feature-" + str(self._uuid)
+
+    @property
+    def length(self) -> int:
+        """Feature length"""
+        return self.end - self.start
+
+    @property
+    def is_bigstyle(self) -> bool:
+        """Check plotstyle is 'big~~~' or not"""
+        return self.plotstyle.startswith("big")
+
+    ############################################################
+    # Public Method
+    ############################################################
+
     def plot_feature(
         self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
     ) -> None:
@@ -118,20 +141,9 @@ class Feature:
             start, end = self.start, self.end
             ax.text(**self._label_kwargs(start, end, self.label, ylim))
 
-    @property
-    def gid(self) -> str:
-        """Group ID"""
-        return "Feature-" + str(self._uuid)
-
-    @property
-    def length(self) -> int:
-        """Feature length"""
-        return self.end - self.start
-
-    @property
-    def is_bigstyle(self) -> bool:
-        """Check plotstyle is 'big~~~' or not"""
-        return self.plotstyle.startswith("big")
+    ############################################################
+    # Private Method
+    ############################################################
 
     def _set_tooltip(self) -> None:
         """Set tooltip"""
@@ -462,6 +474,27 @@ class ExonFeature(Feature):
             err_msg = "'exon_regions' & 'exon_labels' length is diffrent."
             raise ValueError(err_msg)
 
+    ############################################################
+    # Property
+    ############################################################
+
+    @property
+    def intron_regions(self) -> list[tuple[int, int]]:
+        """Intron regions"""
+        intron_regions = []
+        if len(self.exon_regions) > 1:
+            for i in range(0, len(self.exon_regions) - 1):
+                intron_start = self.exon_regions[i][1]
+                intron_end = self.exon_regions[i + 1][0]
+                if intron_end < intron_start:
+                    continue
+                intron_regions.append((intron_start, intron_end))
+        return intron_regions
+
+    ############################################################
+    # Public Method
+    ############################################################
+
     def plot_feature(
         self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
     ) -> None:
@@ -515,18 +548,9 @@ class ExonFeature(Feature):
                     label_kwargs.update(self.exon_label_kws)
                     ax.text(**label_kwargs)
 
-    @property
-    def intron_regions(self) -> list[tuple[int, int]]:
-        """Intron regions"""
-        intron_regions = []
-        if len(self.exon_regions) > 1:
-            for i in range(0, len(self.exon_regions) - 1):
-                intron_start = self.exon_regions[i][1]
-                intron_end = self.exon_regions[i + 1][0]
-                if intron_end < intron_start:
-                    continue
-                intron_regions.append((intron_start, intron_end))
-        return intron_regions
+    ############################################################
+    # Private Method
+    ############################################################
 
     def _check_exon_regions(self) -> None:
         """Check exon_regions values are properly set"""

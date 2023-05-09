@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime
 import io
 import json
-from abc import ABCMeta, abstractmethod
 from pathlib import Path
 from typing import Any, get_args
 
@@ -20,8 +19,8 @@ from pygenomeviz.link import Link
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
 
 
-class GenomeVizBase(metaclass=ABCMeta):
-    """GenomeViz Abstract Base Class"""
+class GenomeViz:
+    """GenomeViz Class"""
 
     def __init__(
         self,
@@ -77,172 +76,9 @@ class GenomeVizBase(metaclass=ABCMeta):
 
         self._check_init_values()
 
-    def _check_init_values(self) -> None:
-        """Check initial values"""
-        if self.align_type not in get_args(LiteralTypes.ALIGN_TYPE):
-            err_msg = f"{self.align_type=} is invalid."
-            raise ValueError(err_msg)
-
-        if self.tick_style not in get_args(LiteralTypes.TICK_STYLE):
-            err_msg = f"{self.tick_style=} is invalid."
-            raise ValueError(err_msg)
-
-    def _get_track_offset(self, track: Track) -> int:
-        """Get track offset
-
-        Parameters
-        ----------
-        track : Track
-            Target track offset for alignment
-
-        Returns
-        -------
-        track_offset : int
-            Track offset
-        """
-        if self.align_type == "left":
-            return 0
-        elif self.align_type == "center":
-            return int((self.max_track_size - track.size) / 2)
-        elif self.align_type == "right":
-            return self.max_track_size - track.size
-        else:
-            raise NotImplementedError
-
-    @property
-    def feature_tooltip_json(self) -> str:
-        """Feature tooltip json"""
-        uuid2tooltip = {}
-        for track in self.get_feature_tracks():
-            for feature in track.features:
-                uuid2tooltip[feature.gid] = feature.tooltip
-        return json.dumps(uuid2tooltip)
-
-    @property
-    def link_tooltip_json(self) -> str:
-        """Link tooltip json"""
-        uuid2tooltip = {}
-        for track in self.get_link_tracks():
-            for link in track.links:
-                uuid2tooltip[link.gid] = link.tooltip
-        return json.dumps(uuid2tooltip)
-
-    @property
-    def _track_name2link_offset(self) -> dict[str, int]:
-        """Track name & link offset dict"""
-        track_name2offset = {}
-        for track in self.get_feature_tracks():
-            track_name2offset[track.name] = self._get_track_offset(track) - track.start
-        return track_name2offset
-
-    def _get_link_track(
-        self, feature_track_name1: str, feature_track_name2: str
-    ) -> LinkTrack:
-        """Get link track from two adjacent feature track names
-
-        Parameters
-        ----------
-        feature_track_name1 : str
-            Feature track name1
-        feature_track_name2 : str
-            Feature track name2
-
-        Returns
-        -------
-        link_track : LinkTrack
-            Target link track
-        """
-        track_names = [t.name for t in self.get_tracks()]
-        feature_track_idx1 = track_names.index(feature_track_name1)
-        feature_track_idx2 = track_names.index(feature_track_name2)
-        if abs(feature_track_idx1 - feature_track_idx2) == 2:
-            link_track_idx = int((feature_track_idx1 + feature_track_idx2) / 2)
-            target_link_track = self.get_tracks()[link_track_idx]
-            if isinstance(target_link_track, LinkTrack):
-                return target_link_track
-            else:
-                err_msg = "LinkTrack is not found between target feature tracks "
-                err_msg += f"({feature_track_name1=}, {feature_track_name2=})"
-                raise ValueError(err_msg)
-        else:
-            err_msg = f"{feature_track_name1=} and {feature_track_name2=} "
-            err_msg += "are not adjacent feature tracks."
-            raise ValueError(err_msg)
-
-    @abstractmethod
-    def add_feature_track():
-        """Add feature track"""
-        raise NotImplementedError
-
-    @abstractmethod
-    def add_link():
-        """Add link track"""
-        raise NotImplementedError
-
-    def get_track(self, track_name: str) -> Track:
-        """Get track by name
-
-        Parameters
-        ----------
-        track_name : str
-            Target track name
-
-        Returns
-        -------
-        track : Track
-            Target track
-        """
-        name2track = {t.name: t for t in self.get_tracks()}
-        track_names = name2track.keys()
-        if track_name not in track_names:
-            err_msg = f"{track_name=} is not found ({track_names=})."
-            raise ValueError(err_msg)
-        return name2track[track_name]
-
-    def get_tracks(self, subtrack: bool = False) -> list[Track]:
-        """Get tracks
-
-        Parameters
-        ----------
-        subtrack : bool, optional
-            If True, include feature subtracks
-
-        Returns
-        -------
-        tracks : list[Track]
-            Track list
-        """
-        tracks = []
-        for track in self._tracks:
-            if isinstance(track, FeatureTrack):
-                if subtrack:
-                    tracks.extend([t for t in track.subtracks if t.position == "above"])
-                tracks.append(track)
-                if subtrack:
-                    tracks.extend([t for t in track.subtracks if t.position == "below"])
-            else:
-                tracks.append(track)
-        return tracks
-
-    def get_feature_tracks(self) -> list[FeatureTrack]:
-        """Get feature tracks
-
-        Returns
-        -------
-        feature_tracks : list[FeatureTrack]
-            Feature track list
-        """
-        return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
-
-    def get_link_tracks(self) -> list[LinkTrack]:
-        """Get link tracks
-
-        Returns
-        -------
-        link_tracks : list[LinkTrack]
-            Link track list
-        """
-        return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
+    ############################################################
+    # Property
+    ############################################################
 
     @property
     def top_track(self) -> FeatureTrack:
@@ -270,142 +106,35 @@ class GenomeVizBase(metaclass=ABCMeta):
             raise ValueError(err_msg)
         return max([track.size for track in self.get_tracks()])
 
-    @abstractmethod
-    def plotfig(self, dpi: int = 100) -> Figure:
-        """Plot figure"""
-        raise NotImplementedError
+    @property
+    def feature_tooltip_json(self) -> str:
+        """Feature tooltip json"""
+        uuid2tooltip = {}
+        for track in self.get_feature_tracks():
+            for feature in track.features:
+                uuid2tooltip[feature.gid] = feature.tooltip
+        return json.dumps(uuid2tooltip)
 
-    def savefig(
-        self,
-        savefile: str | Path,
-        dpi: int = 100,
-        pad_inches: float = 0.5,
-    ) -> None:
-        """Save figure to file
+    @property
+    def link_tooltip_json(self) -> str:
+        """Link tooltip json"""
+        uuid2tooltip = {}
+        for track in self.get_link_tracks():
+            for link in track.links:
+                uuid2tooltip[link.gid] = link.tooltip
+        return json.dumps(uuid2tooltip)
 
-        Parameters
-        ----------
-        savefile : str | Path
-            Save file
-        dpi : int, optional
-            DPI
-        pad_inches : float, optional
-            Padding inches
-        """
-        figure = self.plotfig(dpi=dpi)
-        figure.savefig(
-            fname=savefile,
-            dpi=dpi,
-            pad_inches=pad_inches,
-            bbox_inches="tight",
-        )
+    @property
+    def track_name2link_offset(self) -> dict[str, int]:
+        """Track name & link offset dict"""
+        track_name2offset = {}
+        for track in self.get_feature_tracks():
+            track_name2offset[track.name] = self._get_track_offset(track) - track.start
+        return track_name2offset
 
-    def print_tracks_info(self, detail=False) -> None:
-        """Print tracks info (Mainly for debugging work)
-
-        Parameters
-        ----------
-        detail : bool, optional
-            If True, also output feature and link details
-        """
-        for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
-            # Print track common info
-            class_name = track.__class__.__name__
-            print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
-            size, ratio, zorder = track.size, track.ratio, track.zorder
-            print(f"# Size={size}, Ratio={ratio}, Zorder={zorder}", end="")
-
-            # Print each track specific info
-            if isinstance(track, FeatureTrack):
-                print(f", FeatureNumber={len(track.features)}")
-                if detail:
-                    for feature in track.features:
-                        print(feature)
-            elif isinstance(track, FeatureSubTrack):
-                print()
-            elif isinstance(track, LinkTrack):
-                print(f", LinkNumber={len(track.links)}")
-                if detail:
-                    for link in track.links:
-                        print(link)
-            elif isinstance(track, TickTrack):
-                print()
-
-    def set_colorbar(
-        self,
-        figure: Figure,
-        bar_colors: list[str] | None = None,
-        alpha: float = 0.8,
-        vmin: float = 0,
-        vmax: float = 100,
-        bar_height: float = 0.2,
-        bar_width: float = 0.01,
-        bar_left: float = 1.02,
-        bar_bottom: float = 0,
-        bar_label: str = "",
-        bar_labelsize: float = 15,
-        tick_labelsize: float = 10,
-    ) -> None:
-        """Set colorbars to figure
-
-        Set colorbars for similarity links between genome tracks
-
-        Parameters
-        ----------
-        figure : Figure
-            Matplotlib figure
-        bar_colors : list[str] | None, optional
-            Bar color list
-        alpha : float, optional
-            Color transparency
-        vmin : float, optional
-            Colorbar min value
-        vmax : float, optional
-            Colorbar max value
-        bar_height : float, optional
-            Colorbar height
-        bar_width : float, optional
-            Colorbar width
-        bar_left : float, optional
-            Colorbar left position
-        bar_bottom : float, optional
-            Colorbar bottom position
-        bar_label : str, optional
-            Colorbar label name
-        bar_labelsize : float, optional
-            Colorbar label size
-        tick_labelsize : float, optional
-            Colorbar tick label size
-        """
-        if bar_height == 0 or bar_width == 0:
-            return
-        bar_colors = ["grey", "red"] if bar_colors is None else bar_colors
-        bar_colors = list(dict.fromkeys([colors.to_hex(c) for c in bar_colors]))
-        for cnt, color in enumerate(bar_colors):
-            left = bar_left + bar_width * cnt
-            cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
-
-            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
-                """Convert target color to nearly white"""
-                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
-                return colors.to_hex(cmap(nearly_value))
-
-            nearly_white = to_nearly_white(color)
-            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
-            norm = colors.Normalize(vmin=vmin, vmax=vmax)
-            cb_kws = {"orientation": "vertical", "ticks": []}
-            cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
-            if cnt == len(bar_colors) - 1:
-                ticks = [vmin, vmax]
-                labels = [f"{t}%" for t in ticks]
-                cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
-                x, y = 2.0, (vmin + vmax) / 2
-                text_kws = {"rotation": 90, "ha": "left", "va": "center"}
-                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)
-
-
-class GenomeViz(GenomeVizBase):
-    """GenomeViz Class"""
+    ############################################################
+    # Public Method
+    ############################################################
 
     def add_feature_track(
         self,
@@ -570,6 +299,143 @@ class GenomeViz(GenomeVizBase):
             )
         )
 
+    def get_track(self, track_name: str) -> Track:
+        """Get track by name
+
+        Parameters
+        ----------
+        track_name : str
+            Target track name
+
+        Returns
+        -------
+        track : Track
+            Target track
+        """
+        name2track = {t.name: t for t in self.get_tracks()}
+        track_names = name2track.keys()
+        if track_name not in track_names:
+            err_msg = f"{track_name=} is not found ({track_names=})."
+            raise ValueError(err_msg)
+        return name2track[track_name]
+
+    def get_tracks(self, subtrack: bool = False) -> list[Track]:
+        """Get tracks
+
+        Parameters
+        ----------
+        subtrack : bool, optional
+            If True, include feature subtracks
+
+        Returns
+        -------
+        tracks : list[Track]
+            Track list
+        """
+        tracks = []
+        for track in self._tracks:
+            if isinstance(track, FeatureTrack):
+                if subtrack:
+                    tracks.extend([t for t in track.subtracks if t.position == "above"])
+                tracks.append(track)
+                if subtrack:
+                    tracks.extend([t for t in track.subtracks if t.position == "below"])
+            else:
+                tracks.append(track)
+        return tracks
+
+    def get_feature_tracks(self) -> list[FeatureTrack]:
+        """Get feature tracks
+
+        Returns
+        -------
+        feature_tracks : list[FeatureTrack]
+            Feature track list
+        """
+        return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
+
+    def get_link_tracks(self) -> list[LinkTrack]:
+        """Get link tracks
+
+        Returns
+        -------
+        link_tracks : list[LinkTrack]
+            Link track list
+        """
+        return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
+
+    def set_colorbar(
+        self,
+        figure: Figure,
+        bar_colors: list[str] | None = None,
+        alpha: float = 0.8,
+        vmin: float = 0,
+        vmax: float = 100,
+        bar_height: float = 0.2,
+        bar_width: float = 0.01,
+        bar_left: float = 1.02,
+        bar_bottom: float = 0,
+        bar_label: str = "",
+        bar_labelsize: float = 15,
+        tick_labelsize: float = 10,
+    ) -> None:
+        """Set colorbars to figure
+
+        Set colorbars for similarity links between genome tracks
+
+        Parameters
+        ----------
+        figure : Figure
+            Matplotlib figure
+        bar_colors : list[str] | None, optional
+            Bar color list
+        alpha : float, optional
+            Color transparency
+        vmin : float, optional
+            Colorbar min value
+        vmax : float, optional
+            Colorbar max value
+        bar_height : float, optional
+            Colorbar height
+        bar_width : float, optional
+            Colorbar width
+        bar_left : float, optional
+            Colorbar left position
+        bar_bottom : float, optional
+            Colorbar bottom position
+        bar_label : str, optional
+            Colorbar label name
+        bar_labelsize : float, optional
+            Colorbar label size
+        tick_labelsize : float, optional
+            Colorbar tick label size
+        """
+        if bar_height == 0 or bar_width == 0:
+            return
+        bar_colors = ["grey", "red"] if bar_colors is None else bar_colors
+        bar_colors = list(dict.fromkeys([colors.to_hex(c) for c in bar_colors]))
+        for cnt, color in enumerate(bar_colors):
+            left = bar_left + bar_width * cnt
+            cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
+
+            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
+                """Convert target color to nearly white"""
+                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                return colors.to_hex(cmap(nearly_value))
+
+            nearly_white = to_nearly_white(color)
+            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
+            norm = colors.Normalize(vmin=vmin, vmax=vmax)
+            cb_kws = {"orientation": "vertical", "ticks": []}
+            cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
+            if cnt == len(bar_colors) - 1:
+                ticks = [vmin, vmax]
+                labels = [f"{t}%" for t in ticks]
+                cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
+                x, y = 2.0, (vmin + vmax) / 2
+                text_kws = {"rotation": 90, "ha": "left", "va": "center"}
+                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)
+
     def plotfig(self, dpi: int = 100) -> Figure:
         """Plot figure
 
@@ -665,7 +531,7 @@ class GenomeViz(GenomeVizBase):
                     length1, length2 = link.track_length1, link.track_length2
                     if 0 < length1 < plot_length_thr or 0 < length2 < plot_length_thr:
                         continue
-                    link = link.add_offset(self._track_name2link_offset)
+                    link = link.add_offset(self.track_name2link_offset)
                     link.plot_link(ax, ylim)
 
             elif isinstance(track, TickTrack):
@@ -686,6 +552,31 @@ class GenomeViz(GenomeVizBase):
                 raise NotImplementedError()
 
         return figure
+
+    def savefig(
+        self,
+        savefile: str | Path,
+        dpi: int = 100,
+        pad_inches: float = 0.5,
+    ) -> None:
+        """Save figure to file
+
+        Parameters
+        ----------
+        savefile : str | Path
+            Save file
+        dpi : int, optional
+            DPI
+        pad_inches : float, optional
+            Padding inches
+        """
+        figure = self.plotfig(dpi=dpi)
+        figure.savefig(
+            fname=savefile,
+            dpi=dpi,
+            pad_inches=pad_inches,
+            bbox_inches="tight",
+        )
 
     def savefig_html(
         self,
@@ -744,3 +635,104 @@ class GenomeViz(GenomeVizBase):
         # Write viewer html contents
         with open(html_outfile, "w") as f:
             f.write(viewer_html)
+
+    def print_tracks_info(self, detail=False) -> None:
+        """Print tracks info (Mainly for debugging work)
+
+        Parameters
+        ----------
+        detail : bool, optional
+            If True, also output feature and link details
+        """
+        for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
+            # Print track common info
+            class_name = track.__class__.__name__
+            print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
+            size, ratio, zorder = track.size, track.ratio, track.zorder
+            print(f"# Size={size}, Ratio={ratio}, Zorder={zorder}", end="")
+
+            # Print each track specific info
+            if isinstance(track, FeatureTrack):
+                print(f", FeatureNumber={len(track.features)}")
+                if detail:
+                    for feature in track.features:
+                        print(feature)
+            elif isinstance(track, FeatureSubTrack):
+                print()
+            elif isinstance(track, LinkTrack):
+                print(f", LinkNumber={len(track.links)}")
+                if detail:
+                    for link in track.links:
+                        print(link)
+            elif isinstance(track, TickTrack):
+                print()
+
+    ############################################################
+    # Private Method
+    ############################################################
+
+    def _check_init_values(self) -> None:
+        """Check initial values"""
+        if self.align_type not in get_args(LiteralTypes.ALIGN_TYPE):
+            err_msg = f"{self.align_type=} is invalid."
+            raise ValueError(err_msg)
+
+        if self.tick_style not in get_args(LiteralTypes.TICK_STYLE):
+            err_msg = f"{self.tick_style=} is invalid."
+            raise ValueError(err_msg)
+
+    def _get_track_offset(self, track: Track) -> int:
+        """Get track offset
+
+        Parameters
+        ----------
+        track : Track
+            Target track offset for alignment
+
+        Returns
+        -------
+        track_offset : int
+            Track offset
+        """
+        if self.align_type == "left":
+            return 0
+        elif self.align_type == "center":
+            return int((self.max_track_size - track.size) / 2)
+        elif self.align_type == "right":
+            return self.max_track_size - track.size
+        else:
+            raise NotImplementedError
+
+    def _get_link_track(
+        self, feature_track_name1: str, feature_track_name2: str
+    ) -> LinkTrack:
+        """Get link track from two adjacent feature track names
+
+        Parameters
+        ----------
+        feature_track_name1 : str
+            Feature track name1
+        feature_track_name2 : str
+            Feature track name2
+
+        Returns
+        -------
+        link_track : LinkTrack
+            Target link track
+        """
+        track_names = [t.name for t in self.get_tracks()]
+        feature_track_idx1 = track_names.index(feature_track_name1)
+        feature_track_idx2 = track_names.index(feature_track_name2)
+        if abs(feature_track_idx1 - feature_track_idx2) == 2:
+            link_track_idx = int((feature_track_idx1 + feature_track_idx2) / 2)
+            target_link_track = self.get_tracks()[link_track_idx]
+            if isinstance(target_link_track, LinkTrack):
+                return target_link_track
+            else:
+                err_msg = "LinkTrack is not found between target feature tracks "
+                err_msg += f"({feature_track_name1=}, {feature_track_name2=})"
+                raise ValueError(err_msg)
+        else:
+            err_msg = f"{feature_track_name1=} and {feature_track_name2=} "
+            err_msg += "are not adjacent feature tracks."
+            raise ValueError(err_msg)

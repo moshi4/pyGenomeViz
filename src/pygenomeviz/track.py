@@ -182,7 +182,7 @@ class FeatureTrack(Track):
     @property
     def sublabel_params(self) -> dict[str, Any]:
         """Sublabel drawing parameters"""
-        return dict(
+        default_kwargs = dict(
             y=self._sublabel_y,
             s=self._sublabel_text,
             fontsize=self._sublabel_size,
@@ -190,8 +190,8 @@ class FeatureTrack(Track):
             ha=self._sublabel_ha,
             va=self._sublabel_va,
             zorder=10,
-            **self._sublabel_kws,
         )
+        return {**default_kwargs, **self._sublabel_kws}
 
     def _within_valid_range(
         self, start: int, end: int, raise_error_on_false: bool = False

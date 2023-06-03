@@ -203,4 +203,5 @@ class Link:
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
         lw = 1 if self.track_length1 == self.track_length2 == 0 else 0
-        return dict(fc=self.color, ec="grey", lw=lw, gid=self.gid, **patch_kws)
+        default_kwargs = dict(fc=self.color, ec="grey", lw=lw, gid=self.gid)
+        return {**default_kwargs, **patch_kws}

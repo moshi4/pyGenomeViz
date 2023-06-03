@@ -151,7 +151,6 @@ class Feature:
         # Skip if tooltip already exists
         if self.tooltip is not None:
             return
-        # Set basic tooltip info
         strand = "-" if self.strand == -1 else "+"
         if self.seq_feature is None:
             # Set basic tooltip
@@ -339,15 +338,16 @@ class Feature:
             Patch keyword arguments dict
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
-        return dict(
+        zorder = 5 if self.is_bigstyle else -5
+        default_kwargs = dict(
             fc=self.facecolor,
             ec=self.edgecolor,
             lw=self.linewidth,
             clip_on=False,
-            zorder=5 if self.is_bigstyle else -5,
+            zorder=zorder,
             gid=self.gid,
-            **patch_kws,
         )
+        return {**default_kwargs, **patch_kws}
 
     def _label_kwargs(
         self, start: int, end: int, label: str, ylim: tuple[float, float]
@@ -618,13 +618,9 @@ class ExonFeature(Feature):
         intron_patch_kwargs : dict[str, Any]
             Intron patch keyword arguments dict
         """
-        return dict(
-            lw=1,
-            fill=False,
-            clip_on=False,
-            zorder=5 if self.is_bigstyle else -5,
-            **self.intron_patch_kws,
-        )
+        zorder = 5 if self.is_bigstyle else -5
+        default_kwargs = dict(lw=1, fill=False, clip_on=False, zorder=zorder)
+        return {**default_kwargs, **self.intron_patch_kws}
 
     def __add__(self, offset: int):
         feature = deepcopy(self)

@@ -1,15 +1,18 @@
 # GenomeViz Class
 
-::: pygenomeviz.genomeviz.GenomeVizBase
+::: pygenomeviz.genomeviz.GenomeViz
     options:
       members:
-        - get_track
-        - get_tracks
-        - get_feature_tracks
         - top_track
         - bottom_track
         - max_track_size
-        - savefig
+        - get_track
+        - get_tracks
+        - get_feature_tracks
+        - get_link_tracks
+        - add_feature_track
+        - add_link
         - set_colorbar
-
-::: pygenomeviz.genomeviz.GenomeViz
+        - plotfig
+        - savefig
+        - savefig_html

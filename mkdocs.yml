@@ -5,6 +5,8 @@ repo_name: moshi4/pyGenomeViz
 repo_url: https://github.com/moshi4/pyGenomeViz
 edit_uri: ""
 use_directory_urls: true
+watch:
+  - src
 
 nav:
   - Home: index.md

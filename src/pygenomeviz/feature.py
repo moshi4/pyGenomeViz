@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
@@ -152,12 +153,16 @@ class Feature:
             return
         # Set basic tooltip info
         strand = "-" if self.strand == -1 else "+"
-        self.tooltip = (
-            f"location: {self._display_start} - {self._display_end} ({strand})\n"
-            + f"length: {self.length}"
-        )
-        # If SeqFeature exists, set extra tooltip info
-        if self.seq_feature is not None:
+        if self.seq_feature is None:
+            # Set basic tooltip
+            self.tooltip = textwrap.dedent(
+                f"""
+                location: {self._display_start:,} - {self._display_end:,} ({strand})
+                length: {self.length:,}
+                """
+            )[1:-1]
+        else:
+            # Set detail tooltip from SeqFeature info
             type = self.seq_feature.type
             qualifiers = self.seq_feature.qualifiers
             gene = qualifiers.get("gene", ["na"])[0]
@@ -165,12 +170,16 @@ class Feature:
             product = qualifiers.get("product", ["na"])[0]
             if product == "na":
                 product = qualifiers.get("Name", ["na"])[0]
-            self.tooltip += (
-                f"\ntype: {type}\n"
-                + f"gene: {gene}\n"
-                + f"protein_id: {protein_id}\n"
-                + f"product: {product}"
-            )
+            self.tooltip = textwrap.dedent(
+                f"""
+                location: {self._display_start:,} - {self._display_end:,} ({strand})
+                length: {self.length:,}
+                type: {type}
+                gene: {gene}
+                protein_id: {protein_id}
+                product: {product}
+                """
+            )[1:-1]
 
     def _box_patch(self, start: int, end: int, ylim: tuple[float, float]) -> Rectangle:
         """Box patch
@@ -330,15 +339,15 @@ class Feature:
             Patch keyword arguments dict
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
-        return {
-            "fc": self.facecolor,
-            "ec": self.edgecolor,
-            "lw": self.linewidth,
-            "clip_on": False,
-            "zorder": 5 if self.is_bigstyle else -5,
-            "gid": self.gid,
+        return dict(
+            fc=self.facecolor,
+            ec=self.edgecolor,
+            lw=self.linewidth,
+            clip_on=False,
+            zorder=5 if self.is_bigstyle else -5,
+            gid=self.gid,
             **patch_kws,
-        }
+        )
 
     def _label_kwargs(
         self, start: int, end: int, label: str, ylim: tuple[float, float]
@@ -398,18 +407,18 @@ class Feature:
         # labelrotation=90, labelha="center", rotation_mode="default" is best
         rotation_mode = "default" if self.labelrotation == 90 else "anchor"
 
-        return {
-            "x": x,
-            "y": y,
-            "s": label,
-            "color": self.labelcolor,
-            "fontsize": self.labelsize,
-            "rotation": labelrotation,
-            "ha": self.labelha,
-            "va": labelva,
-            "zorder": 10,
-            "rotation_mode": rotation_mode,
-        }
+        return dict(
+            x=x,
+            y=y,
+            s=label,
+            color=self.labelcolor,
+            fontsize=self.labelsize,
+            rotation=labelrotation,
+            ha=self.labelha,
+            va=labelva,
+            zorder=10,
+            rotation_mode=rotation_mode,
+        )
 
     def __add__(self, offset: int):
         feature = deepcopy(self)
@@ -609,13 +618,13 @@ class ExonFeature(Feature):
         intron_patch_kwargs : dict[str, Any]
             Intron patch keyword arguments dict
         """
-        return {
-            "lw": 1,
-            "fill": False,
-            "clip_on": False,
-            "zorder": 5 if self.is_bigstyle else -5,
+        return dict(
+            lw=1,
+            fill=False,
+            clip_on=False,
+            zorder=5 if self.is_bigstyle else -5,
             **self.intron_patch_kws,
-        }
+        )
 
     def __add__(self, offset: int):
         feature = deepcopy(self)

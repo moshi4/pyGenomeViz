@@ -1,21 +1,6 @@
-/**
- * Convert feature ID to proper label for tooltip display
- * @param {string} featureId
- * @returns {string} Feature info for tooltip display
- */
-function convertFeatureIdToLabel(featureId) {
-  const feature_tooltip_json = {}
-  return feature_tooltip_json[featureId]
-}
-/**
- * Convert link ID to proper label for tooltip display
- * @param {string} linkId
- * @returns {string} Link info for tooltip display
- */
-function convertLinkIdToLabel(linkId) {
-  const link_tooltip_json = {}
-  return link_tooltip_json[linkId]
-}
+const FEATURE_TOOLTIP_JSON = {}
+const LINK_TOOLTIP_JSON = {}
+
 /**
  * Save as PNG image
  * @param {HTMLElement} svgNode
@@ -103,9 +88,9 @@ $(document).ready(function () {
     $pathObj.attr("title", "")
     let tooltipLabel = ""
     if (pathId.startsWith("Feature")) {
-      tooltipLabel = convertFeatureIdToLabel(pathId)
+      tooltipLabel = FEATURE_TOOLTIP_JSON[pathId]
     } else if (pathId.startsWith("Link")) {
-      tooltipLabel = convertLinkIdToLabel(pathId)
+      tooltipLabel = LINK_TOOLTIP_JSON[pathId]
     }
     $pathObj.tooltip({ content: tooltipLabel, show: false, hide: false, track: true })
 

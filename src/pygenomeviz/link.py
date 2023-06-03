@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
@@ -183,12 +184,14 @@ class Link:
         if self.tooltip is None:
             start1, end1 = self._display_track_start1, self._display_track_end1
             start2, end2 = self._display_track_start2, self._display_track_end2
-            identity = "na" if self.v is None else str(int(self.v)) + "%"
-            self.tooltip = (
-                f"1. {self.track_name1} ({start1} - {end1} bp)\n"
-                + f"2. {self.track_name2} ({start2} - {end2} bp)\n"
-                + f"Identity: {identity}"
-            )
+            identity = "na" if self.v is None else f"{self.v:.2f}%"
+            self.tooltip = textwrap.dedent(
+                f"""
+                1. {self.track_name1} ({start1:,} - {end1:,} bp)
+                2. {self.track_name2} ({start2:,} - {end2:,} bp)
+                Identity: {identity}
+                """
+            )[1:-1]
 
     def _patch_kwargs(self) -> dict[str, Any]:
         """Patch keyword arguments dict
@@ -200,10 +203,4 @@ class Link:
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
         lw = 1 if self.track_length1 == self.track_length2 == 0 else 0
-        return {
-            "fc": self.color,
-            "ec": "grey",
-            "lw": lw,
-            "gid": self.gid,
-            **patch_kws,
-        }
+        return dict(fc=self.color, ec="grey", lw=lw, gid=self.gid, **patch_kws)

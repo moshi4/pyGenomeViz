@@ -107,30 +107,30 @@ class GenomeViz:
         return max([track.size for track in self.get_tracks()])
 
     @property
-    def feature_tooltip_json(self) -> str:
-        """Feature tooltip json"""
-        uuid2tooltip = {}
-        for track in self.get_feature_tracks():
-            for feature in track.features:
-                uuid2tooltip[feature.gid] = feature.tooltip
-        return json.dumps(uuid2tooltip)
-
-    @property
-    def link_tooltip_json(self) -> str:
-        """Link tooltip json"""
-        uuid2tooltip = {}
-        for track in self.get_link_tracks():
-            for link in track.links:
-                uuid2tooltip[link.gid] = link.tooltip
-        return json.dumps(uuid2tooltip)
-
-    @property
     def track_name2link_offset(self) -> dict[str, int]:
         """Track name & link offset dict"""
         track_name2offset = {}
         for track in self.get_feature_tracks():
             track_name2offset[track.name] = self._get_track_offset(track) - track.start
         return track_name2offset
+
+    @property
+    def gid2feature_tooltip(self) -> dict[str, str]:
+        """Group ID & feature tooltip dict"""
+        gid2feature_tooltip = {}
+        for track in self.get_feature_tracks():
+            for feature in track.features:
+                gid2feature_tooltip[feature.gid] = feature.tooltip
+        return gid2feature_tooltip
+
+    @property
+    def gid2link_tooltip(self) -> dict[str, str]:
+        """Group ID & link tooltip dict"""
+        gid2link_tooltip = {}
+        for track in self.get_link_tracks():
+            for link in track.links:
+                gid2link_tooltip[link.gid] = link.tooltip
+        return gid2link_tooltip
 
     ############################################################
     # Public Method
@@ -617,14 +617,16 @@ class GenomeViz:
                 style_contents += contents + "\n"
             elif file.suffix == ".js":
                 script_contents += contents + "\n"
-                script_contents = script_contents.replace(
-                    "feature_tooltip_json = {}",
-                    f"feature_tooltip_json = {self.feature_tooltip_json}",
-                )
-                script_contents = script_contents.replace(
-                    "link_tooltip_json = {}",
-                    f"link_tooltip_json = {self.link_tooltip_json}",
-                )
+        feature_tooltip_json = json.dumps(self.gid2feature_tooltip, indent=4)
+        script_contents = script_contents.replace(
+            "FEATURE_TOOLTIP_JSON = {}",
+            f"FEATURE_TOOLTIP_JSON = {feature_tooltip_json}",
+        )
+        link_tooltip_json = json.dumps(self.gid2link_tooltip, indent=4)
+        script_contents = script_contents.replace(
+            "LINK_TOOLTIP_JSON = {}",
+            f"LINK_TOOLTIP_JSON = {link_tooltip_json}",
+        )
         viewer_html = viewer_html.replace(
             "<style></style>", f"<style>{style_contents}</style>"
         )

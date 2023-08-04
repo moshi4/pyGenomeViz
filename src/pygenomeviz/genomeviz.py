@@ -495,7 +495,7 @@ class GenomeViz:
             # Set 'spines' and 'ticks' visibility
             for spine, display in track.spines_params.items():
                 ax.spines[spine].set_visible(display)
-            ax.tick_params(**track.tick_params)
+            ax.tick_params(**track.tick_params)  # type: ignore
 
             if isinstance(track, FeatureTrack):
                 ax.set_gid(str(ax.get_gid()) + f" {track})")

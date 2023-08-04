@@ -280,7 +280,7 @@ class Genbank:
         seqid2features : dict[str, list[SeqFeature]]
             seqid & features dict
         """
-        seqid2features = defaultdict(list)
+        seqid2features: dict[str, list[SeqFeature]] = defaultdict(list)
         for rec in self.records:
             feat: SeqFeature
             for feat in rec.features:

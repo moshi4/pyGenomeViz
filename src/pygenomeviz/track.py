@@ -736,13 +736,15 @@ class FeatureTrack(Track):
                     exon_regions.append((start, end))
                 # Add exon feature
                 feature_kws["intron_patch_kws"] = intron_patch_kws
-                self.features.append(ExonFeature(exon_regions, **feature_kws))
+                exon_feature = ExonFeature(exon_regions, **feature_kws)  # type: ignore
+                self.features.append(exon_feature)
             else:
                 start = int(str(feature.location.start))
                 end = int(str(feature.location.end))
                 self._within_valid_range(start, end, raise_error_on_false=True)
                 # Add feature
-                self.features.append(Feature(start, end, **feature_kws))
+                feature = Feature(start, end, **feature_kws)  # type: ignore
+                self.features.append(feature)
 
     def __str__(self):
         return f"{self.name}:{self.start}-{self.end}"

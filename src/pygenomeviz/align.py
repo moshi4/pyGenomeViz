@@ -284,6 +284,7 @@ class MMseqs(AlignToolBase):
         identity: float = 0,
         evalue: float = 1e-3,
         process_num: int | None = None,
+        quiet: bool = False,
     ):
         """
         Parameters
@@ -298,6 +299,8 @@ class MMseqs(AlignToolBase):
             E-value threshold
         process_num : int | None, optional
             Use processor number (Default: `'Max Processor' - 1`)
+        quiet : bool, optional
+            If True, do not print message
         """
         self.check_installation()
 
@@ -311,6 +314,7 @@ class MMseqs(AlignToolBase):
         self.identity = identity
         self.evalue = evalue
         self.process_num = self.max_process_num if process_num is None else process_num
+        self.quiet = quiet
 
         os.makedirs(self.outdir, exist_ok=True)
 
@@ -339,7 +343,8 @@ class MMseqs(AlignToolBase):
                 rbh_result_file = self.outdir / f"{idx+1:02d}_{name1}-{name2}_rbh.tsv"
                 cmd = f"mmseqs easy-rbh {fa_file1} {fa_file2} {rbh_result_file} "
                 cmd += f"{tmpdir} --threads {self.process_num} -e {self.evalue} -v 0"
-                print(f"# {idx+1:02d}: {name1}-{name2} RBH search\n$ {cmd}\n")
+                if not self.quiet:
+                    print(f"# {idx+1:02d}: {name1}-{name2} RBH search\n$ {cmd}\n")
                 sp.run(cmd, shell=True)
 
                 align_coords.extend(

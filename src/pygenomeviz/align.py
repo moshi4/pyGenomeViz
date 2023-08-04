@@ -159,8 +159,13 @@ class MUMmer(AlignToolBase):
             mp_data_list.append((fa_file1, fa_file2, idx))
 
         # Run MUMmer with multiprocessing
-        with mp.Pool(processes=self.process_num) as p:
-            results = p.starmap(self._run_mummer, mp_data_list)
+        if self.process_num > 1:
+            with mp.Pool(processes=self.process_num) as p:
+                results = p.starmap(self._run_mummer, mp_data_list)
+        else:
+            results = []
+            for fa_file1, fa_file2, idx in mp_data_list:
+                results.append(self._run_mummer(fa_file1, fa_file2, idx))
 
         align_coords = list(itertools.chain.from_iterable(results))
 
@@ -213,7 +218,7 @@ class MUMmer(AlignToolBase):
 
         # Delete work files
         for work_file in (delta_file, filter_delta_file, coords_file):
-            os.unlink(work_file)
+            work_file.unlink(missing_ok=True)
 
         return align_coords
 

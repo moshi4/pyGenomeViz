@@ -5,6 +5,7 @@ Users can easily perform data visualization of Genbank files and genome comparis
 results using MUMmer or MMseqs.
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
+**Fig.pyGenomeViz GUI (Web browser) version example ([Demo Page](https://pygenomeviz.streamlit.app))**
 
 ## Installation
 
@@ -21,7 +22,7 @@ MUMmer and MMseqs are also required to enable the genome comparison functionalit
 
 In Ubuntu22.04, MUMmer and MMseqs can be installed with apt command below.
 
-    sudo apt install mummer mmseqs
+    sudo apt install mummer mmseqs2
 
 ### Docker
 
@@ -29,6 +30,6 @@ In Ubuntu22.04, MUMmer and MMseqs can be installed with apt command below.
 
 ## Usage
 
-The following command launches a GUI browser, which can be accessed at <https://localhost:8501>.
+The following command launches a GUI browser, which can be accessed at <http://localhost:8501>.
 
     pgv-gui

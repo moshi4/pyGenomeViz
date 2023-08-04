@@ -35,7 +35,7 @@ For more information, please see full documentation [here](https://moshi4.github
 :sparkles: GUI (Web browser) functionality is newly added from v0.4.0
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
-**Fig.2 pyGenomeViz GUI (Web browser) version example**
+**Fig.2 pyGenomeViz GUI (Web browser) version example ([Demo Page](https://pygenomeviz.streamlit.app))**
 
 ## Installation
 
@@ -395,9 +395,9 @@ Download example dataset: `pgv-download-dataset -n escherichia_coli`
 
 ## GUI (Web browser)
 
-pyGenomeViz implements GUI (Web browser) functionality using [Streamlit](https://github.com/streamlit/streamlit) as an option.
-Users can easily perform data visualization of Genbank files and genome comparison
-results using MUMmer or MMseqs. See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
+pyGenomeViz implements GUI (Web browser) functionality using [streamlit](https://github.com/streamlit/streamlit) as an option ([Demo Page](https://pygenomeviz.streamlit.app)).
+Users can easily perform data visualization of Genbank files and genome comparison results using MUMmer or MMseqs.
+See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
 

@@ -17,7 +17,7 @@ MUMmer and MMseqs are also required to enable the genome comparison functionalit
 
 ### Pip
 
-    pip install pygenomeviz[all]
+    pip install pygenomeviz[gui]
 
 In Ubuntu22.04, MUMmer and MMseqs can be installed with apt command below.
 

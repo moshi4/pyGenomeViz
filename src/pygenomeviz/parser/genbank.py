@@ -473,9 +473,8 @@ class Genbank:
         return int(str(value).replace("<", "").replace(">", ""))
 
     def __str__(self):
-        name = str(self._gbk_source)
         min_max_range = f"{self.min_range:,} - {self.max_range:,} bp"
         if self.reverse:
-            return f"{name} ({min_max_range}) [Reverse Complement]"
+            return f"{self.name} ({min_max_range}) [Reverse Complement]"
         else:
-            return f"{name} ({min_max_range})"
+            return f"{self.name} ({min_max_range})"

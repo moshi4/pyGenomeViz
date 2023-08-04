@@ -26,6 +26,8 @@ nav:
       - pgv-mummer: cli-docs/pgv-mummer.md
       - pgv-mmseqs: cli-docs/pgv-mmseqs.md
       - pgv-pmauve: cli-docs/pgv-pmauve.md
+  - GUI Docs:
+      - pgv-gui: gui-docs/pgv-gui.md
 
 theme:
   name: material # material, readthedocs, mkdocs

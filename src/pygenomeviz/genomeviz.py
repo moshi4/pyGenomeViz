@@ -580,14 +580,14 @@ class GenomeViz:
 
     def savefig_html(
         self,
-        html_outfile: str | Path,
+        html_outfile: str | Path | io.StringIO | io.BytesIO,
         fig: Figure | None = None,
     ) -> None:
         """Save figure in html format
 
         Parameters
         ----------
-        html_outfile : str | Path
+        html_outfile : str | Path | StringIO | BytesIO
             Output HTML file (*.html)
         fig : Figure | None, optional
             If Figure set, plot html viewer using user customized fig
@@ -635,8 +635,13 @@ class GenomeViz:
         )
 
         # Write viewer html contents
-        with open(html_outfile, "w") as f:
-            f.write(viewer_html)
+        if isinstance(html_outfile, io.StringIO):
+            html_outfile.write(viewer_html)
+        elif isinstance(html_outfile, io.BytesIO):
+            html_outfile.write(bytes(viewer_html, encoding="utf-8"))
+        else:
+            with open(html_outfile, "w") as f:
+                f.write(viewer_html)
 
     def print_tracks_info(self, detail=False) -> None:
         """Print tracks info (Mainly for debugging work)

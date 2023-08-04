@@ -397,7 +397,7 @@ Download example dataset: `pgv-download-dataset -n escherichia_coli`
 
 pyGenomeViz implements GUI (Web browser) functionality using [Streamlit](https://github.com/streamlit/streamlit) as an option.
 Users can easily perform data visualization of Genbank files and genome comparison
-results using MUMmer or MMseqs. See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for detail
+results using MUMmer or MMseqs. See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
 

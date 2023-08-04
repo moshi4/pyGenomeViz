@@ -297,8 +297,8 @@ class FeatureTrack(Track):
             Text properties (e.g. `dict(size=12, color="red", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
-        # Sublabel text setting (e.g. '0 - 1000 bp')
-        default_text = f"{self.start} - {self.end} bp"
+        # Sublabel text setting (e.g. '0 - 1,000 bp')
+        default_text = f"{self.start:,} - {self.end:,} bp"
         self._sublabel_text = default_text if text is None else text
         self._sublabel_size = size
         self._sublabel_color = color

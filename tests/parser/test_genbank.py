@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from Bio.Seq import reverse_complement
+
 from pygenomeviz import Genbank
 
 

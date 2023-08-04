@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import textwrap
+import uuid
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
@@ -29,8 +31,10 @@ class Link:
     curve: bool = False
     size_ratio: float = 1.0
     patch_kws: dict[str, Any] | None = None
+    tooltip: str | None = None
 
     def __post_init__(self):
+        self._uuid = uuid.uuid4()
         # start-end value for HTML display
         self._display_track_start1 = self.track_start1
         self._display_track_end1 = self.track_end1
@@ -56,6 +60,17 @@ class Link:
                 err_msg += f" ({self.v=}, {self.vmin=}, {self.vmax=})"
                 raise ValueError(err_msg)
 
+        self._set_tooltip()
+
+    ############################################################
+    # Property
+    ############################################################
+
+    @property
+    def gid(self) -> str:
+        """Group ID"""
+        return "Link-" + str(self._uuid)
+
     @property
     def track_length1(self) -> int:
         """Track length1"""
@@ -67,19 +82,41 @@ class Link:
         return abs(self.track_end2 - self.track_start2)
 
     @property
-    def gid(self) -> str:
-        """Group ID"""
-        trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
-        trans_table = str.maketrans(trans_dict)
-        name1 = self.track_name1.translate(trans_table)
-        start1 = self._display_track_start1
-        end1 = self._display_track_end1
-        name2 = self.track_name2.translate(trans_table)
-        start2 = self._display_track_start2
-        end2 = self._display_track_end2
-        track_info = f"{name1}_{start1}_{end1}_{name2}_{start2}_{end2}"
-        identity = "na" if self.v is None else int(self.v)
-        return f"Link_{track_info}_{identity}"
+    def color(self) -> str:
+        """Get conditional hexcolor code"""
+        color = self.inverted_color if self.is_inverted else self.normal_color
+        if self.v is None:
+            rgba = colors.to_rgba(color, alpha=self.alpha)
+            return colors.to_hex(rgba, keep_alpha=True)
+        else:
+
+            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
+                """Convert target color to nearly white"""
+                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                return colors.to_hex(cmap(nearly_value))
+
+            nearly_white = to_nearly_white(color)
+            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
+            norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+            norm_value = norm(self.v)
+            return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
+
+    @property
+    def is_inverted(self) -> bool:
+        """Check inverted link or not
+
+        Returns
+        -------
+        is_inverted : bool
+            Check result
+        """
+        track_link_length1 = self.track_end1 - self.track_start1
+        track_link_length2 = self.track_end2 - self.track_start2
+        return track_link_length1 * track_link_length2 < 0
+
+    ############################################################
+    # Public Method
+    ############################################################
 
     def plot_link(self, ax: Axes, ylim: tuple[float, float] = (-1.0, 1.0)) -> None:
         """Plot link
@@ -118,57 +155,6 @@ class Link:
         codes, verts = zip(*path_data)
         ax.add_patch(PathPatch(Path(verts, codes), **self._patch_kwargs()))
 
-    def _patch_kwargs(self) -> dict[str, Any]:
-        """Patch keyword arguments dict
-
-        Returns
-        -------
-        patch_kwargs : dict[str, Any]
-            Patch keyword arguments dict
-        """
-        patch_kws = {} if self.patch_kws is None else self.patch_kws
-        lw = 1 if self.track_length1 == self.track_length2 == 0 else 0
-        return {
-            "fc": self.color,
-            "ec": "grey",
-            "lw": lw,
-            "gid": self.gid,
-            **patch_kws,
-        }
-
-    @property
-    def color(self) -> str:
-        """Get conditional hexcolor code"""
-        color = self.inverted_color if self.is_inverted else self.normal_color
-        if self.v is None:
-            rgba = colors.to_rgba(color, alpha=self.alpha)
-            return colors.to_hex(rgba, keep_alpha=True)
-        else:
-
-            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
-                """Convert target color to nearly white"""
-                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
-                return colors.to_hex(cmap(nearly_value))
-
-            nearly_white = to_nearly_white(color)
-            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
-            norm = colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-            norm_value = norm(self.v)
-            return colors.to_hex(cmap(norm_value, alpha=self.alpha), keep_alpha=True)
-
-    @property
-    def is_inverted(self) -> bool:
-        """Check inverted link or not
-
-        Returns
-        -------
-        is_inverted : bool
-            Check result
-        """
-        track_link_length1 = self.track_end1 - self.track_start1
-        track_link_length2 = self.track_end2 - self.track_start2
-        return track_link_length1 * track_link_length2 < 0
-
     def add_offset(self, track_name2offset: dict[str, int]) -> Link:
         """Add offset to each link position
 
@@ -188,3 +174,34 @@ class Link:
         link.track_start2 += track_name2offset[self.track_name2]
         link.track_end2 += track_name2offset[self.track_name2]
         return link
+
+    ############################################################
+    # Private Method
+    ############################################################
+
+    def _set_tooltip(self) -> None:
+        """Set tooltip"""
+        if self.tooltip is None:
+            start1, end1 = self._display_track_start1, self._display_track_end1
+            start2, end2 = self._display_track_start2, self._display_track_end2
+            identity = "na" if self.v is None else f"{self.v:.2f}%"
+            self.tooltip = textwrap.dedent(
+                f"""
+                1. {self.track_name1} ({start1:,} - {end1:,} bp)
+                2. {self.track_name2} ({start2:,} - {end2:,} bp)
+                Identity: {identity}
+                """
+            )[1:-1]
+
+    def _patch_kwargs(self) -> dict[str, Any]:
+        """Patch keyword arguments dict
+
+        Returns
+        -------
+        patch_kwargs : dict[str, Any]
+            Patch keyword arguments dict
+        """
+        patch_kws = {} if self.patch_kws is None else self.patch_kws
+        lw = 1 if self.track_length1 == self.track_length2 == 0 else 0
+        default_kwargs = dict(fc=self.color, ec="grey", lw=lw, gid=self.gid)
+        return {**default_kwargs, **patch_kws}

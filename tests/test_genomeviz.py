@@ -229,7 +229,7 @@ def test_top_track_error():
     """Test top track property access error"""
     gv = GenomeViz()
     with pytest.raises(ValueError) as e:
-        gv.top_track
+        assert gv.top_track
     assert str(e.value).startswith("No track found.")
 
 
@@ -237,7 +237,7 @@ def test_max_track_size_error():
     """Test max track size property access error"""
     gv = GenomeViz()
     with pytest.raises(ValueError) as e:
-        gv.max_track_size
+        assert gv.max_track_size
     assert str(e.value).startswith("No track found.")
 
 
@@ -314,10 +314,10 @@ def test_ax_property():
     gv.add_feature_track("track01", 1000)
     # Can't access ax property before calling 'plotfig' method
     with pytest.raises(ValueError):
-        gv.top_track.ax
+        assert gv.top_track.ax
     # Propery access ax property after calling 'plotfig' method
     gv.plotfig()
-    gv.top_track.ax
+    assert gv.top_track.ax
 
 
 def test_offset_property():
@@ -326,7 +326,7 @@ def test_offset_property():
     gv.add_feature_track("track01", 1000)
     # Can't access offset property before calling 'plotfig' method
     with pytest.raises(ValueError):
-        gv.top_track.offset
+        assert gv.top_track.offset
     # Propery access offset property after calling 'plotfig' method
     gv.plotfig()
-    gv.top_track.offset
+    assert gv.top_track.offset == 0

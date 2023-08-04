@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+
 from pygenomeviz.utils import ColorCycler, load_dataset, load_example_gff
 
 

@@ -13,6 +13,7 @@
 - [Installation](#installation)
 - [API Examples](#api-examples)
 - [CLI Examples](#cli-examples)
+- [GUI (Web browser)](#gui-web-browser)
 - [Interactive HTML Viewer](#interactive-html-viewer)
 - [Inspiration](#inspiration)
 - [Circular Genome Visualization](#circular-genome-visualization)
@@ -31,6 +32,11 @@ For more information, please see full documentation [here](https://moshi4.github
 ![pygenomeviz_gallery.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pygenomeviz_gallery.png)  
 **Fig.1 pyGenomeViz example plot gallery**
 
+:sparkles: GUI (Web browser) functionality is newly added from v0.4.0
+
+![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
+**Fig.2 pyGenomeViz GUI (Web browser) version example**
+
 ## Installation
 
 `Python 3.8 or later` is required for installation.
@@ -45,8 +51,7 @@ For more information, please see full documentation [here](https://moshi4.github
 
 **Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
 
-    docker pull ghcr.io/moshi4/pygenomeviz:latest
-    docker run -it --rm ghcr.io/moshi4/pygenomeviz:latest pgv-pmauve -h
+    docker run --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
 
 ## API Examples
 
@@ -387,6 +392,14 @@ Download example dataset: `pgv-download-dataset -n escherichia_coli`
                -o pmauve_example --tick_style bar
 
 ![pmauve_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pmauve_example1.png)  
+
+## GUI (Web browser)
+
+pyGenomeViz implements GUI (Web browser) functionality using [Streamlit](https://github.com/streamlit/streamlit) as an option.
+Users can easily perform data visualization of Genbank files and genome comparison
+results using MUMmer or MMseqs. See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
+
+![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
 
 ## Interactive HTML Viewer
 

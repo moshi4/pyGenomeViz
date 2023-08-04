@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import textwrap
+import uuid
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, get_args
@@ -34,8 +36,10 @@ class Feature:
     size_ratio: float = 0.9
     patch_kws: dict[str, Any] | None = None
     seq_feature: SeqFeature | None = None
+    tooltip: str | None = None
 
     def __post_init__(self):
+        self._uuid = uuid.uuid4()
         # start-end value for HTML display
         self._display_start = self.start
         self._display_end = self.end
@@ -70,6 +74,31 @@ class Feature:
         if not 0 <= self.size_ratio <= 1:
             err_msg = f"'size_ratio' must be '0 <= value <= 1' ({self.size_ratio=})"
             raise ValueError(err_msg)
+
+        self._set_tooltip()
+
+    ############################################################
+    # Property
+    ############################################################
+
+    @property
+    def gid(self) -> str:
+        """Group ID"""
+        return "Feature-" + str(self._uuid)
+
+    @property
+    def length(self) -> int:
+        """Feature length"""
+        return self.end - self.start
+
+    @property
+    def is_bigstyle(self) -> bool:
+        """Check plotstyle is 'big~~~' or not"""
+        return self.plotstyle.startswith("big")
+
+    ############################################################
+    # Public Method
+    ############################################################
 
     def plot_feature(
         self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
@@ -113,40 +142,43 @@ class Feature:
             start, end = self.start, self.end
             ax.text(**self._label_kwargs(start, end, self.label, ylim))
 
-    @property
-    def length(self) -> int:
-        """Feature length"""
-        return self.end - self.start
+    ############################################################
+    # Private Method
+    ############################################################
 
-    @property
-    def is_bigstyle(self) -> bool:
-        """Check plotstyle is 'big~~~' or not"""
-        return self.plotstyle.startswith("big")
-
-    @property
-    def gid(self) -> str:
-        """Group ID"""
-        start, end = self._display_start, self._display_end
-        type, gene, protein_id, product = "na", "na", "na", "na"
-        if self.seq_feature is not None:
+    def _set_tooltip(self) -> None:
+        """Set tooltip"""
+        # Skip if tooltip already exists
+        if self.tooltip is not None:
+            return
+        strand = "-" if self.strand == -1 else "+"
+        if self.seq_feature is None:
+            # Set basic tooltip
+            self.tooltip = textwrap.dedent(
+                f"""
+                location: {self._display_start:,} - {self._display_end:,} ({strand})
+                length: {self.length:,}
+                """
+            )[1:-1]
+        else:
+            # Set detail tooltip from SeqFeature info
             type = self.seq_feature.type
             qualifiers = self.seq_feature.qualifiers
             gene = qualifiers.get("gene", ["na"])[0]
-            protein_id = qualifiers.get("protein_id", ["na"])[0].split(".")[0]
+            protein_id = qualifiers.get("protein_id", ["na"])[0]
             product = qualifiers.get("product", ["na"])[0]
             if product == "na":
                 product = qualifiers.get("Name", ["na"])[0]
-            # Replace special characters to underscore (For html ID tag selection)
-            trans_dict = {e: "_" for e in list(" /:;()+.,'`\"\\!|^~[]{}<>#$%&@?=")}
-            trans_table = str.maketrans(trans_dict)
-            gene = gene.translate(trans_table)
-            protein_id = protein_id.translate(trans_table)
-            product = product.translate(trans_table)
-
-        return (
-            f"Feature_{start}_{end}_{self.strand}_"
-            + f"type_{type}_gene_{gene}_protein_id_{protein_id}_product_{product}"
-        )
+            self.tooltip = textwrap.dedent(
+                f"""
+                location: {self._display_start:,} - {self._display_end:,} ({strand})
+                length: {self.length:,}
+                type: {type}
+                gene: {gene}
+                protein_id: {protein_id}
+                product: {product}
+                """
+            )[1:-1]
 
     def _box_patch(self, start: int, end: int, ylim: tuple[float, float]) -> Rectangle:
         """Box patch
@@ -306,15 +338,16 @@ class Feature:
             Patch keyword arguments dict
         """
         patch_kws = {} if self.patch_kws is None else self.patch_kws
-        return {
-            "fc": self.facecolor,
-            "ec": self.edgecolor,
-            "lw": self.linewidth,
-            "clip_on": False,
-            "zorder": 5 if self.is_bigstyle else -5,
-            "gid": self.gid,
-            **patch_kws,
-        }
+        zorder = 5 if self.is_bigstyle else -5
+        default_kwargs = dict(
+            fc=self.facecolor,
+            ec=self.edgecolor,
+            lw=self.linewidth,
+            clip_on=False,
+            zorder=zorder,
+            gid=self.gid,
+        )
+        return {**default_kwargs, **patch_kws}
 
     def _label_kwargs(
         self, start: int, end: int, label: str, ylim: tuple[float, float]
@@ -374,18 +407,18 @@ class Feature:
         # labelrotation=90, labelha="center", rotation_mode="default" is best
         rotation_mode = "default" if self.labelrotation == 90 else "anchor"
 
-        return {
-            "x": x,
-            "y": y,
-            "s": label,
-            "color": self.labelcolor,
-            "fontsize": self.labelsize,
-            "rotation": labelrotation,
-            "ha": self.labelha,
-            "va": labelva,
-            "zorder": 10,
-            "rotation_mode": rotation_mode,
-        }
+        return dict(
+            x=x,
+            y=y,
+            s=label,
+            color=self.labelcolor,
+            fontsize=self.labelsize,
+            rotation=labelrotation,
+            ha=self.labelha,
+            va=labelva,
+            zorder=10,
+            rotation_mode=rotation_mode,
+        )
 
     def __add__(self, offset: int):
         feature = deepcopy(self)
@@ -450,6 +483,27 @@ class ExonFeature(Feature):
             err_msg = "'exon_regions' & 'exon_labels' length is diffrent."
             raise ValueError(err_msg)
 
+    ############################################################
+    # Property
+    ############################################################
+
+    @property
+    def intron_regions(self) -> list[tuple[int, int]]:
+        """Intron regions"""
+        intron_regions = []
+        if len(self.exon_regions) > 1:
+            for i in range(0, len(self.exon_regions) - 1):
+                intron_start = self.exon_regions[i][1]
+                intron_end = self.exon_regions[i + 1][0]
+                if intron_end < intron_start:
+                    continue
+                intron_regions.append((intron_start, intron_end))
+        return intron_regions
+
+    ############################################################
+    # Public Method
+    ############################################################
+
     def plot_feature(
         self, ax: Axes, max_track_size: int, ylim: tuple[float, float]
     ) -> None:
@@ -467,7 +521,7 @@ class ExonFeature(Feature):
         ylim = (ylim[0] * self.size_ratio, ylim[1] * self.size_ratio)
 
         # Plot intron feature
-        for (start, end) in self.intron_regions:
+        for start, end in self.intron_regions:
             p = self._intron_patch(start, end, ylim)
             ax.add_patch(p)
 
@@ -503,23 +557,14 @@ class ExonFeature(Feature):
                     label_kwargs.update(self.exon_label_kws)
                     ax.text(**label_kwargs)
 
-    @property
-    def intron_regions(self) -> list[tuple[int, int]]:
-        """Intron regions"""
-        intron_regions = []
-        if len(self.exon_regions) > 1:
-            for i in range(0, len(self.exon_regions) - 1):
-                intron_start = self.exon_regions[i][1]
-                intron_end = self.exon_regions[i + 1][0]
-                if intron_end < intron_start:
-                    continue
-                intron_regions.append((intron_start, intron_end))
-        return intron_regions
+    ############################################################
+    # Private Method
+    ############################################################
 
     def _check_exon_regions(self) -> None:
         """Check exon_regions values are properly set"""
         max_pos_record = None
-        for (exon_start, exon_end) in self.exon_regions:
+        for exon_start, exon_end in self.exon_regions:
             if exon_start >= exon_end:
                 err_msg = "Exon start-end value must be 'start < end'."
                 raise ValueError(err_msg)
@@ -573,13 +618,9 @@ class ExonFeature(Feature):
         intron_patch_kwargs : dict[str, Any]
             Intron patch keyword arguments dict
         """
-        return {
-            "lw": 1,
-            "fill": False,
-            "clip_on": False,
-            "zorder": 5 if self.is_bigstyle else -5,
-            **self.intron_patch_kws,
-        }
+        zorder = 5 if self.is_bigstyle else -5
+        default_kwargs = dict(lw=1, fill=False, clip_on=False, zorder=zorder)
+        return {**default_kwargs, **self.intron_patch_kws}
 
     def __add__(self, offset: int):
         feature = deepcopy(self)
@@ -588,7 +629,7 @@ class ExonFeature(Feature):
         feature.end += offset
         # Add offset to exon regions
         exon_regions = []
-        for (exon_start, exon_end) in feature.exon_regions:
+        for exon_start, exon_end in feature.exon_regions:
             exon_regions.append((exon_start + offset, exon_end + offset))
         feature.exon_regions = exon_regions
         return feature

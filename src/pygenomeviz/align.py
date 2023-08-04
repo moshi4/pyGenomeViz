@@ -159,8 +159,13 @@ class MUMmer(AlignToolBase):
             mp_data_list.append((fa_file1, fa_file2, idx))
 
         # Run MUMmer with multiprocessing
-        with mp.Pool(processes=self.process_num) as p:
-            results = p.starmap(self._run_mummer, mp_data_list)
+        if self.process_num > 1:
+            with mp.Pool(processes=self.process_num) as p:
+                results = p.starmap(self._run_mummer, mp_data_list)
+        else:
+            results = []
+            for fa_file1, fa_file2, idx in mp_data_list:
+                results.append(self._run_mummer(fa_file1, fa_file2, idx))
 
         align_coords = list(itertools.chain.from_iterable(results))
 
@@ -213,7 +218,7 @@ class MUMmer(AlignToolBase):
 
         # Delete work files
         for work_file in (delta_file, filter_delta_file, coords_file):
-            os.unlink(work_file)
+            work_file.unlink(missing_ok=True)
 
         return align_coords
 
@@ -279,6 +284,7 @@ class MMseqs(AlignToolBase):
         identity: float = 0,
         evalue: float = 1e-3,
         process_num: int | None = None,
+        quiet: bool = False,
     ):
         """
         Parameters
@@ -293,6 +299,8 @@ class MMseqs(AlignToolBase):
             E-value threshold
         process_num : int | None, optional
             Use processor number (Default: `'Max Processor' - 1`)
+        quiet : bool, optional
+            If True, do not print message
         """
         self.check_installation()
 
@@ -306,6 +314,7 @@ class MMseqs(AlignToolBase):
         self.identity = identity
         self.evalue = evalue
         self.process_num = self.max_process_num if process_num is None else process_num
+        self.quiet = quiet
 
         os.makedirs(self.outdir, exist_ok=True)
 
@@ -334,7 +343,8 @@ class MMseqs(AlignToolBase):
                 rbh_result_file = self.outdir / f"{idx+1:02d}_{name1}-{name2}_rbh.tsv"
                 cmd = f"mmseqs easy-rbh {fa_file1} {fa_file2} {rbh_result_file} "
                 cmd += f"{tmpdir} --threads {self.process_num} -e {self.evalue} -v 0"
-                print(f"# {idx+1:02d}: {name1}-{name2} RBH search\n$ {cmd}\n")
+                if not self.quiet:
+                    print(f"# {idx+1:02d}: {name1}-{name2} RBH search\n$ {cmd}\n")
                 sp.run(cmd, shell=True)
 
                 align_coords.extend(

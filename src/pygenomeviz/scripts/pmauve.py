@@ -27,7 +27,7 @@ def run(
     seq_files: list[str | Path],
     outdir: str | Path,
     refid: int = 0,
-    format: list[str] = ["png", "html"],
+    format: list[str] | None = None,
     reuse: bool = False,
     # Figure appearence options
     fig_width: float = 15,
@@ -54,7 +54,7 @@ def run(
         Input genome sequence files (Genbank or Fasta format)
     outdir : str | Path
         Output directory
-    format : list[str], optional
+    format : list[str] | None, optional
         Output image format (`png`|`jpg`|`svg`|`pdf`|`html`)
     reuse : bool, optional
         If True, reuse previous result if available
@@ -94,6 +94,7 @@ def run(
     gv : GenomeViz
         GenomeViz instance
     """
+    format = ["png", "html"] if format is None else format
     # Check progressiveMauve installation
     ProgressiveMauve.check_installation()
 

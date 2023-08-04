@@ -2,6 +2,7 @@ import subprocess as sp
 from pathlib import Path
 
 import pytest
+
 from pygenomeviz.scripts.mmseqs import MMseqs
 from pygenomeviz.scripts.mummer import MUMmer
 from pygenomeviz.scripts.pmauve import ProgressiveMauve

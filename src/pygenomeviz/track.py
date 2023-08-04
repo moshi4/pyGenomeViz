@@ -58,22 +58,14 @@ class Track:
     @property
     def tick_params(self) -> dict[str, bool]:
         """Track tick parameters dict"""
-        return {
-            "left": False,
-            "labelleft": False,
-            "bottom": False,
-            "labelbottom": False,
-        }
+        return dict(left=False, labelleft=False, bottom=False, labelbottom=False)
 
     @property
     def spines_params(self) -> dict[str, bool]:
         """Spines parameters dict"""
-        return {
-            "left": self.spines,
-            "right": self.spines,
-            "top": self.spines,
-            "bottom": self.spines,
-        }
+        return dict(
+            left=self.spines, right=self.spines, top=self.spines, bottom=self.spines
+        )
 
     @property
     def offset(self) -> int:
@@ -178,28 +170,28 @@ class FeatureTrack(Track):
     @property
     def label_params(self) -> dict[str, Any]:
         """Label drawing parameters"""
-        return {
-            "s": self.name,
-            "fontsize": self.labelsize,
-            "color": self.labelcolor,
-            "ha": "right",
-            "va": "center",
-            "gid": f"TrackLabel_{self.name}",
-        }
+        return dict(
+            s=self.name,
+            fontsize=self.labelsize,
+            color=self.labelcolor,
+            ha="right",
+            va="center",
+            gid=f"TrackLabel_{self.name}",
+        )
 
     @property
     def sublabel_params(self) -> dict[str, Any]:
         """Sublabel drawing parameters"""
-        return {
-            "y": self._sublabel_y,
-            "s": self._sublabel_text,
-            "fontsize": self._sublabel_size,
-            "color": self._sublabel_color,
-            "ha": self._sublabel_ha,
-            "va": self._sublabel_va,
-            "zorder": 10,
-            **self._sublabel_kws,
-        }
+        default_kwargs = dict(
+            y=self._sublabel_y,
+            s=self._sublabel_text,
+            fontsize=self._sublabel_size,
+            color=self._sublabel_color,
+            ha=self._sublabel_ha,
+            va=self._sublabel_va,
+            zorder=10,
+        )
+        return {**default_kwargs, **self._sublabel_kws}
 
     def _within_valid_range(
         self, start: int, end: int, raise_error_on_false: bool = False
@@ -305,8 +297,8 @@ class FeatureTrack(Track):
             Text properties (e.g. `dict(size=12, color="red", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
-        # Sublabel text setting (e.g. '0 - 1000 bp')
-        default_text = f"{self.start} - {self.end} bp"
+        # Sublabel text setting (e.g. '0 - 1,000 bp')
+        default_text = f"{self.start:,} - {self.end:,} bp"
         self._sublabel_text = default_text if text is None else text
         self._sublabel_size = size
         self._sublabel_color = color
@@ -480,7 +472,7 @@ class FeatureTrack(Track):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Check if start & end positions are within appropriate track range
-        for (exon_start, exon_end) in exon_regions:
+        for exon_start, exon_end in exon_regions:
             self._within_valid_range(exon_start, exon_end, raise_error_on_false=True)
 
         self.features.append(
@@ -744,13 +736,15 @@ class FeatureTrack(Track):
                     exon_regions.append((start, end))
                 # Add exon feature
                 feature_kws["intron_patch_kws"] = intron_patch_kws
-                self.features.append(ExonFeature(exon_regions, **feature_kws))
+                exon_feature = ExonFeature(exon_regions, **feature_kws)  # type: ignore
+                self.features.append(exon_feature)
             else:
                 start = int(str(feature.location.start))
                 end = int(str(feature.location.end))
                 self._within_valid_range(start, end, raise_error_on_false=True)
                 # Add feature
-                self.features.append(Feature(start, end, **feature_kws))
+                feature = Feature(start, end, **feature_kws)  # type: ignore
+                self.features.append(feature)
 
     def __str__(self):
         return f"{self.name}:{self.start}-{self.end}"
@@ -845,35 +839,35 @@ class TickTrack(Track):
     @property
     def tick_params(self) -> dict[str, Any]:
         """Track tick parameters dict"""
-        return {
-            "left": False,
-            "labelleft": False,
-            "bottom": self.tick_style == "axis",
-            "labelbottom": self.tick_style == "axis",
-            "labelsize": self.labelsize,
-        }
+        return dict(
+            left=False,
+            labelleft=False,
+            bottom=self.tick_style == "axis",
+            labelbottom=self.tick_style == "axis",
+            labelsize=self.labelsize,
+        )
 
     @property
     def spines_params(self) -> dict[str, bool]:
         """Spines parameters dict"""
-        return {
-            "left": self.spines,
-            "right": self.spines,
-            "top": self.spines,
-            "bottom": self.spines or self.tick_style == "axis",
-        }
+        return dict(
+            left=self.spines,
+            right=self.spines,
+            top=self.spines,
+            bottom=self.spines or self.tick_style == "axis",
+        )
 
     @property
     def scalebar_text_params(self) -> dict[str, Any]:
         """Scalebar text parameters dict"""
-        return {
-            "x": self.xcenter,
-            "y": self.ymin,
-            "s": self.scalebar_label,
-            "fontsize": self.labelsize,
-            "ha": "center",
-            "va": "top",
-        }
+        return dict(
+            x=self.xcenter,
+            y=self.ymin,
+            s=self.scalebar_label,
+            fontsize=self.labelsize,
+            ha="center",
+            va="top",
+        )
 
     @property
     def unit(self) -> str:
@@ -899,7 +893,7 @@ class TickTrack(Track):
     @property
     def unit2base_value(self) -> dict[str, int]:
         """Unit & base value dict"""
-        return {"Gb": 10**9, "Mb": 10**6, "Kb": 10**3, "bp": 1}
+        return dict(Gb=10**9, Mb=10**6, Kb=10**3, bp=1)
 
     @property
     def scalebar_label(self) -> str:

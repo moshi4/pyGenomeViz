@@ -1,4 +1,5 @@
 import pytest
+
 from pygenomeviz.track import FeatureTrack
 
 
@@ -47,7 +48,7 @@ def test_set_sublabel():
     track = FeatureTrack(track_name, track_size)
     # Default text
     track.set_sublabel()
-    assert track._sublabel_text == "0 - 1000 bp"
+    assert track._sublabel_text == "0 - 1,000 bp"
     # User defined text
     sublabel_text = "sublabel"
     track.set_sublabel(text=sublabel_text)

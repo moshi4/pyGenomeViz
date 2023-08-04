@@ -165,7 +165,7 @@ class Feature:
             type = self.seq_feature.type
             qualifiers = self.seq_feature.qualifiers
             gene = qualifiers.get("gene", ["na"])[0]
-            protein_id = qualifiers.get("protein_id", ["na"])[0].split(".")[0]
+            protein_id = qualifiers.get("protein_id", ["na"])[0]
             product = qualifiers.get("product", ["na"])[0]
             if product == "na":
                 product = qualifiers.get("Name", ["na"])[0]

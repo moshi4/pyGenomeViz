@@ -51,7 +51,9 @@ def create_genomeviz(
         )
         track.set_sublabel(
             size=cfg.fig.range_label_size,
-            sublabel_kws=dict(bbox=dict(fc="white", ec="none", alpha=0.5)),
+            sublabel_kws=dict(
+                bbox=dict(fc="white", ec="none", alpha=0.5, boxstyle="square,pad=0.0")
+            ),
         )
         if cfg.feat.show_only_top_label and gbk_cnt != 0:
             label_type = None

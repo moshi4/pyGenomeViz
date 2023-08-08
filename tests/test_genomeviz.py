@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from pygenomeviz import Genbank, GenomeViz, Gff, load_dataset
+from pygenomeviz import Genbank, GenomeViz, Gff, load_example_dataset
 
 random.seed(0)
 
@@ -76,7 +76,7 @@ def test_escherichia_phage_dataset(tmp_path: Path):
         align_type="center",
     )
 
-    gbk_files, links = load_dataset("escherichia_phage")
+    gbk_files, links = load_example_dataset("escherichia_phage")
     for gbk_file in gbk_files:
         gbk = Genbank(gbk_file)
         track = gv.add_feature_track(gbk.name, gbk.genome_length)
@@ -104,7 +104,7 @@ def test_erwinia_phage_dataset(tmp_path: Path):
         tick_style="axis",
     )
 
-    gbk_files, links = load_dataset("erwinia_phage")
+    gbk_files, links = load_example_dataset("erwinia_phage")
     for gbk_file in gbk_files:
         gbk = Genbank(gbk_file)
         track = gv.add_feature_track(gbk.name, gbk.genome_length)
@@ -136,7 +136,7 @@ def test_enterobacteria_phage_dataset(tmp_path: Path):
         tick_labelsize=10,
     )
 
-    gbk_files, links = load_dataset("enterobacteria_phage")
+    gbk_files, links = load_example_dataset("enterobacteria_phage")
     for idx, gbk_file in enumerate(gbk_files):
         gbk = Genbank(gbk_file)
         track = gv.add_feature_track(gbk.name, gbk.genome_length, labelsize=10)

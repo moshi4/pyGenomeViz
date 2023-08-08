@@ -7,7 +7,7 @@ from pathlib import Path
 import streamlit as st
 from matplotlib.colors import to_hex
 
-from pygenomeviz import __version__, load_dataset
+from pygenomeviz import __version__, load_example_dataset
 from pygenomeviz.align import MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
 
@@ -33,7 +33,7 @@ st.sidebar.markdown(
 )
 
 if st.sidebar.checkbox(label="Load example genbank files", value=False):
-    gbk_files = load_dataset("enterobacteria_phage")[0][0:4]
+    gbk_files = load_example_dataset("enterobacteria_phage")[0][0:4]
     gbk_list = list(map(utils.load_gbk_file, gbk_files))
 else:
     with st.sidebar.expander(label="Upload User Genbank Files", expanded=True):

@@ -2,12 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from pygenomeviz.utils import ColorCycler, load_dataset, load_example_gff
+from pygenomeviz.utils import ColorCycler, load_example_dataset, load_example_gff
 
 
 def test_load_dataset(tmp_path: Path):
     """Test load_dataset"""
-    gbk_files, links = load_dataset("escherichia_phage", tmp_path)
+    gbk_files, links = load_example_dataset("escherichia_phage", tmp_path)
     for gbk_file in gbk_files:
         assert gbk_file.exists()
     assert links != []
@@ -17,7 +17,7 @@ def test_load_dataset_invalid_name_error():
     """Test load_dataset no dataset error"""
     with pytest.raises(ValueError) as e:
         invalid_dataset_name = "nothing"
-        load_dataset(invalid_dataset_name)
+        load_example_dataset(invalid_dataset_name)
     assert "dataset not found" in str(e.value)
 
 

@@ -66,7 +66,7 @@ def load_example_gff(
     return gff_file_path
 
 
-def load_dataset(
+def load_example_dataset(
     name: str,
     cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
@@ -129,9 +129,13 @@ def load_dataset(
     return gbk_files, links
 
 
+# For backward compatibility
+load_dataset = load_example_dataset
+
+
 @dataclass
 class DatasetLink:
-    """Dataset Link DataClass (Only used in `load_dataset()` function)"""
+    """Dataset Link DataClass (Only used in `load_example_dataset()` function)"""
 
     ref_name: str
     ref_start: int

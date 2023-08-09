@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import io
 import itertools
 import multiprocessing as mp
 import os
@@ -613,20 +614,29 @@ class AlignCoord:
         return "\t".join([str(v) for v in astuple(self)])
 
     @staticmethod
-    def write(align_coords: list[AlignCoord], outfile: str | Path) -> None:
+    def write(
+        align_coords: list[AlignCoord],
+        outfile: str | Path | io.StringIO | io.BytesIO,
+    ) -> None:
         """Write alignment coords as tsv format file
 
         Parameters
         ----------
         align_coords : list[AlignCoord]
             Alignment coords
-        outfile : str | Path
-            Output file path
+        outfile : str | Path | StringIO | BytesIO
+            Output file path or io stream
         """
-        with open(outfile, "w") as f:
-            header = "\t".join(AlignCoord.header_list)
-            output = "\n".join([ac.as_tsv_format for ac in align_coords])
-            f.write(header + "\n" + output)
+        header = "\t".join(AlignCoord.header_list)
+        output = "\n".join([ac.as_tsv_format for ac in align_coords])
+        contents = f"{header}\n{output}"
+        if isinstance(outfile, io.StringIO):
+            outfile.write(contents)
+        elif isinstance(outfile, io.BytesIO):
+            outfile.write(bytes(contents, encoding="utf-8"))
+        else:
+            with open(outfile, "w") as f:
+                f.write(contents)
 
     @staticmethod
     def read(align_coords_file: str | Path) -> list[AlignCoord]:

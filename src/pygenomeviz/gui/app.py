@@ -8,7 +8,7 @@ import streamlit as st
 from matplotlib.colors import to_hex
 
 from pygenomeviz import __version__, load_example_dataset
-from pygenomeviz.align import MMseqs, MUMmer
+from pygenomeviz.align import AlignCoord, MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
 
 # Streamlit page configuration
@@ -307,6 +307,7 @@ if len(gbk_list) == 0:
     st.image(str(demo_gif_file))
     st.stop()
 
+expand_figure = st.checkbox(label="Expand Figure", value=False)
 fig_container = st.container()
 fig_ctl_container = st.container()
 genome_info_container = st.container()
@@ -353,14 +354,13 @@ with genome_info_container.form(key="form"):
         gbk.max_range = max_range
         gbk.reverse = True if reverse == "Yes" else False
 
-fig_ctl_cols = fig_ctl_container.columns([1, 2, 1.5, 1.5])
-expand_figure = fig_ctl_cols[3].checkbox(label="Expand Figure", value=False)
-
-# Set all configs
-cfg = config.PgvConfig(fig_cfg, feat_cfg, aln_cfg)
+fig_ctl_cols = fig_ctl_container.columns([1, 2, 3])
 
 # Plot figure
-gv, fig = plot.create_genomeviz(gbk_list, cfg)
+gv, fig, align_coords = plot.create_genomeviz(
+    gbk_list,
+    config.PgvConfig(fig_cfg, feat_cfg, aln_cfg),
+)
 fig_container.pyplot(fig, use_container_width=not expand_figure)
 
 # Set figure download button
@@ -388,3 +388,12 @@ fig_ctl_cols[1].download_button(
     data=fig_save_data,
     file_name=filename,
 )
+
+if align_coords:
+    comparison_result_data = io.BytesIO()
+    AlignCoord.write(align_coords, comparison_result_data)
+    fig_ctl_cols[2].download_button(
+        label="Save Comparison Result",
+        data=comparison_result_data,
+        file_name="pgv_comparison_result.tsv",
+    )

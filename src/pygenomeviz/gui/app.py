@@ -46,7 +46,7 @@ else:
                 textwrap.dedent(
                     """
                     Genomes are displayed on each track in the order of file upload.\\
-                    Genome alignment is performed between adjacent genomes.
+                    Genome comparison is performed between adjacent genomes.
                     """
                 )[1:-1]
             ),
@@ -223,11 +223,11 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
         aln_method_options.append("MMseqs")
 
     aln_method = st.selectbox(
-        "Genome Alignment Method",
+        "Genome Comparison Method",
         options=aln_method_options,
         help=textwrap.dedent(
             """
-            Genome alignment method for link visualization.\\
+            Genome comparison method for link visualization.\\
             [MUMmer](https://github.com/mummer4/mummer) or
             [MMseqs](https://github.com/soedinglab/MMseqs2)
             installation is required to enable this functionality.
@@ -247,14 +247,14 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
         label="Min Length",
         value=0,
         min_value=0,
-        help="Minimum length of genome alignment results to be shown",
+        help="Minimum length of genome comparison results to be shown",
     )
     min_identity = link_cols[1].number_input(
         label="Min Identity",
         value=0,
         min_value=0,
         max_value=100,
-        help="Minimum identity of genome alignment results to be shown",
+        help="Minimum identity of genome comparison results to be shown",
     )
     link_style = link_cols[0].selectbox(
         label="Link Style",
@@ -313,11 +313,12 @@ fig_ctl_container = st.container()
 genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
-    st.form_submit_button(
+    title_col, form_col = st.columns([4, 1])
+    title_col.markdown("**Genome Min-Max Range & Reverse Option**")
+    form_col.form_submit_button(
         label="Update Figure",
         help="Apply min-max range & reverse option changes to figure",
     )
-    st.markdown("**Genome Min-Max Range & Reverse Option**")
 
     for gbk in gbk_list:
         range_cols = st.columns([3, 3, 1])
@@ -381,7 +382,7 @@ elif fig_format == "html":
     fig_save_data = io.BytesIO()
     gv.savefig_html(fig_save_data, fig)
 else:
-    raise ValueError(f"{format=} is invalid.")
+    raise ValueError(f"{fig_format=} is invalid.")
 
 fig_ctl_cols[1].download_button(
     label=fig_save_label,

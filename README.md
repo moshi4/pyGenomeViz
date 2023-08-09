@@ -13,7 +13,7 @@
 - [Installation](#installation)
 - [API Examples](#api-examples)
 - [CLI Examples](#cli-examples)
-- [GUI (Web browser)](#gui-web-browser)
+- [GUI (Web Application)](#gui-web-application)
 - [Interactive HTML Viewer](#interactive-html-viewer)
 - [Inspiration](#inspiration)
 - [Circular Genome Visualization](#circular-genome-visualization)
@@ -32,7 +32,7 @@ For more information, please see full documentation [here](https://moshi4.github
 ![pygenomeviz_gallery.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pygenomeviz_gallery.png)  
 **Fig.1 pyGenomeViz example plot gallery**
 
-:sparkles: GUI (Web browser) functionality is newly added from v0.4.0
+:sparkles: GUI (Web Application) functionality is newly added from v0.4.0
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
 **Fig.2 pyGenomeViz GUI (Web browser) version example ([Demo Page](https://pygenomeviz.streamlit.app))**
@@ -50,6 +50,12 @@ For more information, please see full documentation [here](https://moshi4.github
     conda install -c conda-forge -c bioconda pygenomeviz
 
 **Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
+
+Case1. Run CLI Workflow:
+
+    docker run -it --rm ghcr.io/moshi4/pygenomeviz:latest pgv-mummer -h
+
+Case2. Launch GUI (Web Application):
 
     docker run --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
 
@@ -139,9 +145,9 @@ gv.savefig("example03.png")
 #### Add Features from Genbank file
 
 ```python
-from pygenomeviz import Genbank, GenomeViz, load_dataset
+from pygenomeviz import Genbank, GenomeViz, load_example_dataset
 
-gbk_files, _ = load_dataset("enterobacteria_phage")
+gbk_files, _ = load_example_dataset("enterobacteria_phage")
 gbk = Genbank(gbk_files[0])
 
 gv = GenomeViz()
@@ -174,7 +180,7 @@ gv.savefig("example05.png")
 #### Multiple Tracks & Links from Genbank files
 
 ```python
-from pygenomeviz import Genbank, GenomeViz, load_dataset
+from pygenomeviz import Genbank, GenomeViz, load_example_dataset
 
 gv = GenomeViz(
     fig_track_height=0.7,
@@ -184,7 +190,7 @@ gv = GenomeViz(
     align_type="center",
 )
 
-gbk_files, links = load_dataset("escherichia_phage")
+gbk_files, links = load_example_dataset("escherichia_phage")
 for gbk_file in gbk_files:
     gbk = Genbank(gbk_file)
     track = gv.add_feature_track(gbk.name, gbk.range_size)
@@ -215,7 +221,7 @@ the figure in the manner of matplotlib. Here are some tips for figure customizat
 <summary>Code</summary>
 
 ```python
-from pygenomeviz import Genbank, GenomeViz, load_dataset
+from pygenomeviz import Genbank, GenomeViz, load_example_dataset
 
 gv = GenomeViz(
     fig_width=12,
@@ -226,7 +232,7 @@ gv = GenomeViz(
     tick_labelsize=10,
 )
 
-gbk_files, links = load_dataset("erwinia_phage")
+gbk_files, links = load_example_dataset("erwinia_phage")
 gbk_list = [Genbank(gbk_file) for gbk_file in gbk_files]
 for gbk in gbk_list:
     track = gv.add_feature_track(gbk.name, gbk.range_size, labelsize=15)
@@ -294,7 +300,7 @@ fig.savefig("example07.png")
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-from pygenomeviz import Genbank, GenomeViz, load_dataset
+from pygenomeviz import Genbank, GenomeViz, load_example_dataset
 
 gv = GenomeViz(
     fig_width=10,
@@ -306,7 +312,7 @@ gv = GenomeViz(
     tick_labelsize=10,
 )
 
-gbk_files, links = load_dataset("enterobacteria_phage")
+gbk_files, links = load_example_dataset("enterobacteria_phage")
 for idx, gbk_file in enumerate(gbk_files):
     gbk = Genbank(gbk_file)
     track = gv.add_feature_track(gbk.name, gbk.range_size, labelsize=10)
@@ -393,10 +399,10 @@ Download example dataset: `pgv-download-dataset -n escherichia_coli`
 
 ![pmauve_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pmauve_example1.png)  
 
-## GUI (Web browser)
+## GUI (Web Application)
 
-pyGenomeViz implements GUI (Web browser) functionality using [streamlit](https://github.com/streamlit/streamlit) as an option ([Demo Page](https://pygenomeviz.streamlit.app)).
-Users can easily perform data visualization of Genbank files and genome comparison results using MUMmer or MMseqs.
+pyGenomeViz implements GUI (Web Application) functionality using [streamlit](https://github.com/streamlit/streamlit) as an option ([Demo Page](https://pygenomeviz.streamlit.app)).
+Users can easily visualize the genome data of Genbank files and their comparison results with GUI.
 See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)

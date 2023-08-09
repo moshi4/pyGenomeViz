@@ -27,6 +27,15 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
   </figcaption>
 </figure>
 
+:sparkles: GUI (Web Application) functionality is newly added from v0.4.0
+
+<figure markdown>
+  ![pygenomeviz_gui_demo.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
+  <figcaption>
+    pyGenomeViz web application example (<a href="https://pygenomeviz.streamlit.app">Demo Page</a>)
+  </figcaption>
+</figure>
+
 ## Installation
 
 `Python 3.8 or later` is required for installation.
@@ -38,3 +47,13 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 **Install bioconda package:**
 
     conda install -c conda-forge -c bioconda pygenomeviz
+
+**Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
+
+Case1. Run CLI Workflow:
+
+    docker run -it --rm ghcr.io/moshi4/pygenomeviz:latest pgv-mummer -h
+
+Case2. Launch GUI (Web Application):
+
+    docker run --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui

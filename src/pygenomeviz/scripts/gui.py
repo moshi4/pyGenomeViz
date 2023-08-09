@@ -23,7 +23,7 @@ def main() -> None:
             Failed to launch pyGenomeViz WebApp. Streamlit is not installed!!
 
             # Install PyPI package
-            $ pip install streamlit
+            $ pip install -U pygenomeviz[gui]
 
             # Install conda-forge package
             $ conda install -c conda-forge streamlit

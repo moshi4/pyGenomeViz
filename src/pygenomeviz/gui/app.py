@@ -7,8 +7,8 @@ from pathlib import Path
 import streamlit as st
 from matplotlib.colors import to_hex
 
-from pygenomeviz import __version__, load_dataset
-from pygenomeviz.align import MMseqs, MUMmer
+from pygenomeviz import __version__, load_example_dataset
+from pygenomeviz.align import AlignCoord, MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
 
 # Streamlit page configuration
@@ -33,7 +33,7 @@ st.sidebar.markdown(
 )
 
 if st.sidebar.checkbox(label="Load example genbank files", value=False):
-    gbk_files = load_dataset("enterobacteria_phage")[0][0:4]
+    gbk_files = load_example_dataset("enterobacteria_phage")[0][0:4]
     gbk_list = list(map(utils.load_gbk_file, gbk_files))
 else:
     with st.sidebar.expander(label="Upload User Genbank Files", expanded=True):
@@ -46,7 +46,7 @@ else:
                 textwrap.dedent(
                     """
                     Genomes are displayed on each track in the order of file upload.\\
-                    Genome alignment is performed between adjacent genomes.
+                    Genome comparison is performed between adjacent genomes.
                     """
                 )[1:-1]
             ),
@@ -223,11 +223,11 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
         aln_method_options.append("MMseqs")
 
     aln_method = st.selectbox(
-        "Genome Alignment Method",
+        "Genome Comparison Method",
         options=aln_method_options,
         help=textwrap.dedent(
             """
-            Genome alignment method for link visualization.\\
+            Genome comparison method for link visualization.\\
             [MUMmer](https://github.com/mummer4/mummer) or
             [MMseqs](https://github.com/soedinglab/MMseqs2)
             installation is required to enable this functionality.
@@ -247,14 +247,14 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
         label="Min Length",
         value=0,
         min_value=0,
-        help="Minimum length of genome alignment results to be shown",
+        help="Minimum length of genome comparison results to be shown",
     )
     min_identity = link_cols[1].number_input(
         label="Min Identity",
         value=0,
         min_value=0,
         max_value=100,
-        help="Minimum identity of genome alignment results to be shown",
+        help="Minimum identity of genome comparison results to be shown",
     )
     link_style = link_cols[0].selectbox(
         label="Link Style",
@@ -307,16 +307,18 @@ if len(gbk_list) == 0:
     st.image(str(demo_gif_file))
     st.stop()
 
+expand_figure = st.checkbox(label="Expand Figure", value=False)
 fig_container = st.container()
 fig_ctl_container = st.container()
 genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
-    st.form_submit_button(
+    title_col, form_col = st.columns([4, 1])
+    title_col.markdown("**Genome Min-Max Range & Reverse Option**")
+    form_col.form_submit_button(
         label="Update Figure",
         help="Apply min-max range & reverse option changes to figure",
     )
-    st.markdown("**Genome Min-Max Range & Reverse Option**")
 
     for gbk in gbk_list:
         range_cols = st.columns([3, 3, 1])
@@ -353,14 +355,13 @@ with genome_info_container.form(key="form"):
         gbk.max_range = max_range
         gbk.reverse = True if reverse == "Yes" else False
 
-fig_ctl_cols = fig_ctl_container.columns([1, 2, 1.5, 1.5])
-expand_figure = fig_ctl_cols[3].checkbox(label="Expand Figure", value=False)
-
-# Set all configs
-cfg = config.PgvConfig(fig_cfg, feat_cfg, aln_cfg)
+fig_ctl_cols = fig_ctl_container.columns([1, 2, 3])
 
 # Plot figure
-gv, fig = plot.create_genomeviz(gbk_list, cfg)
+gv, fig, align_coords = plot.create_genomeviz(
+    gbk_list,
+    config.PgvConfig(fig_cfg, feat_cfg, aln_cfg),
+)
 fig_container.pyplot(fig, use_container_width=not expand_figure)
 
 # Set figure download button
@@ -381,10 +382,19 @@ elif fig_format == "html":
     fig_save_data = io.BytesIO()
     gv.savefig_html(fig_save_data, fig)
 else:
-    raise ValueError(f"{format=} is invalid.")
+    raise ValueError(f"{fig_format=} is invalid.")
 
 fig_ctl_cols[1].download_button(
     label=fig_save_label,
     data=fig_save_data,
     file_name=filename,
 )
+
+if align_coords:
+    comparison_result_data = io.BytesIO()
+    AlignCoord.write(align_coords, comparison_result_data)
+    fig_ctl_cols[2].download_button(
+        label="Save Comparison Result",
+        data=comparison_result_data,
+        file_name="pgv_comparison_result.tsv",
+    )

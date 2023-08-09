@@ -6,7 +6,7 @@ import pytest
 from pygenomeviz.scripts.mmseqs import MMseqs
 from pygenomeviz.scripts.mummer import MUMmer
 from pygenomeviz.scripts.pmauve import ProgressiveMauve
-from pygenomeviz.utils import load_dataset
+from pygenomeviz.utils import load_example_dataset
 
 
 def test_download_dataset_cli(tmp_path: Path):
@@ -21,7 +21,7 @@ def test_download_dataset_cli(tmp_path: Path):
 
 def test_simpleplot_cli(tmp_path: Path):
     """Test simpleplot CLI (pgv-simpleplot)"""
-    gbk_files, _ = load_dataset("enterobacteria_phage")
+    gbk_files, _ = load_example_dataset("enterobacteria_phage")
     gbk_files = [str(f) for f in gbk_files]
 
     # Test PNG,HTML image output
@@ -39,7 +39,7 @@ def test_simpleplot_cli(tmp_path: Path):
 )
 def test_mummer_cli(tmp_path: Path):
     """Test MUMmer CLI (pgv-mummer)"""
-    gbk_files, _ = load_dataset("escherichia_phage")
+    gbk_files, _ = load_example_dataset("escherichia_phage")
     gbk_files = [str(f) for f in gbk_files]
     cmd = f"pgv-mummer --gbk_resources {' '.join(gbk_files)} -o {tmp_path} --curve"
     result = sp.run(cmd, shell=True)
@@ -56,7 +56,7 @@ def test_mummer_cli(tmp_path: Path):
 )
 def test_mmseqs_cli(tmp_path: Path):
     """Test MMseqs CLI (pgv-mmseqs)"""
-    gbk_files, _ = load_dataset("escherichia_phage")
+    gbk_files, _ = load_example_dataset("escherichia_phage")
     gbk_files = [str(f) for f in gbk_files]
     cmd = f"pgv-mmseqs --gbk_resources {' '.join(gbk_files)} -o {tmp_path} --curve"
     result = sp.run(cmd, shell=True)
@@ -73,7 +73,7 @@ def test_mmseqs_cli(tmp_path: Path):
 )
 def test_pmauve_cli(tmp_path: Path):
     """Test progressiveMauve CLI (pgv-pmauve)"""
-    gbk_files, _ = load_dataset("escherichia_phage")
+    gbk_files, _ = load_example_dataset("escherichia_phage")
     gbk_files = [str(f) for f in gbk_files]
     cmd = f"pgv-pmauve --seq_files {' '.join(gbk_files)} -o {tmp_path} --curve"
     result = sp.run(cmd, shell=True)

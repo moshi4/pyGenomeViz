@@ -23,7 +23,7 @@ def main() -> None:
             Failed to launch pyGenomeViz WebApp. Streamlit is not installed!!
 
             # Install PyPI package
-            $ pip install streamlit
+            $ pip install -U pygenomeviz[gui]
 
             # Install conda-forge package
             $ conda install -c conda-forge streamlit
@@ -36,6 +36,7 @@ def main() -> None:
     app_path = Path(__file__).parent.parent / "gui" / "app.py"
     os.environ["STREAMLIT_THEME_BASE"] = "dark"
     os.environ["STREAMLIT_SERVER_RUN_ON_SAVE"] = "true"
+    os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
     sp.run(f"streamlit run {app_path} --server.port {port}", shell=True)
 
 

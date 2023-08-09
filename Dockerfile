@@ -6,4 +6,7 @@ RUN apt-get update && \
 RUN pip install -U pip && \
     pip install pygenomeviz[gui] --no-cache-dir
 
+# Download example dataset in advance
+RUN pgv-download-dataset -n enterobacteria_phage
+
 CMD ["/bin/bash"]

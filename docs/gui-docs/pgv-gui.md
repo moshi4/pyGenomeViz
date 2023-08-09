@@ -1,11 +1,11 @@
-# pgv-gui GUI Document
+# pgv-gui Web Application Document
 
-`pgv-gui` is a command to launch the GUI (Web browser) version of pyGenomeViz.
-Users can easily perform data visualization of Genbank files and genome comparison
-results using MUMmer or MMseqs.
+`pgv-gui` command is used to launch the pyGenomeViz web application.
+It is developed with the streamlit web application framework,
+and users can easily visualize the genome data of Genbank files and their comparison results with GUI.
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
-**Fig.pyGenomeViz GUI (Web browser) version example ([Demo Page](https://pygenomeviz.streamlit.app))**
+**Fig.pyGenomeViz web application example ([Demo Page](https://pygenomeviz.streamlit.app))**
 
 ## Installation
 
@@ -30,6 +30,10 @@ In Ubuntu22.04, MUMmer and MMseqs can be installed with apt command below.
 
 ## Usage
 
-The following command launches a GUI browser, which can be accessed at <http://localhost:8501>.
+The following command launches web application, which can be accessed at <http://localhost:8501>.
 
     pgv-gui
+
+By uploading the user's Genbank files in the browser, a visualization figure of the genome data is automatically displayed.
+By changing the value of each widget on the browser, user can adjust the appearance of the figure,
+change the genome comparison method, etc. interactively.

@@ -15,7 +15,7 @@ from pygenomeviz.gui import config, utils
 def create_genomeviz(
     gbk_list: list[Genbank],
     cfg: config.PgvConfig,
-) -> tuple[GenomeViz, Figure]:
+) -> tuple[GenomeViz, Figure, list[AlignCoord]]:
     """Create GenomeViz from genbank list
 
     Parameters
@@ -51,7 +51,9 @@ def create_genomeviz(
         )
         track.set_sublabel(
             size=cfg.fig.range_label_size,
-            sublabel_kws=dict(bbox=dict(fc="white", ec="none", alpha=0.5)),
+            sublabel_kws=dict(
+                bbox=dict(fc="white", ec="none", alpha=0.5, boxstyle="square,pad=0.0")
+            ),
         )
         if cfg.feat.show_only_top_label and gbk_cnt != 0:
             label_type = None
@@ -79,7 +81,7 @@ def create_genomeviz(
 
     # Return if alignment process is not required
     if cfg.aln.method is None or len(gbk_list) == 1:
-        return gv, gv.plotfig()
+        return gv, gv.plotfig(), []
 
     # Create processig cache directory
     package_name = __name__.split(".")[0]
@@ -113,7 +115,7 @@ def create_genomeviz(
     )
 
     if len(align_coords) == 0:
-        return gv, gv.plotfig()
+        return gv, gv.plotfig(), []
 
     # Add alignment links
     min_identity = int(min([ac.identity for ac in align_coords]))
@@ -144,4 +146,4 @@ def create_genomeviz(
         tick_labelsize=15,
     )
 
-    return gv, fig
+    return gv, fig, align_coords

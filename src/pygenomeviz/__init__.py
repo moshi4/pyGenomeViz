@@ -4,17 +4,18 @@ import matplotlib as mpl
 
 from pygenomeviz.genomeviz import GenomeViz
 from pygenomeviz.parser import Genbank, Gff
-from pygenomeviz.utils import load_dataset, load_example_gff
+from pygenomeviz.utils import load_dataset, load_example_dataset, load_example_gff
 
 warnings.filterwarnings("ignore")
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 __all__ = [
     "GenomeViz",
     "Genbank",
     "Gff",
     "load_dataset",
+    "load_example_dataset",
     "load_example_gff",
 ]
 

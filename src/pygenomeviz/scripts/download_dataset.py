@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 
 from pygenomeviz import __version__
-from pygenomeviz.utils import DATASETS, load_dataset
+from pygenomeviz.utils import DATASETS, load_example_dataset
 
 
 def main():
@@ -16,7 +16,7 @@ def main():
 
     # Download dataset
     os.makedirs(outdir, exist_ok=True)
-    gbk_files, _ = load_dataset(dataset_name)
+    gbk_files, _ = load_example_dataset(dataset_name)
     for gbk_file in gbk_files:
         shutil.copy(gbk_file, outdir)
 

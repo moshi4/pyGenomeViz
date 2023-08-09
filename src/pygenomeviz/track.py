@@ -588,9 +588,9 @@ class FeatureTrack(Track):
             if label_handle_func is not None:
                 label = label_handle_func(label)
             # Get facecolor & apply handle func if exists
-            facecolor = feature.qualifiers.get("facecolor", [facecolor])[0]
+            feat_fc = feature.qualifiers.get("facecolor", [facecolor])[0]
             if facecolor_handle_func is not None:
-                facecolor = facecolor_handle_func(feature)
+                feat_fc = facecolor_handle_func(feature)
 
             self.features.append(
                 Feature(
@@ -601,7 +601,7 @@ class FeatureTrack(Track):
                     labelsize,
                     labelcolor,
                     plotstyle,
-                    facecolor,
+                    feat_fc,
                     edgecolor,
                     linewidth,
                     labelrotation,
@@ -704,9 +704,9 @@ class FeatureTrack(Track):
             if label_handle_func is not None:
                 label = label_handle_func(label)
             # Get facecolor & apply handle func if exists
-            facecolor = feature.qualifiers.get("facecolor", [facecolor])[0]
+            feat_fc = feature.qualifiers.get("facecolor", [facecolor])[0]
             if facecolor_handle_func is not None:
-                facecolor = facecolor_handle_func(feature)
+                feat_fc = facecolor_handle_func(feature)
             # Create feature plot property dict
             feature_kws = dict(
                 strand=feature.strand,
@@ -714,7 +714,7 @@ class FeatureTrack(Track):
                 labelsize=labelsize,
                 labelcolor=labelcolor,
                 plotstyle=plotstyle,
-                facecolor=facecolor,
+                facecolor=feat_fc,
                 edgecolor=edgecolor,
                 linewidth=linewidth,
                 labelrotation=labelrotation,

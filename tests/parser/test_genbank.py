@@ -46,7 +46,7 @@ def test_range_error_param(gbk_file: Path):
 def test_calc_genome_gc_content(gbk_file: Path):
     """Test genome GC content calculation"""
     gbk = Genbank(gbk_file)
-    assert type(gbk.calc_genome_gc_content()) == float
+    assert isinstance(gbk.calc_genome_gc_content(), float)
 
 
 def test_calc_gc_skew(gbk_file: Path):

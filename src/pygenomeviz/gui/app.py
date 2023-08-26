@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import os
 import textwrap
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from matplotlib.colors import to_hex
 from pygenomeviz import __version__, load_example_dataset
 from pygenomeviz.align import AlignCoord, MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
+
+IS_LOCAL_LAUNCH = bool(os.getenv("PGV_GUI_LOCAL"))
 
 # Streamlit page configuration
 st.set_page_config(
@@ -303,6 +306,21 @@ st.header("pyGenomeViz: Genome Visualization WebApp")
 
 # If no genbank file exists, stop execution
 if len(gbk_list) == 0:
+    if not IS_LOCAL_LAUNCH:
+        st.warning(
+            textwrap.dedent(
+                """
+                :warning: This application is running on Streamlit Cloud.
+                Due to the limited CPU and Memory resources of Streamlit Cloud,
+                this page is intended for demonstration purposes only.
+                Therefore, if you want to visualize your own genome data,
+                it is recommended that you run pyGenomeViz web application
+                in your local environment.
+                See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/)
+                for details.
+                """
+            ),
+        )
     demo_gif_file = Path(__file__).parent / "assets" / "pgv_demo.gif"
     st.image(str(demo_gif_file))
     st.stop()

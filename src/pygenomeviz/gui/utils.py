@@ -30,9 +30,10 @@ def load_gbk_file(gbk_file: str | Path | UploadedFile) -> Genbank:
     if isinstance(gbk_file, (str, Path)):
         return Genbank(gbk_file)
     else:
+        filename = Path(gbk_file.name).stem
         return Genbank(
             StringIO(gbk_file.getvalue().decode("utf-8")),
-            name=Path(gbk_file.name).stem,
+            name=filename.replace(" ", "_").replace("|", "_"),
         )
 
 

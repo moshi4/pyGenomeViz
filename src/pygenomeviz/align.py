@@ -381,16 +381,16 @@ class MMseqs(AlignToolBase):
         with open(rbh_result_file) as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
-                # Reference
+                # Reference [e.g. `GENE000001_NC_XXXXXX.X|8205_8559_1|`]
                 ref_start, ref_end, ref_strand = [
-                    int(d) for d in row[0].split("|")[1].split("_")
+                    int(d) for d in row[0].split("|")[-2].split("_")
                 ]
                 ref_length = ref_end - ref_start + 1
                 if ref_strand == -1:
                     ref_start, ref_end = ref_end, ref_start
                 # Query
                 query_start, query_end, query_strand = [
-                    int(d) for d in row[1].split("|")[1].split("_")
+                    int(d) for d in row[1].split("|")[-2].split("_")
                 ]
                 query_length = query_end - query_start + 1
                 if query_strand == -1:

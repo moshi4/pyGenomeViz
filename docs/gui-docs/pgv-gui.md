@@ -26,7 +26,7 @@ In Ubuntu22.04, MUMmer and MMseqs can be installed with apt command below.
 
 ### Docker
 
-    docker run --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
+    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
 
 ## Usage
 

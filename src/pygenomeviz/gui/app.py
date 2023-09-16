@@ -5,6 +5,7 @@ import os
 import textwrap
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.colors import to_hex
 
@@ -416,3 +417,7 @@ if align_coords:
         data=comparison_result_data,
         file_name="pgv_comparison_result.tsv",
     )
+
+# Clear & close figure to suppress memory leak
+fig.clear()
+plt.close(fig)

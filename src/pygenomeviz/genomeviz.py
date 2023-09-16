@@ -570,13 +570,16 @@ class GenomeViz:
         pad_inches : float, optional
             Padding inches
         """
-        figure = self.plotfig(dpi=dpi)
-        figure.savefig(
+        fig = self.plotfig(dpi=dpi)
+        fig.savefig(
             fname=savefile,
             dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",
         )
+        # Clear & close figure to suppress memory leak
+        fig.clear()
+        plt.close(fig)
 
     def savefig_html(
         self,

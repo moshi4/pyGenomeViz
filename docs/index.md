@@ -56,4 +56,4 @@ Case1. Run CLI Workflow:
 
 Case2. Launch GUI (Web Application):
 
-    docker run --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
+    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui

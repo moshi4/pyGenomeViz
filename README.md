@@ -35,7 +35,7 @@ For more information, please see full documentation [here](https://moshi4.github
 :sparkles: GUI (Web Application) functionality is newly added from v0.4.0
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
-**Fig.2 pyGenomeViz GUI (Web browser) version example ([Demo Page](https://pygenomeviz.streamlit.app))**
+**Fig.2 pyGenomeViz web application example ([Demo Page](https://pygenomeviz.streamlit.app))**
 
 ## Installation
 

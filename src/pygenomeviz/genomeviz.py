@@ -420,11 +420,11 @@ class GenomeViz:
 
             def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
                 """Convert target color to nearly white"""
-                cmap = colors.LinearSegmentedColormap.from_list("m", ("white", color))
+                cmap = colors.LinearSegmentedColormap.from_list("m", ["white", color])
                 return colors.to_hex(cmap(nearly_value))
 
             nearly_white = to_nearly_white(color)
-            cmap = colors.LinearSegmentedColormap.from_list("m", (nearly_white, color))
+            cmap = colors.LinearSegmentedColormap.from_list("m", [nearly_white, color])
             norm = colors.Normalize(vmin=vmin, vmax=vmax)
             cb_kws = {"orientation": "vertical", "ticks": []}
             cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
@@ -570,13 +570,16 @@ class GenomeViz:
         pad_inches : float, optional
             Padding inches
         """
-        figure = self.plotfig(dpi=dpi)
-        figure.savefig(
+        fig = self.plotfig(dpi=dpi)
+        fig.savefig(
             fname=savefile,
             dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",
         )
+        # Clear & close figure to suppress memory leak
+        fig.clear()
+        plt.close(fig)
 
     def savefig_html(
         self,

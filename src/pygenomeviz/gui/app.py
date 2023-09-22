@@ -5,6 +5,7 @@ import os
 import textwrap
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.colors import to_hex
 
@@ -14,26 +15,30 @@ from pygenomeviz.gui import config, plot, utils
 
 IS_LOCAL_LAUNCH = bool(os.getenv("PGV_GUI_LOCAL"))
 
+about_md = textwrap.dedent(
+    f"""
+    **pyGenomeViz v{__version__}**
+    ( [GitHub](https://github.com/moshi4/pyGenomeViz) |
+    [Document](https://moshi4.github.io/pyGenomeViz/) )
+    """
+)[1:-1]
+
 # Streamlit page configuration
 st.set_page_config(
     page_title="pyGenomeViz WebApp",
     layout="centered",
     initial_sidebar_state="expanded",
+    menu_items={
+        "Report a bug": "https://github.com/moshi4/pyGenomeViz/issues",
+        "About": about_md,
+    },
 )
 
 ###########################################################
 # Sidebar
 ###########################################################
 
-st.sidebar.markdown(
-    textwrap.dedent(
-        f"""
-        **pyGenomeViz v{__version__}**
-        ( [GitHub](https://github.com/moshi4/pyGenomeViz) |
-        [Document](https://moshi4.github.io/pyGenomeViz/) )
-        """
-    )[1:-1]
-)
+st.sidebar.markdown(about_md)
 
 if st.sidebar.checkbox(label="Load example genbank files", value=False):
     gbk_files = load_example_dataset("enterobacteria_phage")[0][0:4]
@@ -416,3 +421,7 @@ if align_coords:
         data=comparison_result_data,
         file_name="pgv_comparison_result.tsv",
     )
+
+# Clear & close figure to suppress memory leak
+fig.clear()
+plt.close(fig)

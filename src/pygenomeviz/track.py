@@ -499,6 +499,103 @@ class FeatureTrack(Track):
             )
         )
 
+    def add_features(
+        self,
+        features: list[SeqFeature],
+        label_type: str | None = None,
+        label_handle_func: Callable[[str], str] | None = None,
+        labelsize: int = 15,
+        labelcolor: str = "black",
+        plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
+        facecolor: str = "orange",
+        edgecolor: str = "black",
+        linewidth: float = 0,
+        labelrotation: int = 45,
+        labelvpos: LiteralTypes.LABELVPOS = "strand",
+        labelhpos: LiteralTypes.LABELHPOS = "center",
+        labelha: LiteralTypes.LABELHA = "left",
+        arrow_shaft_ratio: float = 0.5,
+        size_ratio: float = 1.0,
+        patch_kws: dict[str, Any] | None = None,
+    ) -> None:
+        """Add features (BioPython's SeqFeature list)
+
+        Parameters
+        ----------
+        features : str, optional
+            BioPython's SeqFeature list
+        label_type : str | None, optional
+            Label type (e.g. `gene`,`protein_id`,`product`,etc...)
+        label_handle_func : Callable[[str], str] | None, optional
+            User defined function to handle label.
+            Useful for filtering out unnecesary labels such as `hypothetical ~~~`,
+            omitting labels with long characters, etc.
+        labelsize : int, optional
+            Feature label size
+        labelcolor : str, optional
+            Feature label color
+        plotstyle : str, optional
+            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
+        facecolor : str, optional
+            Feature facecolor.
+            If Genbank qualifiers has facecolor key (e.g. `/facecolor="red"`),
+            facecolor key value is applied preferentially.
+        edgecolor : str, optional
+            Feature edgecolor
+        linewidth : float, optional
+            Feature edge linewidth
+        labelrotation : int, optional
+            Feature label rotation
+        labelvpos : str, optional
+            Feature label vertical position (`top`|`center`|`bottom`|`strand`)
+            If 'strand' is set, 'top' or 'bottom' is auto selected by strand.
+        labelhpos : str, optional
+            Feature label horizontal position (`left`|`center`|`right`)
+        labelha : str, optional
+            Feature label horizontal alignment (`left`|`center`|`right`)
+        arrow_shaft_ratio : float, optional
+            Feature arrow shaft ratio
+        size_ratio : float, optional
+            Feature size ratio to track
+        patch_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(fc="red", ec="black", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        """
+        for feature in features:
+            # Check if start & end positions are within appropriate track range
+            start = int(str(feature.location.start))
+            end = int(str(feature.location.end))
+            self._within_valid_range(start, end, raise_error_on_false=True)
+
+            # Get label value & apply handle func if exists
+            label = feature.qualifiers.get(label_type, [""])[0]
+            if label_handle_func is not None:
+                label = label_handle_func(label)
+            feat_fc = feature.qualifiers.get("facecolor", [facecolor])[0]
+
+            self.features.append(
+                Feature(
+                    start,
+                    end,
+                    feature.strand,
+                    label,
+                    labelsize,
+                    labelcolor,
+                    plotstyle,
+                    feat_fc,
+                    edgecolor,
+                    linewidth,
+                    labelrotation,
+                    labelvpos,
+                    labelhpos,
+                    labelha,
+                    arrow_shaft_ratio,
+                    size_ratio,
+                    patch_kws,
+                    feature,
+                )
+            )
+
     def add_genbank_features(
         self,
         gbk: Genbank,

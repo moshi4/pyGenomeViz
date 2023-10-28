@@ -31,9 +31,15 @@ def load_gbk_file(gbk_file: str | Path | UploadedFile) -> Genbank:
         return Genbank(gbk_file)
     else:
         filename = Path(gbk_file.name).stem
+        trans_dict = {
+            " ": "_",
+            "|": "_",
+            "(": "[",
+            ")": "]",
+        }
         return Genbank(
             StringIO(gbk_file.getvalue().decode("utf-8")),
-            name=filename.replace(" ", "_").replace("|", "_"),
+            name=filename.translate(str.maketrans(trans_dict)),
         )
 
 

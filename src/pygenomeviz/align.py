@@ -200,7 +200,7 @@ class MUMmer(AlignToolBase):
         # Run genome alignment using nucmer or promer
         prefix = self.outdir / f"out{idx}"
         delta_file = prefix.with_suffix(".delta")
-        cmd = f"{self._align_binary} --mum {fa_file1} {fa_file2} --prefix={prefix}"
+        cmd = f"{self._align_binary} --mum '{fa_file1}' '{fa_file2}' --prefix={prefix}"
         _ = sp.run(cmd, shell=True, capture_output=True, text=True)
 
         # Run delta-filter to map 'one-to-one' or 'many-to-many' relation
@@ -341,16 +341,14 @@ class MMseqs(AlignToolBase):
             with tempfile.TemporaryDirectory() as tmpdir:
                 name1 = fa_file1.with_suffix("").name
                 name2 = fa_file2.with_suffix("").name
-                rbh_result_file = self.outdir / f"{idx+1:02d}_{name1}-{name2}_rbh.tsv"
-                cmd = f"mmseqs easy-rbh {fa_file1} {fa_file2} {rbh_result_file} "
+                rbh_file = self.outdir / f"{idx+1:02d}_{name1}-{name2}_rbh.tsv"
+                cmd = f"mmseqs easy-rbh '{fa_file1}' '{fa_file2}' '{rbh_file}' "
                 cmd += f"{tmpdir} --threads {self.process_num} -e {self.evalue} -v 0"
                 if not self.quiet:
                     print(f"# {idx+1:02d}: {name1}-{name2} RBH search\n$ {cmd}\n")
-                sp.run(cmd, shell=True)
+                _ = sp.run(cmd, shell=True, capture_output=True, text=True)
 
-                align_coords.extend(
-                    self.parse_rbh_result(rbh_result_file, name1, name2)
-                )
+                align_coords.extend(self.parse_rbh_result(rbh_file, name1, name2))
 
         return align_coords
 
@@ -519,7 +517,7 @@ class ProgressiveMauve(AlignToolBase):
                     continue
                 rows.append(row)
             # Sort by reference seq coordinates
-            rows = sorted(rows, key=lambda row: row[ref_idx])
+            rows = sorted(rows, key=lambda row: row[ref_idx])  # type: ignore
 
         align_coords = []
         for row in rows:

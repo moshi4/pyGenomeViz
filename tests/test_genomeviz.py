@@ -200,6 +200,19 @@ def test_add_exon_feature(tmp_path: Path):
     assert fig_outfile.exists()
 
 
+def test_add_features(gbk_file: Path, tmp_path: Path):
+    """Test add features (BioPython's SeqFeature list)"""
+    gbk = Genbank(gbk_file)
+
+    gv = GenomeViz()
+    track = gv.add_feature_track(gbk.name, gbk.range_size)
+    track.add_features(gbk.extract_features())
+
+    fig_outfile = tmp_path / "result.png"
+    gv.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
 def test_gff_genomeviz(gff_file: Path, tmp_path: Path):
     """Test add_gff_features"""
     gff = Gff(gff_file)

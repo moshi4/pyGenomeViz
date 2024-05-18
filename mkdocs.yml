@@ -11,18 +11,17 @@ watch:
 nav:
   - Home: index.md
   - Getting Started: getting_started.ipynb
-  - API Examples:
-      - Basic Example: api-examples/basic_example.ipynb
-      - Practical Example: api-examples/practical_example.ipynb
-      - Customization Tips: api-examples/customization_tips.ipynb
-      - Gallery Example: api-examples/gallery_example.ipynb
+  - Example Gallery: example_gallery.ipynb
+  - Plot Tips: plot_tips.ipynb
   - API Docs:
       - GenomeViz: api-docs/genomeviz.md
       - FeatureTrack: api-docs/track.md
+      - FeatureSegment: api-docs/segment.md
       - Genbank: api-docs/genbank.md
       - Gff: api-docs/gff.md
+      - utils: api-docs/utils.md
   - CLI Docs:
-      - pgv-simpleplot: cli-docs/pgv-simpleplot.md
+      - pgv-blast: cli-docs/pgv-blast.md
       - pgv-mummer: cli-docs/pgv-mummer.md
       - pgv-mmseqs: cli-docs/pgv-mmseqs.md
       - pgv-pmauve: cli-docs/pgv-pmauve.md
@@ -37,6 +36,7 @@ theme:
     # - navigation.tabs
     - navigation.tabs.sticky
     - navigation.sections
+    - content.code.copy
 
 markdown_extensions:
   - pymdownx.highlight:

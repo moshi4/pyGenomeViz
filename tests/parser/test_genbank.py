@@ -1,117 +1,115 @@
-import math
 from pathlib import Path
 
 import pytest
-from Bio.Seq import reverse_complement
 
-from pygenomeviz import Genbank
+from pygenomeviz.parser import Genbank
 
 
-def test_default_param(gbk_file: Path):
-    """Test default parameter result"""
+def test_genbank_property(gbk_file: Path):
+    """Test Genbank instance properties"""
     gbk = Genbank(gbk_file)
     assert gbk.name == "test"
-    assert gbk.full_genome_length == gbk.genome_length == 43741
-    assert gbk.full_genome_seq == gbk.genome_seq
+    assert len(gbk.records) == 1
+    assert gbk.genome_length == 168903
+    assert gbk.genome_length == gbk.full_genome_length
+    assert gbk.genome_seq == gbk.full_genome_seq
+    assert gbk.get_seqid2size() == {"NC_000866.4": 168903}
+    assert gbk.extract_features() == list(gbk.get_seqid2features().values())[0]
 
 
-def test_reverse_param(gbk_file: Path):
-    """Test reverse parameter result"""
-    normal_gbk = Genbank(gbk_file, reverse=False)
-    reverse_gbk = Genbank(gbk_file, reverse=True)
-    assert reverse_complement(normal_gbk.genome_seq) == reverse_gbk.genome_seq
+def test_genbank_property_multi_record(multi_record_gbk_file: Path):
+    """Test Genbank instance(multi-record) properties"""
+    gbk = Genbank(multi_record_gbk_file)
+    assert gbk.name == "multi_record"
+    assert len(gbk.records) == 8
+    assert gbk.genome_length == 136489
+    assert gbk.full_genome_length == 1190241
+    assert gbk.get_seqid2size() == {
+        "NZ_LAEX01000001.1": 136489,
+        "NZ_LAEX01000002.1": 155051,
+        "NZ_LAEX01000003.1": 113854,
+        "NZ_LAEX01000004.1": 41567,
+        "NZ_LAEX01000005.1": 34901,
+        "NZ_LAEX01000006.1": 132729,
+        "NZ_LAEX01000007.1": 504069,
+        "NZ_LAEX01000008.1": 71581,
+    }
+    assert gbk.extract_features() == list(gbk.get_seqid2features().values())[0]
 
 
-def test_range_param(gbk_file: Path):
-    """Test range parameter result"""
-    min_range, max_range = 10000, 30000
-    gbk = Genbank(gbk_file, min_range=min_range, max_range=max_range)
-    expected_length = max_range - min_range
+def test_calc_genome_gc_content(multi_record_gbk_file: Path):
+    """Test `calc_genome_gc_content()`"""
+    gbk = Genbank(multi_record_gbk_file)
+    default_gc = gbk.calc_genome_gc_content()
+    assert default_gc == gbk.calc_genome_gc_content(seq=gbk.genome_seq)
+    assert default_gc != gbk.calc_genome_gc_content(seq=gbk.full_genome_seq)
 
-    assert gbk.full_genome_length != gbk.genome_length == expected_length
-    assert gbk.full_genome_seq[min_range:max_range] == gbk.genome_seq
+    seq = "ATGC" * 100
+    assert gbk.calc_genome_gc_content(seq) == 50
 
 
-def test_range_error_param(gbk_file: Path):
-    """Test range error parameter"""
-    min_out_range, max_out_range = -100, 1000000
-    # Case1. min_range < 0
+def test_calc_gc_content(multi_record_gbk_file: Path):
+    """Test `calc_gc_content()`"""
+    gbk = Genbank(multi_record_gbk_file)
+    default_gc_list = list(gbk.calc_gc_content()[1])
+    assert default_gc_list == list(gbk.calc_gc_content(seq=gbk.genome_seq)[1])
+    assert default_gc_list != list(gbk.calc_gc_content(seq=gbk.full_genome_seq)[1])
+
+    assert max(gbk.calc_gc_content(seq="AT" * 10000)[1]) == 0
+    assert max(gbk.calc_gc_content(seq="GC" * 10000)[1]) == 100
+
+
+def test_calc_gc_skew(multi_record_gbk_file: Path):
+    """Test `calc_gc_skew()`"""
+    gbk = Genbank(multi_record_gbk_file)
+    default_gc_skew_list = list(gbk.calc_gc_skew()[1])
+    assert default_gc_skew_list == list(gbk.calc_gc_skew(seq=gbk.genome_seq)[1])
+    assert default_gc_skew_list != list(gbk.calc_gc_skew(seq=gbk.full_genome_seq)[1])
+
+
+def test_genbank_write_cds_fasta(multi_record_gbk_file: Path, tmp_path: Path):
+    """Test write cds fasta result"""
+    outfile = tmp_path / "cds.faa"
+    Genbank(multi_record_gbk_file).write_cds_fasta(outfile)
+    assert outfile.exists()
+
+
+def test_genbank_write_genome_fasta(multi_record_gbk_file: Path, tmp_path: Path):
+    """Test write genome fasta result"""
+    # Check output file exists
+    outfile = tmp_path / "genome.fna"
+    Genbank(multi_record_gbk_file).write_genome_fasta(outfile)
+    assert outfile.exists()
+
+    # Check number of genome fasta
+    with open(outfile) as f:
+        lines = f.read().splitlines()
+    fasta_count = len([line for line in lines if line.startswith(">")])
+    assert fasta_count == 8
+
+
+def test_parse_gbk_gz_file(gbk_gz_file: Path):
+    """Parse GZ compressed genbank file"""
+    gbk = Genbank(gbk_gz_file)
+    assert gbk.name == "test"
+    assert len(gbk.records) == 1
+
+
+def test_parse_gbk_bz2_file(gbk_bz2_file: Path):
+    """Parse BZ2 compressed genbank file"""
+    gbk = Genbank(gbk_bz2_file)
+    assert gbk.name == "test"
+    assert len(gbk.records) == 1
+
+
+def test_parse_zip_gbk_file(gbk_zip_file: Path):
+    """Parse ZIP compressed genbank file"""
+    gbk = Genbank(gbk_zip_file)
+    assert gbk.name == "test"
+    assert len(gbk.records) == 1
+
+
+def test_parse_invalid_file_failed(gff_file: Path):
+    """Test parse invalid(gff) file failed"""
     with pytest.raises(ValueError):
-        Genbank(gbk_file, min_range=min_out_range, max_range=10000)
-    # Case2. max_range > genome_length
-    with pytest.raises(ValueError):
-        Genbank(gbk_file, min_range=100, max_range=max_out_range)
-
-
-def test_calc_genome_gc_content(gbk_file: Path):
-    """Test genome GC content calculation"""
-    gbk = Genbank(gbk_file)
-    assert isinstance(gbk.calc_genome_gc_content(), float)
-
-
-def test_calc_gc_skew(gbk_file: Path):
-    """Test GC skew calculation"""
-    gbk = Genbank(gbk_file)
-    # Default parameter
-    pos_list, gc_skew_list = gbk.calc_gc_skew(None, None)
-    expected_count = math.ceil(gbk.genome_length / int(gbk.genome_length / 1000)) + 1
-    assert len(pos_list) == len(gc_skew_list) == expected_count
-    # User setting parameter
-    window_size, step_size = 500, 250
-    pos_list, gc_skew_list = gbk.calc_gc_skew(window_size, step_size)
-    expected_count = math.ceil(gbk.genome_length / step_size) + 1
-    assert len(pos_list) == len(gc_skew_list) == expected_count
-
-
-def test_calc_gc_content(gbk_file: Path):
-    """Test GC content calculation"""
-    gbk = Genbank(gbk_file)
-    # Default parameter
-    pos_list, gc_content_list = gbk.calc_gc_content(None, None)
-    expected_count = math.ceil(gbk.genome_length / int(gbk.genome_length / 1000)) + 1
-    assert len(pos_list) == len(gc_content_list) == expected_count
-    # User setting parameter
-    window_size, step_size = 500, 250
-    pos_list, gc_content_list = gbk.calc_gc_content(window_size, step_size)
-    expected_count = math.ceil(gbk.genome_length / step_size) + 1
-    assert len(pos_list) == len(gc_content_list) == expected_count
-
-
-def test_extract_features(gbk_file: Path):
-    """Test write cds fasta"""
-    gbk = Genbank(gbk_file)
-    assert len(gbk.extract_features("CDS", None, False, False)) == 60
-
-
-def test_write_cds_fasta(gbk_file: Path, tmp_path: Path):
-    """Test write cds fasta"""
-    cds_fasta_file = tmp_path / "cds.faa"
-    gbk = Genbank(gbk_file)
-    gbk.write_cds_fasta(cds_fasta_file)
-    assert cds_fasta_file.exists()
-
-
-def test_write_genome_fasta(gbk_file: Path, tmp_path: Path):
-    """Test write genome fasta"""
-    genome_fasta_file = tmp_path / "genome.fna"
-    gbk = Genbank(gbk_file)
-    gbk.write_genome_fasta(genome_fasta_file)
-    assert genome_fasta_file.exists()
-
-
-def test_parse_bzfile(gbk_bzfile: Path):
-    """Test parse genbank file (bz2 compressed)"""
-    gbk = Genbank(gbk_bzfile)
-    assert gbk.name == "test"
-
-
-def test_parse_gzfile(gbk_gzfile: Path):
-    """Test parse genbank file (gz compressed)"""
-    gbk = Genbank(gbk_gzfile)
-    assert gbk.name == "test"
-
-
-def test_parse_zipfile(gbk_zipfile: Path):
-    """Test parse genbank file (zip compressed)"""
-    gbk = Genbank(gbk_zipfile)
-    assert gbk.name == "test"
+        Genbank(gff_file)

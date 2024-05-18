@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 
 from Bio import SeqIO
+
 from pygenomeviz import GenomeViz
 from pygenomeviz.utils import ColorCycler
 
@@ -12,8 +13,8 @@ def main():
     """Run visualize conserved regions workflow"""
     # Parse arguments
     args = get_args()
-    genome_fasta_file1: Path = args.fasta_file1
-    genome_fasta_file2: Path = args.fasta_file2
+    genome_fasta_file1: Path = args.fasta1
+    genome_fasta_file2: Path = args.fasta2
     fastani_visual_file: Path = args.visual_file
     visualize_result_file: Path = args.plot_outfile
     cmap: str = args.cmap
@@ -47,11 +48,9 @@ def main():
         fig_width=15,
         fig_track_height=1.0,
         feature_track_ratio=0.1,
-        tick_track_ratio=0.2,
-        align_type="center",  # "left", "center", "right"
-        tick_style="bar",  # "axis", "bar", None
-        plot_size_thr=0,
+        track_align_type="center",  # "left", "center", "right"
     )
+    gv.set_scale_bar()
     track1 = gv.add_feature_track(genome_name1, seq_length1)
     track2 = gv.add_feature_track(genome_name2, seq_length2)
 
@@ -66,12 +65,9 @@ def main():
         gv.add_link(
             link1, link2, link_color, v=identity, vmin=min_identity, curve=curve
         )
+    gv.set_colorbar([link_color], vmin=min_identity, bar_height=0.35)
 
-    fig = gv.plotfig()
-    gv.set_colorbar(
-        fig, bar_colors=[link_color], vmin=min_identity, bar_height=0.3, bar_bottom=0.15
-    )
-    fig.savefig(visualize_result_file)
+    gv.savefig(visualize_result_file)
 
 
 def get_args() -> argparse.Namespace:
@@ -79,16 +75,17 @@ def get_args() -> argparse.Namespace:
     Returns:
         argparse.Namespace: Argument values
     """
-    description = "Visualize conserved regions detected by fastANI"
-    parser = argparse.ArgumentParser(description=description)
+    usage = "python visualize.py [fasta1] [fasta2] [fastANI visual file] [plot outfile]"
+    desc = "Visualize conserved regions detected by fastANI"
+    parser = argparse.ArgumentParser(usage=usage, description=desc)
 
     parser.add_argument(
-        "fasta_file1",
+        "fasta1",
         type=Path,
         help="Input genome fasta 1",
     )
     parser.add_argument(
-        "fasta_file2",
+        "fasta2",
         type=Path,
         help="Input genome fasta 2",
     )
@@ -102,7 +99,7 @@ def get_args() -> argparse.Namespace:
         type=Path,
         help="Plot result outfile [*.jpg|*.png|*.svg|*.pdf]",
     )
-    default_cmap = "hsv"
+    default_cmap = "gist_rainbow"
     parser.add_argument(
         "--cmap",
         type=str,

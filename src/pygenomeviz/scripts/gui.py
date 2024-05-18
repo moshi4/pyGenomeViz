@@ -1,13 +1,17 @@
+#!/usr/bin/env python
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import os
 import subprocess as sp
+import sys
 import textwrap
-from importlib.util import find_spec
 from pathlib import Path
 
-from pygenomeviz import __version__
+import pygenomeviz
+
+CLI_NAME = "pgv-gui"
 
 
 def main() -> None:
@@ -17,7 +21,7 @@ def main() -> None:
     port: int = args.port
 
     # Check streamlit installation
-    if find_spec("streamlit") is None:
+    if importlib.util.find_spec("streamlit") is None:
         err_msg = textwrap.dedent(
             """
             Failed to launch pyGenomeViz WebApp. Streamlit is not installed!!
@@ -30,13 +34,14 @@ def main() -> None:
             """
         )
         print(err_msg)
-        exit(1)
+        sys.exit(1)
 
     # Launch app
     app_path = Path(__file__).parent.parent / "gui" / "app.py"
     os.environ["STREAMLIT_THEME_BASE"] = "dark"
     os.environ["STREAMLIT_SERVER_RUN_ON_SAVE"] = "true"
     os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
+    os.environ["STREAMLIT_SERVER_MAX_UPLOAD_SIZE"] = "100"
     os.environ["PGV_GUI_LOCAL"] = "true"
     sp.run(f"streamlit run {app_path} --server.port {port}", shell=True)
 
@@ -54,10 +59,19 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
     args : argparse.Namespace
         Argument parameters
     """
-    description = "Launch pyGenomeViz WebApp"
-    epilog = ""
+    description = textwrap.dedent(
+        """
+        pyGenomeViz CLI for launching Streamlit Web Application
+
+        Users can access the web app with http://localhost:8501 (default).
+        """
+    )[1:-1]
     parser = argparse.ArgumentParser(
-        description=description, epilog=epilog, add_help=False
+        description=description,
+        usage=f"{CLI_NAME} [options]",
+        epilog="",
+        add_help=False,
+        formatter_class=argparse.RawTextHelpFormatter,
     )
 
     default_port = 8501
@@ -72,7 +86,7 @@ def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "-v",
         "--version",
-        version=f"v{__version__}",
+        version=f"v{pygenomeviz.__version__}",
         help="Print version information",
         action="version",
     )

@@ -1,14 +1,12 @@
-# pgv-mmseqs CLI Document
+# pgv-mmseqs
 
 `pgv-mmseqs` is one of the CLI workflows in pyGenomeViz for
 visualization of homologous CDSs using MMseqs.
 It can be used to visualize reciprocal best-hit CDSs between each genome.
 
-![mmseqs_example1.png](../images/mmseqs_example1.png)
+![pgv-mmseqs_example2.png](../images/pgv-mmseqs_example2.png)
 
 ## Installation
-
-Additional installation of MMseqs is required.
 
 ### Conda
 
@@ -18,53 +16,62 @@ Additional installation of MMseqs is required.
 
     pip install pygenomeviz
 
-After pip installation, download MMseqs binary from [release page](https://github.com/soedinglab/MMseqs2/releases) and add PATH.
+Additional installation of MMseqs is required.
+On Ubuntu22.04 or later, MMseqs can be installed with apt command.
+
+    sudo apt install mmseqs2
+
+### Docker
+
+    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-mmseqs -h
 
 ## Usage
 
-### Basic Command
+    $ pgv-mmseqs --help
+    usage: pgv-mmseqs [options] seq1.gbk seq2.gbk seq3.gbk -o outdir
 
-    pgv-mmseqs --gbk_resources seq1.gbk seq2.gbk seq3.gbk seq4.gbk -o mmseqs_example
+    pyGenomeViz CLI workflow using MMseqs RBH method
 
-### Options
+    positional arguments:
+      seqs                    Input genbank files
 
     General Options:
-      --gbk_resources IN [IN ...]  Input genome genbank file resources
-                                   User can optionally specify genome range and reverse complement.
-                                   - Example1. Set 100 - 1000 range 'file:100-1000'
-                                   - Example2. Set reverse complement 'file::-1'
-                                   - Example3. Set 100 - 1000 range of reverse complement 'file:100-1000:-1'
-      -o OUT, --outdir OUT         Output directory
-      --format  [ ...]             Output image format ('png'[*]|'jpg'|'svg'|'pdf'|`html`[*])
-      --reuse                      Reuse previous result if available
-      -v, --version                Print version information
-      -h, --help                   Show this help message and exit
+      -o , --outdir           Output directory
+      --formats               Output image format ('png'[*],'jpg','svg','pdf',`html`[*])
+      --reuse                 Reuse previous alignment result if available
+      -q, --quiet             No print log on screen (default: OFF)
+      -v, --version           Print version information
+      -h, --help              Show this help message and exit
 
-    MMseqs Options:
-      -e , --evalue                MMseqs RBH search E-value parameter (Default: 1e-03)
-      --min_identity               Min-identity threshold to be plotted (Default: 0)
-      -t , --thread_num            Threads number parameter (Default: MaxThread - 1)
+    MMseqs Alignment Options:
+      --threads               Threads number (Default: MaxThread - 1)
+      --length_thr            Length threshold to be plotted (Default: 0)
+      --identity_thr          Identity threshold to be plotted (Default: 0)
+      --evalue_thr            E-value threshold to be plotted (Default: 1e-03)
 
     Figure Appearence Options:
-      --fig_width                  Figure width (Default: 15)
-      --fig_track_height           Figure track height (Default: 1.0)
-      --feature_track_ratio        Feature track ratio (Default: 1.0)
-      --link_track_ratio           Link track ratio (Default: 5.0)
-      --tick_track_ratio           Tick track ratio (Default: 1.0)
-      --track_labelsize            Track label size (Default: 20)
-      --tick_labelsize             Tick label size (Default: 15)
-      --normal_link_color          Normal link color (Default: 'grey')
-      --inverted_link_color        Inverted link color (Default: 'red')
-      --align_type                 Figure tracks align type ('left'|'center'[*]|'right')
-      --tick_style                 Tick style ('bar'|'axis'|None[*])
-      --feature_plotstyle          Feature plot style ('bigarrow'[*]|'arrow')
-      --arrow_shaft_ratio          Feature arrow shaft ratio (Default: 0.5)
-      --feature_color              Feature color (Default: 'orange')
-      --feature_linewidth          Feature edge line width (Default: 0.0)
-      --colorbar_width             Colorbar width (Default: 0.01)
-      --colorbar_height            Colorbar height (Default: 0.2)
-      --curve                      Plot curved style link (Default: OFF)
-      --dpi                        Figure DPI (Default: 300)
+      --fig_width             Figure width (Default: 15)
+      --fig_track_height      Figure track height (Default: 1.0)
+      --track_align_type      Figure tracks align type ('left'|'center'[*]|'right')
+      --feature_track_ratio   Feature track ratio (Default: 0.25)
+      --show_scale_bar        Show scale bar (Default: OFF)
+      --show_scale_xticks     Show scale xticks (Default: OFF)
+      --curve                 Plot curved style link (Default: OFF)
+      --dpi                   Figure DPI (Default: 300)
+      --track_labelsize       Track label size (Default: 20)
+      --scale_labelsize       Scale label size (Default: 15)
+      --normal_link_color     Normal link color (Default: 'grey')
+      --inverted_link_color   Inverted link color (Default: 'red')
+      --segment_space         Track segment space ratio (Default: 0.02)
+      --feature_type2color    Feature plot type & color (Default: ['CDS:orange'])
+      --pseudo_color          Pseudo feature plot color (Default: 'lightgrey')
+      --feature_plotstyle     Feature plot style ('[big]arrow'[*]|'[big]box'|'[big]rbox')
+      --feature_linewidth     Feature line width (Default: 0.0)
+      --feature_labeltrack    Feature label target track ('top'[*]|'all')
+      --feature_labeltype     Feature label type ('product'|'gene'|'protein_id'|'None'[*])
+      --feature_labelsize     Feature label size (Default: 8)
+      --cbar_width            Colorbar width (Default: 0.01)
+      --cbar_height           Colorbar height (Default: 0.2)
 
     [*] marker means the default value.
 
@@ -72,57 +79,40 @@ After pip installation, download MMseqs binary from [release page](https://githu
 
 ### Example 1
 
-**Download example dataset:**
+Download example dataset:
 
-Download four *Erwinia phage* genbank files
+    pgv-download acinetobacter_phage
 
-    pgv-download-dataset -n erwinia_phage
+Run CLI workflow:
 
-**Run CLI workflow:**
+    pgv-mmseqs NC_049491.gbk NC_049492.gbk NC_049493.gbk NC_049494.gbk \
+               -o pgv-mmseqs_example1 --track_align_type left --show_scale_xticks
 
-    pgv-mmseqs --gbk_resources MT939486.gbk MT939487.gbk MT939488.gbk LT960552.gbk \
-               -o mmseqs_example1 --tick_style axis --align_type left --feature_plotstyle arrow
-
-<figure markdown>
-  ![mmseqs_example1.png](../images/mmseqs_example1.png)
-  <figcaption>mmseqs_example1/result.png</figcaption>
-</figure>
+![pgv-mmseqs_example1.png](../images/pgv-mmseqs_example1.png)
 
 ### Example 2
 
-**Download example dataset:**
+Download example dataset:
 
-Download four *Erwinia phage* genbank files
+    pgv-download enterobacteria_phage
 
-    pgv-download-dataset -n erwinia_phage
+Run CLI workflow:
 
-**Run CLI workflow:**
+    pgv-mmseqs NC_013600.gbk NC_016566.gbk NC_019724.gbk NC_024783.gbk NC_028901.gbk NC_031081.gbk \
+               -o pgv-mmseqs_example2 --show_scale_bar --curve --feature_linewidth 0.3 \
+               --feature_type2color CDS:skyblue --normal_link_color chocolate --inverted_link_color limegreen
 
-> Target range is specified (e.g. file:100-1000)
-
-    pgv-mmseqs --gbk_resources MT939486.gbk:250000-358115 MT939487.gbk:250000-355376 MT939488.gbk:250000-356948 LT960552.gbk:270000-340000 \
-               -o mmseqs_example2 --tick_style bar --feature_plotstyle arrow
-
-<figure markdown>
-  ![mmseqs_example2.png](../images/mmseqs_example2.png)
-  <figcaption>mmseqs_example2/result.png</figcaption>
-</figure>
+![pgv-mmseqs_example2.png](../images/pgv-mmseqs_example2.png)
 
 ### Example 3
 
-**Download example dataset:**
+Download example dataset:
 
-Download six *Enterobacteria phage* genbank files
+    pgv-download mycoplasma_mycoides
 
-    pgv-download-dataset -n enterobacteria_phage
+Run CLI workflow:
 
-**Run CLI workflow:**
+    pgv-mmseqs GCF_000023685.1.gbff GCF_000800785.1.gbff GCF_000959055.1.gbff GCF_000959065.1.gbff \
+               -o pgv-mmseqs_example3 --show_scale_bar --feature_type2color CDS:blue rRNA:lime
 
-    pgv-mmseqs --gbk_resources NC_019724.gbk NC_024783.gbk NC_016566.gbk NC_013600.gbk NC_031081.gbk NC_028901.gbk \
-               -o mmseqs_example3 --fig_track_height 0.7 --feature_linewidth 0.3 --tick_style bar --curve \
-               --normal_link_color chocolate --inverted_link_color limegreen --feature_color skyblue
-
-<figure markdown>
-  ![mmseqs_example3.png](../images/mmseqs_example3.png)
-  <figcaption>mmseqs_example3/result.png</figcaption>
-</figure>
+![pgv-mmseqs_example3.png](../images/pgv-mmseqs_example3.png)

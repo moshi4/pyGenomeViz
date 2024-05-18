@@ -1,526 +1,223 @@
+#!/usr/bin/env python
 from __future__ import annotations
 
 import argparse
 import os
+import signal
+import sys
+import time
 from pathlib import Path
-from tempfile import TemporaryDirectory
-from typing import Literal
+from typing import Sequence
 
-from pygenomeviz import Genbank, GenomeViz, __version__
+from pygenomeviz import GenomeViz
 from pygenomeviz.align import AlignCoord, MUMmer
-from pygenomeviz.config import LiteralTypes
-from pygenomeviz.scripts import gbk_files2gbk_objects, get_argparser, print_args
+from pygenomeviz.logger import get_logger
+from pygenomeviz.parser import Genbank
+from pygenomeviz.scripts import (
+    ALIGN_COORDS_FILENAME,
+    LOG_FILENAME,
+    CustomHelpFormatter,
+    log_basic_env_info,
+    setup_argparser,
+    validate_args,
+)
+from pygenomeviz.typing import PlotStyle, SeqType, TrackAlignType
+from pygenomeviz.utils import is_pseudo_feature
+
+CLI_NAME = "pgv-mummer"
 
 
 def main():
     """Main function called from CLI"""
-    # Get arguments
     args = get_args()
-    print_args(args)
-    # Run workflow
-    run(**args.__dict__)
+    args_dict = args.__dict__
+    try:
+        run(**args_dict, log_params=args_dict)
+    except KeyboardInterrupt:
+        get_logger(__name__).error("Keyboard Interrupt")
+        sys.exit(-signal.SIGINT)
+    except Exception as e:
+        get_logger(__name__).error(e)
+        sys.exit(getattr(e, "errno", 1))
 
 
 def run(
     # General options
-    gbk_resources: list[str | Path] | list[Genbank],
+    seqs: Sequence[str | Path],
     outdir: str | Path,
-    format: list[str] | None = None,
-    reuse: bool = False,
+    formats: list[str],
+    reuse: bool,
+    quiet: bool,
+    debug: bool,
     # MUMmer alignment options
-    seqtype: Literal["protein", "nucleotide"] = "protein",
-    min_length: int = 0,
-    min_identity: float = 0,
-    thread_num: int | None = None,
+    seqtype: SeqType,
+    threads: int,
+    length_thr: int,
+    identity_thr: float,
     # Figure appearence options
-    fig_width: float = 15,
-    fig_track_height: float = 1.0,
-    feature_track_ratio: float = 1.0,
-    link_track_ratio: float = 5.0,
-    tick_track_ratio: float = 1.0,
-    track_labelsize: int = 20,
-    tick_labelsize: int = 15,
-    normal_link_color: str = "grey",
-    inverted_link_color: str = "red",
-    align_type: LiteralTypes.ALIGN_TYPE = "center",
-    tick_style: LiteralTypes.TICK_STYLE = None,
-    feature_plotstyle: LiteralTypes.PLOTSTYLE = "bigarrow",
-    arrow_shaft_ratio: float = 0.5,
-    feature_color: str = "orange",
-    feature_linewidth: float = 0,
-    pseudo: bool = False,
-    pseudo_color: str = "grey",
-    colorbar_width: float = 0.01,
-    colorbar_height: float = 0.2,
-    curve: bool = True,
-    dpi: int = 300,
-) -> GenomeViz:
-    """Run genome visualization workflow using MUMmer
+    fig_width: float,
+    fig_track_height: float,
+    track_align_type: TrackAlignType,
+    feature_track_ratio: float,
+    show_scale_bar: bool,
+    show_scale_xticks: bool,
+    curve: bool,
+    dpi: int,
+    track_labelsize: int,
+    scale_labelsize: int,
+    normal_link_color: str,
+    inverted_link_color: str,
+    segment_space: float,
+    feature_type2color: dict[str, str],
+    pseudo_color: str,
+    feature_plotstyle: PlotStyle,
+    feature_linewidth: float,
+    feature_labeltrack: str,
+    feature_labeltype: str | None,
+    feature_labelsize: int,
+    cbar_width: float,
+    cbar_height: float,
+    # Log parameters
+    log_params: dict | None = None,
+):
+    """Run genome visualization workflow"""
+    start_time = time.time()
 
-    Parameters
-    ----------
-    gbk_resources : list[str | Path] | list[Genbank]
-        Input genome genbank files or Genbank objects
-    outdir : [str | Path
-        Output directory
-    format : list[str] | None, optional
-        Output image format (`png`|`jpg`|`svg`|`pdf`|`html`)
-    reuse : bool, optional
-        If True, reuse previous result if available
-    seqtype : str, optional
-        MUMmer alignment sequence type (`protein`|`nucleotide`)
-    min_length : int, optional
-        Min-length threshold to be plotted
-    min_identity : float, optional
-        Min-identity threshold to be plotted
-    thread_num : int | None, optional
-        MMseqs thread number to be used. If None, MaxThread - 1.
-    fig_width : float, optional
-        Figure width
-    fig_track_height : float, optional
-        Figure track height
-    feature_track_ratio : float, optional
-        Feature track ratio
-    link_track_ratio : float, optional
-        Link track ratio
-    tick_track_ratio : float, optional
-        Tick track ratio
-    track_labelsize : int, optional
-        Track label size
-    tick_labelsize : int, optional
-        Tick label size
-    normal_link_color : str, optional
-        Normal link color
-    inverted_link_color : str, optional
-        Inverted link color
-    align_type : str, optional
-        Figure tracks align type (`left`|`center`|`right`)
-    tick_style : str | None, optional
-        Tick style (`bar`|`axis`|`None`)
-    feature_plotstyle : str, optional
-        Feature plotstyle (`bigarrow`|`arrow`)
-    arrow_shaft_ratio : float, optional
-        Feature arrow shaft ratio
-    feature_color : str, optional
-        Feature color
-    feature_linewidth : float, optional
-        Feature edge line width
-    pseudo : bool, optional
-        Show pseudogene feature
-    pseudo_color : str, optional
-        Pseudogene feature color
-    colorbar_width : float, optional
-        Colorbar width
-    colorbar_height : float, optional
-        Colorbar height
-    curve : bool, optional
-        If True, plot curved style link
-    dpi : int, optional
-        Figure DPI
-
-    Returns
-    -------
-    gv : GenomeViz
-        GenomeViz instance
-    """
-    format = ["png", "html"] if format is None else format
-    # Check MUMmer installation
-    MUMmer.check_installation()
-
-    # Setup output contents
+    # Make output directory
     outdir = Path(outdir)
     os.makedirs(outdir, exist_ok=True)
-    align_coords_file = outdir / "align_coords.tsv"
 
-    # Setup Genbank objects
-    gbk_list: list[Genbank] = []
-    for gr in gbk_resources:
-        if isinstance(gr, Genbank):
-            gbk_list.append(gr)
-        else:
-            gbk_list.append(Genbank(gr))
+    # Set logger
+    log_file = outdir / LOG_FILENAME
+    logger = get_logger(__name__, log_file, quiet)
+    log_basic_env_info(logger, CLI_NAME, log_params)
 
-    # Setup GenomeViz instance
+    # Run MUMmer alignment
+    gbk_list = [Genbank(seq) for seq in seqs]
+
+    align_coords_file = outdir / ALIGN_COORDS_FILENAME
+    if reuse and align_coords_file.exists():
+        logger.info(f"Reuse alignment result in '{align_coords_file}'")
+        align_coords = AlignCoord.read(align_coords_file)
+    else:
+        align_coords = MUMmer(
+            gbk_list,
+            outdir=outdir / "tmp" if debug else None,
+            seqtype=seqtype,
+            threads=threads,
+            quiet=quiet,
+            logger=logger,
+        ).run()
+        logger.info(f"Write alignment result to '{align_coords_file}'")
+        AlignCoord.write(align_coords, align_coords_file)
+    align_coords = AlignCoord.filter(
+        align_coords,
+        length_thr=length_thr,
+        identity_thr=identity_thr,
+    )
+    logger.info(f"Filter alignment result by {length_thr=}, {identity_thr=}")
+
+    # Create GenomeViz instance
     gv = GenomeViz(
         fig_width=fig_width,
         fig_track_height=fig_track_height,
+        track_align_type=track_align_type,
         feature_track_ratio=feature_track_ratio,
-        link_track_ratio=link_track_ratio,
-        tick_track_ratio=tick_track_ratio,
-        align_type=align_type,
-        tick_style=tick_style,
-        tick_labelsize=tick_labelsize,
-        plot_size_thr=0,
     )
+    if show_scale_bar:
+        gv.set_scale_bar(labelsize=scale_labelsize)
+    if show_scale_xticks:
+        gv.set_scale_xticks(labelsize=scale_labelsize)
 
-    # Set tracks & features
-    for gbk in gbk_list:
+    for idx, gbk in enumerate(gbk_list):
+        # Add track
         track = gv.add_feature_track(
             gbk.name,
-            size=gbk.range_size,
-            start_pos=gbk.min_range,
+            gbk.get_seqid2size(),
+            space=segment_space,
             labelsize=track_labelsize,
         )
-        track.add_genbank_features(
-            gbk,
-            feature_type="CDS",
-            plotstyle=feature_plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            facecolor=feature_color,
-            linewidth=feature_linewidth,
-            allow_partial=False,
-        )
-        if pseudo:
-            track.add_genbank_features(
-                gbk,
-                feature_type="CDS",
-                plotstyle=feature_plotstyle,
-                arrow_shaft_ratio=arrow_shaft_ratio,
-                facecolor=pseudo_color,
-                linewidth=feature_linewidth,
-                allow_partial=False,
-                pseudogene=True,
+        # Add features
+        feature_label_type = None
+        if feature_labeltrack == "all" or (feature_labeltrack == "top" and idx == 0):
+            feature_label_type = feature_labeltype
+        seqid2features = gbk.get_seqid2features(feature_type=None)
+        for seqid, features in seqid2features.items():
+            for feature in features:
+                if feature.type in feature_type2color:
+                    fc = feature_type2color[feature.type]
+                    if is_pseudo_feature(feature):
+                        fc = pseudo_color
+                    track.add_features(
+                        feature,
+                        target_seg=seqid,
+                        plotstyle=feature_plotstyle,
+                        label_type=feature_label_type,
+                        fc=fc,
+                        lw=feature_linewidth,
+                        ec="black",
+                        text_kws=dict(size=feature_labelsize),
+                    )
+
+    if len(align_coords) > 0:
+        min_ident = int(min([ac.identity for ac in align_coords if ac.identity]))
+        # Plot links
+        for ac in align_coords:
+            gv.add_link(
+                ac.ref_link,
+                ac.query_link,
+                curve=curve,
+                color=normal_link_color,
+                inverted_color=inverted_link_color,
+                v=ac.identity,
+                vmin=min_ident,
+                filter_length=0,
             )
-
-    # MUMmer alignment
-    if align_coords_file.exists() and reuse:
-        print("Reuse previous MUMmer result.\n")
-        align_coords = AlignCoord.read(align_coords_file)
-    else:
-        print("Run MUMmer alignment.\n")
-        with TemporaryDirectory() as tmpdir:
-            mummer = MUMmer(gbk_list, tmpdir, seqtype, "many-to-many", thread_num)
-            align_coords = mummer.run()
-            AlignCoord.write(align_coords, align_coords_file)
-    align_coords = AlignCoord.filter(align_coords, min_length, min_identity)
-
-    # Set links
-    min_identity = int(min([ac.identity for ac in align_coords]))
-    for ac in align_coords:
-        gv.add_link(
-            ac.ref_link,
-            ac.query_link,
-            normal_link_color,
-            inverted_link_color,
-            curve=curve,
-            v=ac.identity,
-            vmin=min_identity,
+        # Plot colorbar
+        colors = [normal_link_color]
+        if any([ac.is_inverted for ac in align_coords]):
+            colors.append(inverted_link_color)
+        gv.set_colorbar(
+            colors=colors,
+            vmin=min_ident,
+            bar_width=cbar_width,
+            bar_height=cbar_height,
         )
 
-    # Plot figure
-    fig = gv.plotfig(dpi=dpi)
-
-    # Set colorbar
-    bar_colors = [normal_link_color]
-    contain_inverted_align = any([ac.is_inverted for ac in align_coords])
-    if contain_inverted_align:
-        bar_colors.append(inverted_link_color)
-    gv.set_colorbar(
-        fig,
-        bar_colors,
-        vmin=min_identity,
-        bar_height=colorbar_height,
-        bar_width=colorbar_width,
-    )
-
-    # Save figure
-    for fmt in format:
-        output_file = outdir / f"result.{fmt}"
-        if fmt == "html":
-            gv.savefig_html(output_file, fig)
+    # Output result image file
+    for format in formats:
+        output_file = outdir / f"result.{format}"
+        logger.info(f"Plotting {format.upper()} format result...")
+        if format == "html":
+            gv.savefig_html(output_file)
         else:
-            fig.savefig(output_file)
-        print(f"Save {fmt} format result figure ({output_file}).")
+            gv.savefig(output_file, dpi=dpi)
+        logger.info(f"Output result image file '{output_file}'")
 
-    return gv
+    elapsed_time = time.time() - start_time
+    logger.info(f"Done (elapsed time: {elapsed_time:.2f}[s])")
 
 
-def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:
+def get_args() -> argparse.Namespace:
     """Get arguments
-
-    Parameters
-    ----------
-    cli_args : list[str] | None, optional
-        CLI arguments (Used in unittest)
 
     Returns
     -------
     args : argparse.Namespace
         Argument parameters
     """
-    parser = get_argparser(prog_name="MUMmer")
+    parser = argparse.ArgumentParser(
+        description="pyGenomeViz CLI workflow using MUMmer (nucmer, promer)",
+        usage=f"{CLI_NAME} [options] seq1.gbk seq2.gbk seq3.gbk -o outdir",
+        epilog="[*] marker means the default value.",
+        add_help=False,
+        allow_abbrev=False,
+        formatter_class=CustomHelpFormatter,
+    )
+    setup_argparser(parser, CLI_NAME)
 
-    #######################################################
-    # General options
-    #######################################################
-    general_opts = parser.add_argument_group("General Options")
-    general_opts.add_argument(
-        "--gbk_resources",
-        type=str,
-        help="Input genome genbank file resources\n"
-        "User can optionally specify genome range and reverse complement.\n"
-        "- Example1. Set 100 - 1000 range 'file:100-1000'\n"
-        "- Example2. Set reverse complement 'file::-1'\n"
-        "- Example3. Set 100 - 1000 range of reverse complement 'file:100-1000:-1'",
-        nargs="+",
-        required=True,
-        metavar="IN",
-    )
-    general_opts.add_argument(
-        "-o",
-        "--outdir",
-        type=str,
-        help="Output directory",
-        required=True,
-        metavar="OUT",
-    )
-    default_format = ["png", "html"]
-    format_list = ["png", "jpg", "svg", "pdf", "html"]
-    general_opts.add_argument(
-        "--format",
-        type=str,
-        nargs="+",
-        help="Output image format ('png'[*]|'jpg'|'svg'|'pdf'|`html`[*])",
-        default=default_format,
-        choices=format_list,
-        metavar="",
-    )
-    general_opts.add_argument(
-        "--reuse",
-        help="Reuse previous result if available",
-        action="store_true",
-    )
-    general_opts.add_argument(
-        "-v",
-        "--version",
-        version=f"v{__version__}",
-        help="Print version information",
-        action="version",
-    )
-    general_opts.add_argument(
-        "-h",
-        "--help",
-        help="Show this help message and exit",
-        action="help",
-    )
-    #######################################################
-    # MUMmer alignment options
-    #######################################################
-    mummer_alignment_opts = parser.add_argument_group("MUMmer Alignment Options")
-    defaullt_seqtype = "protein"
-    mummer_alignment_opts.add_argument(
-        "--seqtype",
-        type=str,
-        help="MUMmer alignment sequence type ('protein'[*]|'nucleotide')",
-        default=defaullt_seqtype,
-        choices=["nucleotide", "protein"],
-        metavar="",
-    )
-    default_min_length = 0
-    mummer_alignment_opts.add_argument(
-        "--min_length",
-        type=int,
-        help=f"Min-length threshold to be plotted (Default: {default_min_length})",
-        default=default_min_length,
-        metavar="",
-    )
-    default_min_identity = 0
-    mummer_alignment_opts.add_argument(
-        "--min_identity",
-        type=float,
-        help=f"Min-identity threshold to be plotted (Default: {default_min_identity})",
-        default=default_min_identity,
-        metavar="",
-    )
-    cpu_num = os.cpu_count()
-    default_thread_num = 1 if cpu_num is None or cpu_num == 1 else cpu_num - 1
-    mummer_alignment_opts.add_argument(
-        "-t",
-        "--thread_num",
-        type=int,
-        help="Threads number parameter (Default: MaxThread - 1)",
-        default=default_thread_num,
-        metavar="",
-    )
-    #######################################################
-    # Figure appearence options
-    #######################################################
-    fig_opts = parser.add_argument_group("Figure Appearence Options")
-    default_fig_width = 15
-    fig_opts.add_argument(
-        "--fig_width",
-        type=float,
-        help=f"Figure width (Default: {default_fig_width})",
-        default=default_fig_width,
-        metavar="",
-    )
-    default_fig_track_height = 1.0
-    fig_opts.add_argument(
-        "--fig_track_height",
-        type=float,
-        help=f"Figure track height (Default: {default_fig_track_height})",
-        default=default_fig_track_height,
-        metavar="",
-    )
-    default_feature_track_ratio = 1.0
-    fig_opts.add_argument(
-        "--feature_track_ratio",
-        type=float,
-        help=f"Feature track ratio (Default: {default_feature_track_ratio})",
-        default=default_feature_track_ratio,
-        metavar="",
-    )
-    default_link_track_ratio = 5.0
-    fig_opts.add_argument(
-        "--link_track_ratio",
-        type=float,
-        help=f"Link track ratio (Default: {default_link_track_ratio})",
-        default=default_link_track_ratio,
-        metavar="",
-    )
-    default_tick_track_ratio = 1.0
-    fig_opts.add_argument(
-        "--tick_track_ratio",
-        type=float,
-        help=f"Tick track ratio (Default: {default_tick_track_ratio})",
-        default=default_tick_track_ratio,
-        metavar="",
-    )
-    default_track_labelsize = 20
-    fig_opts.add_argument(
-        "--track_labelsize",
-        type=int,
-        help=f"Track label size (Default: {default_track_labelsize})",
-        default=default_track_labelsize,
-        metavar="",
-    )
-    default_tick_labelsize = 15
-    fig_opts.add_argument(
-        "--tick_labelsize",
-        type=int,
-        help=f"Tick label size (Default: {default_tick_labelsize})",
-        default=default_tick_labelsize,
-        metavar="",
-    )
-    default_normal_link_color = "grey"
-    fig_opts.add_argument(
-        "--normal_link_color",
-        type=str,
-        help=f"Normal link color (Default: '{default_normal_link_color}')",
-        default=default_normal_link_color,
-        metavar="",
-    )
-    default_inverted_link_color = "red"
-    fig_opts.add_argument(
-        "--inverted_link_color",
-        type=str,
-        help=f"Inverted link color (Default: '{default_inverted_link_color}')",
-        default=default_inverted_link_color,
-        metavar="",
-    )
-    default_align_type = "center"
-    align_type_list = ["left", "center", "right"]
-    fig_opts.add_argument(
-        "--align_type",
-        type=str,
-        help="Figure tracks align type ('left'|'center'[*]|'right')",
-        default=default_align_type,
-        choices=align_type_list,
-        metavar="",
-    )
-    default_tick_style = None
-    fig_opts.add_argument(
-        "--tick_style",
-        type=str,
-        help="Tick style ('bar'|'axis'|None[*])",
-        default=default_tick_style,
-        choices=["bar", "axis"],
-        metavar="",
-    )
-    feature_plotstyle = "bigarrow"
-    feature_plotstyle_list = ["bigarrow", "arrow"]
-    fig_opts.add_argument(
-        "--feature_plotstyle",
-        type=str,
-        help="Feature plot style ('bigarrow'[*]|'arrow')",
-        default=feature_plotstyle,
-        choices=feature_plotstyle_list,
-        metavar="",
-    )
-    default_arrow_shaft_ratio = 0.5
-    fig_opts.add_argument(
-        "--arrow_shaft_ratio",
-        type=float,
-        help=f"Feature arrow shaft ratio (Default: {default_arrow_shaft_ratio})",
-        default=default_arrow_shaft_ratio,
-        metavar="",
-    )
-    default_feature_color = "orange"
-    fig_opts.add_argument(
-        "--feature_color",
-        type=str,
-        help=f"Feature color (Default: '{default_feature_color}')",
-        default=default_feature_color,
-        metavar="",
-    )
-    default_feature_linewidth = 0.0
-    fig_opts.add_argument(
-        "--feature_linewidth",
-        type=float,
-        help=f"Feature edge line width (Default: {default_feature_linewidth})",
-        default=default_feature_linewidth,
-        metavar="",
-    )
-    fig_opts.add_argument(
-        "--pseudo",
-        help="Show pseudogene feature",
-        action="store_true",
-    )
-    default_pseudo_color = "grey"
-    fig_opts.add_argument(
-        "--pseudo_color",
-        type=str,
-        help=f"Pseudogene feature color (Default: '{default_pseudo_color}')",
-        default=default_pseudo_color,
-        metavar="",
-    )
-    default_colorbar_width = 0.01
-    fig_opts.add_argument(
-        "--colorbar_width",
-        type=float,
-        help=f"Colorbar width (Default: {default_colorbar_width})",
-        default=default_colorbar_width,
-        metavar="",
-    )
-    default_colorbar_height = 0.2
-    fig_opts.add_argument(
-        "--colorbar_height",
-        type=float,
-        help=f"Colorbar height (Default: {default_colorbar_height})",
-        default=default_colorbar_height,
-        metavar="",
-    )
-    fig_opts.add_argument(
-        "--curve",
-        help="Plot curved style link (Default: OFF)",
-        action="store_true",
-    )
-    default_dpi = 300
-    fig_opts.add_argument(
-        "--dpi",
-        type=int,
-        help=f"Figure DPI (Default: {default_dpi})",
-        default=default_dpi,
-        metavar="",
-    )
-    args = parser.parse_args(cli_args)
-
-    # Check arguments
-    if len(args.gbk_resources) < 2:
-        err_msg = "--gbk_resources must be set at least two files.\n"
-        parser.error(err_msg)
-
-    args.gbk_resources = gbk_files2gbk_objects(args.gbk_resources)
+    args = parser.parse_args()
+    validate_args(args, parser)
 
     return args
 

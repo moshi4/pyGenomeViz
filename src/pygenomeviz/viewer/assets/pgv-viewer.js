@@ -167,7 +167,7 @@ $(document).ready(function () {
   const panzoom = Panzoom(svg, {
     canvas: true,
     minScale: 0.7,
-    maxScale: 5,
+    maxScale: 10,
   })
   svg.parentElement.addEventListener("wheel", panzoom.zoomWithWheel)
   document.getElementById("zoom_in").addEventListener("click", panzoom.zoomIn)

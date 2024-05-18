@@ -4,10 +4,31 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- jQuery v3.6.1 -->
-    <!-- Spectrum.js v1.8.1 (For Colorpicker) -->
-    <!-- jQuery UI v1.13.2 (For Tooltips) -->
-    <!-- panzoom v9.4.0 (For SVG pan & zoom) -->
+    <link
+      rel="icon"
+      href="data:image/x-icon;base64,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"
+    />
+    <!--
+    pyGenomeViz embeds the CSS and JavaScript source code of
+    the below dependent libraries when outputting HTML.
+    -->
+
+    <!-- jQuery v3.7.1 (HTML document traversal and manipulation)-->
+    <!-- CDN: https://code.jquery.com/jquery-3.7.1.min.js -->
+    <!-- GitHub: https://github.com/jquery/jquery -->
+
+    <!-- jQuery UI v1.13.3 (Tooltip, Dialog) -->
+    <!-- CDN: https://code.jquery.com/ui/1.13.3/jquery-ui.min.js -->
+    <!-- GitHub: https://github.com/jquery/jquery-ui -->
+
+    <!-- Spectrum.js v1.8.1 (Colorpicker) -->
+    <!-- CDN: https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js -->
+    <!-- GitHub: https://github.com/bgrins/spectrum -->
+
+    <!-- panzoom v4.5.1 (SVG panning and zooming) -->
+    <!-- CDN: https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js -->
+    <!-- GitHub: https://github.com/timmywil/panzoom -->
+
     <!--
     <link rel="stylesheet" href="assets/lib/spectrum.min.css" />
     <link rel="stylesheet" href="assets/lib/jquery-ui.min.css" />
@@ -17,10 +38,7 @@
     <script src="assets/lib/panzoom.min.js"></script>
     <script src="assets/pgv-viewer.js"></script>
     -->
-    <!--
-    pyGenomeViz embeds the CSS and JavaScript source code of
-    the above dependent libraries when outputting HTML.
-    -->
+
     <style>
       body {
         text-align: center;
@@ -115,7 +133,27 @@
       /*jQuery UI (Tooltip, Dialog)*/
       .ui-tooltip {
         text-align: left;
-        white-space: pre-line;
+        white-space: pre-wrap;
+        max-width: 600px !important;
+      }
+      .ui-tooltip.ui-widget-content {
+        background-color: #333333;
+        color: #ffffff;
+        padding: 0px;
+      }
+      .ui-tooltip.ui-widget.ui-widget-content {
+        border: 0px;
+      }
+      .ui-tooltip table,
+      td {
+        border: 1px;
+        border-style: solid;
+        border-color: grey;
+        border-collapse: collapse;
+        padding: 3px;
+      }
+      .ui-tooltip tr {
+        vertical-align: top;
       }
       .no-close .ui-dialog-titlebar-close {
         display: none;
@@ -228,8 +266,12 @@
         top: -2px;
       }
     </style>
-    <style></style>
-    <script></script>
+    <style>
+      $CSS_CONTENTS
+    </style>
+    <script>
+      $JS_CONTENTS
+    </script>
     <title>pyGenomeViz Viewer</title>
   </head>
 

@@ -4,5 +4,5 @@ authors:
   - family-names: Shimoyama
     given-names: Yuki
 title: "pyGenomeViz: A genome visualization python package for comparative genomics"
-date-released: 2022-06-20
+date-released: 2024-05-18
 url: https://github.com/moshi4/pyGenomeViz

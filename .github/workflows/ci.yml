@@ -14,35 +14,30 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python ${{ matrix.python-version}}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependent tools for CLI workflow
+      - name: Install python dependencies
+        run: pip install -e . pytest pytest-cov ruff streamlit
+
+      - name: Install external dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y mummer progressivemauve
-        if: ${{ matrix.os=='ubuntu-latest'}}
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install Dependencies
-        run: poetry install -n
-
-      - name: Run black format check
-        run: poetry run black src tests --check --diff --verbose
+          sudo apt install -y ncbi-blast+ mmseqs2 mummer progressivemauve
+        if: ${{ matrix.os=='ubuntu-latest' }}
 
       - name: Run ruff lint check
-        run: poetry run ruff .
+        run: ruff check --diff
+
+      - name: Run ruff format check
+        run: ruff format --check --diff
 
       - name: Run pytest
-        run: poetry run pytest tests --tb=line --cov=src --cov-report=xml --cov-report=term
+        run: pytest

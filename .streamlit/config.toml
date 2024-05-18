@@ -1,0 +1,13 @@
+[theme]
+base = "dark"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+runOnSave = true
+maxUploadSize = 1
+
+[logger]
+messageFormat = "%(asctime)s | %(levelname)s | %(message)s"
+level = "info"

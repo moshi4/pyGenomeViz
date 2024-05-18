@@ -7,6 +7,11 @@
 [![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)
 [![CI](https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml/badge.svg)](https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml)
 
+> [!NOTE]
+> A major version upgrade, pyGenomeViz **v1.0.0**, was released on 2024/05.
+> Backward incompatible changes have been made between v1.0.0 and v0.X.X to make for a more sophisticated API/CLI design.
+> Therefore, v0.X.X users should be careful.
+
 ## Table of contents
 
 - [Overview](#overview)
@@ -14,9 +19,10 @@
 - [API Examples](#api-examples)
 - [CLI Examples](#cli-examples)
 - [GUI (Web Application)](#gui-web-application)
-- [Interactive HTML Viewer](#interactive-html-viewer)
+- [HTML Viewer](#html-viewer)
 - [Inspiration](#inspiration)
 - [Circular Genome Visualization](#circular-genome-visualization)
+- [Star History](#star-history)
 
 ## Overview
 
@@ -25,14 +31,12 @@ This package is developed for the purpose of easily and beautifully plotting gen
 features and sequence similarity comparison links between multiple genomes.
 It supports genome visualization of Genbank/GFF format file and can be saved figure in various formats (JPG/PNG/SVG/PDF/HTML).
 User can use pyGenomeViz for interactive genome visualization figure plotting on jupyter notebook,
-or automatic genome visualization figure plotting in genome analysis scripts/pipelines.
+or automatic genome visualization figure plotting in genome analysis scripts/workflow.
 
 For more information, please see full documentation [here](https://moshi4.github.io/pyGenomeViz/).
 
 ![pygenomeviz_gallery.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pygenomeviz_gallery.png)  
 **Fig.1 pyGenomeViz example plot gallery**
-
-:sparkles: GUI (Web Application) functionality is newly added from v0.4.0
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
 **Fig.2 pyGenomeViz web application example ([Demo Page](https://pygenomeviz.streamlit.app))**
@@ -51,74 +55,96 @@ For more information, please see full documentation [here](https://moshi4.github
 
 **Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
 
-Case1. Run CLI Workflow:
-
-    docker run -it --rm ghcr.io/moshi4/pygenomeviz:latest pgv-mummer -h
-
-Case2. Launch GUI (Web Application):
-
-    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
+    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui -h
 
 ## API Examples
 
 Jupyter notebooks containing code examples below is available [here](https://moshi4.github.io/pyGenomeViz/getting_started/).
 
-### Basic Example
-
-#### Single Track
+### Features
 
 ```python
 from pygenomeviz import GenomeViz
-
-name, genome_size = "Tutorial 01", 5000
-cds_list = ((100, 900, -1), (1100, 1300, 1), (1350, 1500, 1), (1520, 1700, 1), (1900, 2200, -1), (2500, 2700, 1), (2700, 2800, -1), (2850, 3000, -1), (3100, 3500, 1), (3600, 3800, -1), (3900, 4200, -1), (4300, 4700, -1), (4800, 4850, 1))
 
 gv = GenomeViz()
-track = gv.add_feature_track(name, genome_size)
-for idx, cds in enumerate(cds_list, 1):
-    start, end, strand = cds
-    track.add_feature(start, end, strand, label=f"CDS{idx:02d}")
+gv.set_scale_xticks(ymargin=0.5)
 
-gv.savefig("example01.png")
+track = gv.add_feature_track("tutorial", 1000)
+track.add_sublabel()
+
+track.add_feature(50, 200, 1)
+track.add_feature(250, 460, -1, fc="blue")
+track.add_feature(500, 710, 1, fc="lime")
+track.add_feature(750, 960, 1, fc="magenta", lw=1.0)
+
+gv.savefig("features.png")
 ```
 
-![example01.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example01.png)
+![features.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/features.png)
 
-#### Multiple Tracks & Links
+### Styled Features
 
 ```python
 from pygenomeviz import GenomeViz
 
-genome_list = (
-    {"name": "genome 01", "size": 1000, "cds_list": ((150, 300, 1), (500, 700, -1), (750, 950, 1))},
-    {"name": "genome 02", "size": 1300, "cds_list": ((50, 200, 1), (350, 450, 1), (700, 900, -1), (950, 1150, -1))},
-    {"name": "genome 03", "size": 1200, "cds_list": ((150, 300, 1), (350, 450, -1), (500, 700, -1), (700, 900, -1))},
-)
+gv = GenomeViz()
+gv.set_scale_bar(ymargin=0.5)
 
-gv = GenomeViz(tick_style="axis")
+track = gv.add_feature_track("tutorial", (1000, 2000))
+track.add_sublabel()
+
+track.add_feature(1050, 1150, 1, label="arrow")
+track.add_feature(1200, 1300, -1, plotstyle="bigarrow", label="bigarrow", fc="red", lw=1)
+track.add_feature(1330, 1400, 1, plotstyle="bigbox", label="bigbox", fc="blue", text_kws=dict(rotation=0, hpos="center"))
+track.add_feature(1420, 1500, 1, plotstyle="box", label="box", fc="limegreen", text_kws=dict(size=10, color="blue"))
+track.add_feature(1550, 1600, 1, plotstyle="bigrbox", label="bigrbox", fc="magenta", ec="blue", lw=1, text_kws=dict(rotation=0, vpos="bottom", hpos="center"))
+track.add_feature(1650, 1750, -1, plotstyle="rbox", label="rbox", fc="grey", text_kws=dict(rotation=-45, vpos="bottom"))
+track.add_feature(1780, 1880, 1, fc="lime", hatch="o", arrow_shaft_ratio=0.2, label="arrow shaft\n0.2", text_kws=dict(rotation=0, hpos="center"))
+track.add_feature(1890, 1990, 1, fc="lime", hatch="/", arrow_shaft_ratio=1.0, label="arrow shaft\n1.0", text_kws=dict(rotation=0, hpos="center"))
+
+gv.savefig("styled_features.png")
+```
+
+![styled_features.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/styled_features.png)
+
+### Tracks & Links
+
+```python
+from pygenomeviz import GenomeViz
+
+genome_list = [
+    dict(name="genome 01", size=1000, features=((150, 300, 1), (500, 700, -1), (750, 950, 1))),
+    dict(name="genome 02", size=1300, features=((50, 200, 1), (350, 450, 1), (700, 900, -1), (950, 1150, -1))),
+    dict(name="genome 03", size=1200, features=((150, 300, 1), (350, 450, -1), (500, 700, -1), (700, 900, -1))),
+]
+
+gv = GenomeViz(track_align_type="center")
+gv.set_scale_bar()
+
 for genome in genome_list:
-    name, size, cds_list = genome["name"], genome["size"], genome["cds_list"]
+    name, size, features = genome["name"], genome["size"], genome["features"]
     track = gv.add_feature_track(name, size)
-    for idx, cds in enumerate(cds_list, 1):
-        start, end, strand = cds
-        track.add_feature(start, end, strand, label=f"gene{idx:02d}", linewidth=1, labelrotation=0, labelvpos="top", labelhpos="center", labelha="center")
+    track.add_sublabel()
+    for idx, feature in enumerate(features, 1):
+        start, end, strand = feature
+        track.add_feature(start, end, strand, plotstyle="bigarrow", lw=1, label=f"gene{idx:02d}", text_kws=dict(rotation=0, vpos="top", hpos="center"))
 
 # Add links between "genome 01" and "genome 02"
 gv.add_link(("genome 01", 150, 300), ("genome 02", 50, 200))
 gv.add_link(("genome 01", 700, 500), ("genome 02", 900, 700))
 gv.add_link(("genome 01", 750, 950), ("genome 02", 1150, 950))
 # Add links between "genome 02" and "genome 03"
-gv.add_link(("genome 02", 50, 200), ("genome 03", 150, 300), normal_color="skyblue", inverted_color="lime", curve=True)
-gv.add_link(("genome 02", 350, 450), ("genome 03", 450, 350), normal_color="skyblue", inverted_color="lime", curve=True)
-gv.add_link(("genome 02", 900, 700), ("genome 03", 700, 500), normal_color="skyblue", inverted_color="lime", curve=True)
-gv.add_link(("genome 03", 900, 700), ("genome 02", 1150, 950), normal_color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 02", 50, 200), ("genome 03", 150, 300), color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 02", 350, 450), ("genome 03", 450, 350), color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 02", 900, 700), ("genome 03", 700, 500), color="skyblue", inverted_color="lime", curve=True)
+gv.add_link(("genome 03", 900, 700), ("genome 02", 1150, 950), color="skyblue", inverted_color="lime", curve=True)
 
-gv.savefig("example02.png")
+gv.savefig("tracks_and_links.png")
 ```
 
-![example02.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example02.png)
+![tracks_and_links.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/tracks_and_links.png)
 
-#### Exon Features
+### Exon Features
 
 ```python
 from pygenomeviz import GenomeViz
@@ -128,293 +154,226 @@ exon_regions2 = [(1500, 1710), (2000, 2480), (2590, 2800)]
 exon_regions3 = [(3000, 3300), (3400, 3690), (3800, 4100), (4200, 4620)]
 
 gv = GenomeViz()
-track = gv.add_feature_track(name=f"Exon Features", size=5000)
-track.add_exon_feature(exon_regions1, strand=1, plotstyle="box", label="box", labelrotation=0, labelha="center")
-track.add_exon_feature(exon_regions2, strand=-1, plotstyle="arrow", label="arrow", labelrotation=0, labelha="center", facecolor="darkgrey", intron_patch_kws={"ec": "red"})
+track = gv.add_feature_track("Exon Features", 5000)
+track.add_exon_feature(exon_regions1, strand=1, plotstyle="box", label="box", text_kws=dict(rotation=0, hpos="center"))
+track.add_exon_feature(exon_regions2, strand=-1, plotstyle="arrow", label="arrow", text_kws=dict(rotation=0, vpos="bottom", hpos="center"), patch_kws=dict(fc="darkgrey"), intron_patch_kws=dict(ec="red"))
+track.add_exon_feature(exon_regions3, strand=1, plotstyle="bigarrow", label="bigarrow", text_kws=dict(rotation=0, hpos="center"), patch_kws=dict(fc="lime", lw=1))
 
-exon_labels = [f"exon{i+1}" for i in range(len(exon_regions3))]
-track.add_exon_feature(exon_regions3, strand=1, plotstyle="bigarrow", label="bigarrow", facecolor="lime", linewidth=1, exon_labels=exon_labels, labelrotation=0, labelha="center", exon_label_kws={"y": 0, "va": "center", "color": "blue"})
-
-gv.savefig("example03.png")
+gv.savefig("exon_features.png")
 ```
 
-![example03.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example03.png)
+![exon_features.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/exon_features.png)
 
-### Practical Example
-
-#### Add Features from Genbank file
+### Genbank Features
 
 ```python
-from pygenomeviz import Genbank, GenomeViz, load_example_dataset
+from pygenomeviz import GenomeViz
+from pygenomeviz.parser import Genbank
+from pygenomeviz.utils import load_example_genbank_dataset
 
-gbk_files, _ = load_example_dataset("enterobacteria_phage")
+gbk_files = load_example_genbank_dataset("yersinia_phage")
 gbk = Genbank(gbk_files[0])
 
 gv = GenomeViz()
-track = gv.add_feature_track(gbk.name, gbk.range_size)
-track.add_genbank_features(gbk)
+gv.set_scale_bar(ymargin=0.5)
 
-gv.savefig("example04.png")
+track = gv.add_feature_track(gbk.name, gbk.genome_length)
+track.add_sublabel()
+
+features = gbk.extract_features()
+track.add_features(features)
+
+gv.savefig("genbank_features.png")
 ```
 
-![example04.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example04.png)
+![genbank_features.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/genbank_features.png)
 
-#### Add Features from GFF file
+### GFF Range Features
 
 ```python
-from pygenomeviz import Gff, GenomeViz, load_example_gff
+from pygenomeviz import GenomeViz
+from pygenomeviz.parser import Gff
+from pygenomeviz.utils import load_example_gff_file
 
-gff_file = load_example_gff("enterobacteria_phage.gff")
-gff = Gff(gff_file, min_range=5000, max_range=25000)
+gff_file = load_example_gff_file("escherichia_coli.gff.gz")
+gff = Gff(gff_file)
 
-gv = GenomeViz(fig_track_height=0.7, tick_track_ratio=0.5, tick_style="bar")
-track = gv.add_feature_track(gff.name, size=gff.range_size, start_pos=gff.min_range)
-track.add_gff_features(gff, plotstyle="arrow", facecolor="tomato")
-track.set_sublabel()
+gv = GenomeViz()
+gv.set_scale_bar(ymargin=0.5)
 
-gv.savefig("example05.png")
+target_ranges = ((220000, 230000), (300000, 310000))
+track = gv.add_feature_track(name=gff.name, segments=target_ranges)
+track.set_segment_sep(symbol="//")
+
+for segment in track.segments:
+    segment.add_sublabel()
+    # Plot CDS features
+    cds_features = gff.extract_features(feature_type="CDS", target_range=segment.range)
+    segment.add_features(cds_features, label_type="gene", fc="skyblue", lw=1.0)
+    # Plot rRNA features
+    rrna_features = gff.extract_features(feature_type="rRNA", target_range=segment.range)
+    segment.add_features(rrna_features, label_type="product", hatch="//", fc="lime", lw=1.0)
+
+gv.savefig("gff_features.png")
 ```
 
-![example05.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example05.png)
+![gff_features.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/gff_features.png)
 
-#### Multiple Tracks & Links from Genbank files
+### GFF Contigs
 
 ```python
-from pygenomeviz import Genbank, GenomeViz, load_example_dataset
+from pygenomeviz import GenomeViz
+from pygenomeviz.parser import Gff
+from pygenomeviz.utils import load_example_gff_file, is_pseudo_feature
 
-gv = GenomeViz(
-    fig_track_height=0.7,
-    feature_track_ratio=0.2,
-    tick_track_ratio=0.4,
-    tick_style="bar",
-    align_type="center",
-)
+gff_file = load_example_gff_file("mycoplasma_mycoides.gff")
+gff = Gff(gff_file)
 
-gbk_files, links = load_example_dataset("escherichia_phage")
-for gbk_file in gbk_files:
-    gbk = Genbank(gbk_file)
-    track = gv.add_feature_track(gbk.name, gbk.range_size)
-    track.add_genbank_features(gbk, facecolor="limegreen", linewidth=0.5, arrow_shaft_ratio=1.0)
+gv = GenomeViz(fig_track_height=0.5, feature_track_ratio=0.5)
+gv.set_scale_xticks(labelsize=10)
 
-for link in links:
-    link_data1 = (link.ref_name, link.ref_start, link.ref_end)
-    link_data2 = (link.query_name, link.query_start, link.query_end)
-    gv.add_link(link_data1, link_data2, v=link.identity, curve=True)
+# Plot CDS, rRNA features for each contig to tracks
+for seqid, size in gff.get_seqid2size().items():
+    track = gv.add_feature_track(seqid, size, labelsize=15)
+    track.add_sublabel(size=10, color="grey")
+    cds_features = gff.get_seqid2features(feature_type="CDS")[seqid]
+    # CDS: blue, CDS(pseudo): lightgrey
+    for cds_feature in cds_features:
+        color = "lightgrey" if is_pseudo_feature(cds_feature) else "blue"
+        track.add_features(cds_feature, color=color)
+    # rRNA: lime
+    rrna_features = gff.get_seqid2features(feature_type="rRNA")[seqid]
+    track.add_features(rrna_features, color="lime")
 
-gv.savefig("example06.png")
+gv.savefig("gff_contigs.png")
 ```
 
-![example06.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example06.png)
+![gff_contigs.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/gff_contigs.png)
 
-### Customization Tips
-
-Since pyGenomeViz is implemented based on matplotlib, users can easily customize
-the figure in the manner of matplotlib. Here are some tips for figure customization.
-
-#### Customization Tips 01
-
-- Add `GC Content` & `GC skew` subtrack
-- Add annotation label & fillbox
-- Add colorbar for links identity
-
-<details>
-<summary>Code</summary>
+### Genbank Comparison by BLAST
 
 ```python
-from pygenomeviz import Genbank, GenomeViz, load_example_dataset
+from pygenomeviz import GenomeViz
+from pygenomeviz.parser import Genbank
+from pygenomeviz.utils import load_example_genbank_dataset
+from pygenomeviz.align import Blast, AlignCoord
 
-gv = GenomeViz(
-    fig_width=12,
-    fig_track_height=0.7,
-    feature_track_ratio=0.5,
-    tick_track_ratio=0.3,
-    tick_style="axis",
-    tick_labelsize=10,
-)
+gbk_files = load_example_genbank_dataset("yersinia_phage")
+gbk_list = list(map(Genbank, gbk_files))
 
-gbk_files, links = load_example_dataset("erwinia_phage")
-gbk_list = [Genbank(gbk_file) for gbk_file in gbk_files]
+gv = GenomeViz(track_align_type="center")
+gv.set_scale_bar()
+
+# Plot CDS features
 for gbk in gbk_list:
-    track = gv.add_feature_track(gbk.name, gbk.range_size, labelsize=15)
-    track.add_genbank_features(gbk, plotstyle="arrow")
+    track = gv.add_feature_track(gbk.name, gbk.get_seqid2size(), align_label=False)
+    for seqid, features in gbk.get_seqid2features("CDS").items():
+        segment = track.get_segment(seqid)
+        segment.add_features(features, plotstyle="bigarrow", fc="limegreen", lw=0.5)
 
-min_identity = int(min(link.identity for link in links))
-for link in links:
-    link_data1 = (link.ref_name, link.ref_start, link.ref_end)
-    link_data2 = (link.query_name, link.query_start, link.query_end)
-    gv.add_link(link_data1, link_data2, v=link.identity, vmin=min_identity)
+# Run BLAST alignment & filter by user-defined threshold
+align_coords = Blast(gbk_list, seqtype="protein").run()
+align_coords = AlignCoord.filter(align_coords, length_thr=100, identity_thr=30)
 
-# Add subtracks to top track for plotting 'GC content' & 'GC skew'
-gv.top_track.add_subtrack(ratio=0.7, name="gc_content")
-gv.top_track.add_subtrack(ratio=0.7, name="gc_skew")
+# Plot BLAST alignment links
+if len(align_coords) > 0:
+    min_ident = int(min([ac.identity for ac in align_coords if ac.identity]))
+    color, inverted_color = "grey", "red"
+    for ac in align_coords:
+        gv.add_link(ac.query_link, ac.ref_link, color=color, inverted_color=inverted_color, v=ac.identity, vmin=min_ident)
+    gv.set_colorbar([color, inverted_color], vmin=min_ident)
 
-fig = gv.plotfig()
-
-# Add label annotation to top track
-top_track = gv.top_track  # or, gv.get_track("MT939486") or gv.get_tracks()[0]
-label, start, end = "Inverted", 310000 + top_track.offset, 358000 + top_track.offset
-center = int((start + end) / 2)
-top_track.ax.hlines(1.5, start, end, colors="red", linewidth=1, linestyles="dashed", clip_on=False)
-top_track.ax.text(center, 2.0, label, fontsize=12, color="red", ha="center", va="bottom")
-
-# Add fillbox to top track
-x, y = (start, start, end, end), (1, -1, -1, 1)
-top_track.ax.fill(x, y, fc="lime", linewidth=0, alpha=0.1, zorder=-10)
-
-# Plot GC content for top track
-pos_list, gc_content_list = gbk_list[0].calc_gc_content()
-pos_list += gv.top_track.offset  # Offset is required if align_type is not 'left'
-gc_content_ax = gv.top_track.subtracks[0].ax
-gc_content_ax.set_ylim(bottom=0, top=max(gc_content_list))
-gc_content_ax.fill_between(pos_list, gc_content_list, alpha=0.2, color="blue")
-gc_content_ax.text(gv.top_track.offset, max(gc_content_list) / 2, "GC(%) ", ha="right", va="center", color="blue")
-
-# Plot GC skew for top track
-pos_list, gc_skew_list = gbk_list[0].calc_gc_skew()
-pos_list += gv.top_track.offset  # Offset is required if align_type is not 'left'
-gc_skew_abs_max = max(abs(gc_skew_list))
-gc_skew_ax = gv.top_track.subtracks[1].ax
-gc_skew_ax.set_ylim(bottom=-gc_skew_abs_max, top=gc_skew_abs_max)
-gc_skew_ax.fill_between(pos_list, gc_skew_list, alpha=0.2, color="red")
-gc_skew_ax.text(gv.top_track.offset, 0, "GC skew ", ha="right", va="center", color="red")
-
-# Set coloarbar for link
-gv.set_colorbar(fig, vmin=min_identity)
-
-fig.savefig("example07.png")
+gv.savefig("genbank_comparison_by_blast.png")
 ```
 
-</details>
-
-![example07.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example07.png)
-
-#### Customization Tips 02
-
-- Add legends
-- Add colorbar for links identity
-
-<details>
-<summary>Code</summary>
-
-```python
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
-
-from pygenomeviz import Genbank, GenomeViz, load_example_dataset
-
-gv = GenomeViz(
-    fig_width=10,
-    fig_track_height=0.5,
-    feature_track_ratio=0.5,
-    tick_track_ratio=0.3,
-    align_type="center",
-    tick_style="bar",
-    tick_labelsize=10,
-)
-
-gbk_files, links = load_example_dataset("enterobacteria_phage")
-for idx, gbk_file in enumerate(gbk_files):
-    gbk = Genbank(gbk_file)
-    track = gv.add_feature_track(gbk.name, gbk.range_size, labelsize=10)
-    track.add_genbank_features(
-        gbk,
-        label_type="product" if idx == 0 else None,  # Labeling only top track
-        label_handle_func=lambda s: "" if s.startswith("hypothetical") else s,  # Ignore 'hypothetical ~~~' label
-        labelsize=8,
-        labelvpos="top",
-        facecolor="skyblue",
-        linewidth=0.5,
-    )
-
-normal_color, inverted_color, alpha = "chocolate", "limegreen", 0.5
-min_identity = int(min(link.identity for link in links))
-for link in links:
-    link_data1 = (link.ref_name, link.ref_start, link.ref_end)
-    link_data2 = (link.query_name, link.query_start, link.query_end)
-    gv.add_link(link_data1, link_data2, normal_color, inverted_color, alpha, v=link.identity, vmin=min_identity, curve=True)
-
-fig = gv.plotfig()
-
-# Add Legends (Maybe there is a better way)
-handles = [
-    Line2D([], [], marker=">", color="skyblue", label="CDS", ms=10, ls="none"),
-    Patch(color=normal_color, label="Normal Link"),
-    Patch(color=inverted_color, label="Inverted Link"),
-]
-fig.legend(handles=handles, bbox_to_anchor=(1, 1))
-
-# Set colorbar for link
-gv.set_colorbar(fig, bar_colors=[normal_color, inverted_color], alpha=alpha, vmin=min_identity, bar_label="Identity", bar_labelsize=10)
-
-fig.savefig("example08.png")
-```
-
-</details>
-
-![example08.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example08.png)
+![genbank_comparison_by_blast.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/genbank_comparison_by_blast.png)
 
 ## CLI Examples
 
-pyGenomeViz provides CLI workflow for visualization of genome alignment or
-reciprocal best-hit CDS search results with `MUMmer` or `MMseqs` or `progressiveMauve`.
-Each CLI workflow requires the installation of additional dependent tools to run.
+pyGenomeViz provides CLI workflow for visualization of genome alignment results using `BLAST`/`MUMmer`/`MMseqs`/`progressiveMauve`.
 
-### MUMmer CLI Workflow Example
+### BLAST CLI Workflow
+
+See [pgv-blast document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-blast/) for details.
+
+```shell
+# Download example dataset
+pgv-download yersinia_phage
+# Run BLAST CLI workflow
+pgv-blast NC_070914.gbk NC_070915.gbk NC_070916.gbk NC_070918.gbk \
+          -o pgv-blast_example --seqtype protein --show_scale_bar --curve \
+          --feature_linewidth 0.3 --length_thr 100 --identity_thr 30
+```
+
+![pgv-blast_example2.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-blast_example2.png)  
+
+### MUMmer CLI Workflow
 
 See [pgv-mummer document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mummer/) for details.
 
-Download example dataset: `pgv-download-dataset -n erwinia_phage`
+```shell
+# Download example dataset
+pgv-download mycoplasma_mycoides
+# Run MUMmer CLI workflow
+pgv-mummer GCF_000023685.1.gbff GCF_000800785.1.gbff GCF_000959055.1.gbff GCF_000959065.1.gbff \
+           -o pgv-mummer_example --show_scale_bar --curve \
+           --feature_type2color CDS:blue rRNA:lime tRNA:magenta
+```
 
-> :warning: MUMmer must be installed in advance to run
+![pgv-mummer_example3.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-mummer_example3.png)  
 
-    pgv-mummer --gbk_resources MT939486.gbk MT939487.gbk MT939488.gbk LT960552.gbk \
-               -o mummer_example --tick_style axis --align_type left --feature_plotstyle arrow
-
-![mummer_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/mummer_example1.png)  
-
-### MMseqs CLI Workflow Example
+### MMseqs CLI Workflow
 
 See [pgv-mmseqs document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mmseqs/) for details.
 
-Download example dataset: `pgv-download-dataset -n enterobacteria_phage`
+```shell
+# Download example dataset
+pgv-download enterobacteria_phage
+# Run MMseqs CLI workflow
+pgv-mmseqs NC_013600.gbk NC_016566.gbk NC_019724.gbk NC_024783.gbk NC_028901.gbk NC_031081.gbk \
+           -o pgv-mmseqs_example --show_scale_bar --curve --feature_linewidth 0.3 \
+           --feature_type2color CDS:skyblue --normal_link_color chocolate --inverted_link_color limegreen
+```
 
-> :warning: MMseqs must be installed in advance to run
+![pgv-mmseqs_example2.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-mmseqs_example2.png)  
 
-    pgv-mmseqs --gbk_resources NC_019724.gbk NC_024783.gbk NC_016566.gbk NC_013600.gbk NC_031081.gbk NC_028901.gbk \
-               -o mmseqs_example --fig_track_height 0.7 --feature_linewidth 0.3 --tick_style bar --curve \
-               --normal_link_color chocolate --inverted_link_color limegreen --feature_color skyblue
-
-![mmseqs_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/mmseqs_example3.png)  
-
-### progressiveMauve CLI Workflow Example
+### progressiveMauve CLI Workflow
 
 See [pgv-pmauve document](https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-pmauve/) for details.
 
-Download example dataset: `pgv-download-dataset -n escherichia_coli`
+```shell
+# Download example dataset
+pgv-download escherichia_coli
+# Run progressiveMauve CLI workflow
+pgv-pmauve NC_000913.gbk.gz NC_002695.gbk.gz NC_011751.gbk.gz NC_011750.gbk.gz \
+           -o pgv-pmauve_example --show_scale_bar
+```
 
-> :warning: progressiveMauve must be installed in advance to run
-
-    pgv-pmauve --seq_files NC_000913.gbk NC_002695.gbk NC_011751.gbk NC_011750.gbk \
-               -o pmauve_example --tick_style bar
-
-![pmauve_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pmauve_example1.png)  
+![pgv-pmauve_example1.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-pmauve_example1.png)  
 
 ## GUI (Web Application)
 
-pyGenomeViz implements GUI (Web Application) functionality using [streamlit](https://github.com/streamlit/streamlit) as an option ([Demo Page](https://pygenomeviz.streamlit.app)).
-Users can easily visualize the genome data of Genbank files and their comparison results with GUI.
+pyGenomeViz implements GUI (Web Application) functionality using [streamlit](https://github.com/streamlit/streamlit) as an option.
+Users can easily visualize the genomic features in Genbank files and their comparison results with GUI ([Demo Page](https://pygenomeviz.streamlit.app)).
 See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
 
 ![pygenomeviz_gui.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
 
-## Interactive HTML Viewer
+## HTML Viewer
 
-pyGenomeViz implements HTML file output functionality for interactive data visualization.
+pyGenomeViz implements HTML viewer output functionality for interactive data visualization.
 In API, HTML file can be output using `savefig_html` method. In CLI, user can select HTML file output option.
-As shown below, data tooltip display, pan/zoom, object color change, text change, etc are available in HTML viewer
-([Demo Page](https://moshi4.github.io/pyGenomeViz/images/pgv-viewer-demo.html)).
+As shown below, pan/zoom, tooltip display, object color change, text change, etc are available in HTML viewer
+([Demo Page1](https://moshi4.github.io/pyGenomeViz/images/pgv-viewer_demo1.html), [Demo Page2](https://moshi4.github.io/pyGenomeViz/images/pgv-viewer_demo2.html)).
 
 ![pgv-viewer-demo.gif](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-viewer-demo.gif)
+
+Following libraries were used to implement HTML viewer.  
+
+- [jQuery](https://github.com/jquery/jquery): HTML document traversal and manipulation  
+- [jQuery UI](https://github.com/jquery/jquery-ui): Tooltip, Dialog  
+- [Spectrum](https://github.com/bgrins/spectrum): Colorpicker  
+- [panzoom](https://github.com/timmywil/panzoom): SVG panning and zooming  
 
 ## Inspiration
 
@@ -432,3 +391,7 @@ If you are interested in circular genome visualization, check out my other pytho
 
 ![pycirclize_example.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pycirclize_example.png)  
 **Fig. pyCirclize example plot gallery**
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=moshi4/pyGenomeViz&type=Date)](https://star-history.com/#moshi4/pyGenomeViz&Date)

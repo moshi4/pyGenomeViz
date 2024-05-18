@@ -1,39 +1,49 @@
 from __future__ import annotations
 
-import datetime
 import io
-import json
+from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from pathlib import Path
-from typing import Any, get_args
+from typing import Any, Callable
 
 import matplotlib.pyplot as plt
-from matplotlib import colors, gridspec
 from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
+from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 from matplotlib.figure import Figure
-from matplotlib.ticker import MaxNLocator
+from matplotlib.font_manager import FontProperties
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
-import pygenomeviz
-from pygenomeviz.config import ASSETS_FILES, TEMPLATE_HTML_FILE, LiteralTypes
-from pygenomeviz.link import Link
-from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, TickTrack, Track
+from pygenomeviz.exception import (
+    FeatureTrackNotFoundError,
+    LinkRangeError,
+    LinkTrackNotFoundError,
+)
+from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, Track
+from pygenomeviz.typing import TrackAlignType
+from pygenomeviz.utils.helper import interpolate_color, size_label_formatter
+from pygenomeviz.viewer import setup_viewer_html
 
 
 class GenomeViz:
-    """GenomeViz Class"""
+    """Genome Visualization Class"""
+
+    # By default, after saving a figure using the `savefig()` method, figure object is
+    # automatically deleted to avoid memory leaks (no display on jupyter notebook)
+    # If you want to display the figure on jupyter notebook using `savefig()` method,
+    # set clear_savefig=False.
+    clear_savefig: bool = True
 
     def __init__(
         self,
+        *,
         fig_width: float = 15,
         fig_track_height: float = 1.0,
-        align_type: LiteralTypes.ALIGN_TYPE = "left",
-        feature_track_ratio: float = 1.0,
+        track_align_type: TrackAlignType = "left",
+        feature_track_ratio: float = 0.25,
         link_track_ratio: float = 1.0,
-        tick_track_ratio: float = 1.0,
-        track_spines: bool = False,
-        tick_style: LiteralTypes.TICK_STYLE = None,
-        plot_size_thr: float = 0,
-        tick_labelsize: int = 15,
+        show_axis: bool = False,
     ):
         """
         Parameters
@@ -41,112 +51,87 @@ class GenomeViz:
         fig_width : float, optional
             Figure width
         fig_track_height : float, optional
-            Figure track height
-            (Figure height = `track number` * `fig track height`)
-        align_type : str, optional
-            Track align type (`left`|`center`|`right`)
+            Figure height = `fig_track_height * track number`
+        track_align_type : TrackAlignType, optional
+            Figure track alignment type (`left`|`center`|`right`)
         feature_track_ratio : float, optional
-            Feature track ratio
+            Feature track size ratio
         link_track_ratio : float, optional
-            Link track ratio
-        tick_track_ratio : float, optional
-            Tick track ratio
-        track_spines : bool, optional
-            If True, display track spines
-        tick_style : str | None, optional
-            Tick style (`axis`|`bar`)
-        plot_size_thr : float, optional
-            Plot feature, link size threshold.
-            If `plot_size_thr=0.0005` and `max_track_size=4.0Mb`, feature, link
-            smaller than `max_track_size * plot_size_thr=2.0Kb` are not plotted.
-        tick_labelsize : int, optional
-            Tick label size
+            Link track size ratio
+        show_axis : bool, optional
+            Show axis for debug purpose
         """
-        self.fig_width = fig_width
-        self.fig_track_height = fig_track_height
-        self.align_type = align_type
-        self.track_spines = track_spines
-        self.feature_track_ratio = feature_track_ratio
-        self.link_track_ratio = link_track_ratio
-        self.tick_track_ratio = tick_track_ratio
-        self.tick_style = tick_style
-        self.plot_size_thr = plot_size_thr
-        self.tick_labelsize = tick_labelsize
-        self._tracks: list[Track] = []
+        self._fig_width = fig_width
+        self._fig_track_height = fig_track_height
+        self._track_align_type: TrackAlignType = track_align_type
+        self._feature_track_ratio = feature_track_ratio
+        self._link_track_ratio = link_track_ratio
+        self._show_axis = show_axis
 
-        self._check_init_values()
+        self._tracks: list[Track] = []
+        self._plot_colorbar: Callable[[Figure], None] | None = None
+        self._plot_scale_bar: Callable[[Axes], None] | None = None
+        self._plot_axis_ticks: Callable[[Axes], None] | None = None
 
     ############################################################
     # Property
     ############################################################
 
     @property
-    def top_track(self) -> FeatureTrack:
-        """Top feature track"""
-        feature_tracks = self.get_feature_tracks()
-        if len(feature_tracks) == 0:
-            err_msg = "No track found. Can't access 'top_track' property."
-            raise ValueError(err_msg)
-        return feature_tracks[0]
+    def figsize(self) -> tuple[float, float]:
+        """Figure size (Width, Height)"""
+        track_num = len(self.get_tracks(subtrack=True))
+        return (self._fig_width, self._fig_track_height * track_num)
 
     @property
-    def bottom_track(self) -> FeatureTrack:
-        """Bottom feature track"""
-        feature_tracks = self.get_feature_tracks()
-        if len(feature_tracks) == 0:
-            err_msg = "No track found. Can't access 'bottom_track' property."
-            raise ValueError(err_msg)
-        return feature_tracks[-1]
+    def feature_tracks(self) -> list[FeatureTrack]:
+        """Feature tracks"""
+        return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
 
     @property
-    def max_track_size(self) -> int:
-        """Max track size"""
-        if len(self.get_tracks()) == 0:
-            err_msg = "No track found. Can't access 'max_track_size' property."
-            raise ValueError(err_msg)
-        return max([track.size for track in self.get_tracks()])
-
-    @property
-    def track_name2link_offset(self) -> dict[str, int]:
-        """Track name & link offset dict"""
-        track_name2offset = {}
-        for track in self.get_feature_tracks():
-            track_name2offset[track.name] = self._get_track_offset(track) - track.start
-        return track_name2offset
-
-    @property
-    def gid2feature_tooltip(self) -> dict[str, str]:
-        """Group ID & feature tooltip dict"""
-        gid2feature_tooltip = {}
-        for track in self.get_feature_tracks():
-            for feature in track.features:
-                gid2feature_tooltip[feature.gid] = feature.tooltip
-        return gid2feature_tooltip
-
-    @property
-    def gid2link_tooltip(self) -> dict[str, str]:
-        """Group ID & link tooltip dict"""
-        gid2link_tooltip = {}
-        for track in self.get_link_tracks():
-            for link in track.links:
-                gid2link_tooltip[link.gid] = link.tooltip
-        return gid2link_tooltip
+    def link_tracks(self) -> list[LinkTrack]:
+        """Link tracks"""
+        return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
 
     ############################################################
     # Public Method
     ############################################################
 
+    def get_tracks(self, *, subtrack: bool = True) -> list[Track]:
+        """Get tracks
+
+        Parameters
+        ----------
+        subtrack : bool, optional
+            If True, include subtracks in FeatureTrack
+
+        Returns
+        -------
+        tracks : list[Track]
+            Tracks [`FeatureTrack`|`FeatureSubTrack`|`LinkTrack`]
+        """
+        tracks = []
+        for track in self._tracks:
+            tracks.append(track)
+            if subtrack and isinstance(track, FeatureTrack):
+                tracks.extend(track.subtracks)
+        return tracks
+
     def add_feature_track(
         self,
         name: str,
-        size: int,
-        start_pos: int = 0,
-        labelsize: int = 20,
-        labelcolor: str = "black",
+        segments: int
+        | tuple[int, int]
+        | Sequence[int | tuple[int, int]]
+        | Mapping[str, int | tuple[int, int]],
+        *,
+        space: float | list[float] = 0.02,
+        offset: int | TrackAlignType | None = None,
+        labelsize: float = 20,
         labelmargin: float = 0.01,
-        linewidth: int = 1,
-        linecolor: str = "grey",
-        link_track_ratio: float | None = None,
+        align_label: bool = True,
+        label_kws: dict[str, Any] | None = None,
+        line_kws: dict[str, Any] | None = None,
     ) -> FeatureTrack:
         """Add feature track
 
@@ -157,217 +142,267 @@ class GenomeViz:
         ----------
         name : str
             Track name
-        size : int
-            Track size
-        start_pos : int, optional
-            Track start position.
-            Track start-end range is defined as (start_pos, start_pos + size).
-        labelsize : int, optional
+        segments : int | tuple[int, int] | Sequence[int | tuple[int, int]] | Mapping[str, int | tuple[int, int]]
+            Track segments definition. Segment sizes or ranges can be specified.
+        space : float | list[float], optional
+            Space ratio between segments.
+            If `float`, all spaces are set to the same value.
+            If `list[float]`, each space is set to the corresponding value
+            (list size must be `len(segments) - 1`)
+        offset : int | TrackAlignType | None, optional
+            Offset int value or TrackAlignType (`left`|`center`|`right`)
+            If None, offset is defined by GenomeViz `track_align_type` argument at initialization.
+        labelsize : float, optional
             Track label size
-        labelcolor : str, optional
-            Track label color
         labelmargin : float, optional
             Track label margin
-        linewidth : int, optional
-            Track line width
-        linecolor : str, optional
-            Track line color
-        link_track_ratio : float | None, optional
-            Link track ratio. By default, the link_track_ratio value set
-            when GenomeViz was instantiated is used.
+        align_label : bool, optional
+            If True, align track label to the most left position.
+            If False, set track label to first segment start position.
+        label_kws : dict[str, Any] | None, optional
+            Text properties (e.g. `dict(size=25, color="red", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+        line_kws : dict[str, Any] | None, optional
+            Axes.plot properties (e.g. `dict(color="grey", lw=0.5, ls="--", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
 
         Returns
         -------
         feature_track : FeatureTrack
             Feature track
-        """
-        # Check specified track name is unique or not
+        """  # noqa: E501
+        label_kws = {} if label_kws is None else deepcopy(label_kws)
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+
+        # Check track name duplication
         if name in [t.name for t in self.get_tracks()]:
-            err_msg = f"track.name='{name}' is already exists."
-            raise ValueError(err_msg)
-        # Add link track between feature tracks
-        if len(self.get_tracks()) > 0:
-            if link_track_ratio is None:
-                link_track_ratio = self.link_track_ratio
-            link_track_name = f"{self._tracks[-1].name}-{name}"
-            link_track = LinkTrack(link_track_name, self.track_spines, link_track_ratio)
-            self._tracks.append(link_track)
-        # Add feature track
+            raise ValueError(f"{name=} track is already exists!!")
+
+        # Instantiate feature track
         feature_track = FeatureTrack(
             name,
-            size,
-            start_pos,
-            labelsize,
-            labelcolor,
-            labelmargin,
-            linewidth,
-            linecolor,
-            self.track_spines,
-            self.feature_track_ratio,
+            self._to_seg_name2range(segments),
+            ratio=self._feature_track_ratio,
+            space=space,
+            offset=self._track_align_type if offset is None else offset,
+            labelsize=labelsize,
+            labelmargin=labelmargin,
+            align_label=align_label,
+            label_kws=label_kws,
+            line_kws=line_kws,
         )
+
+        # Add link track between feature tracks
+        feature_track_num = len(self.feature_tracks)
+        if feature_track_num > 0:
+            upper_feature_track = self.feature_tracks[feature_track_num - 1]
+            link_track_name = f"{upper_feature_track.name}-{name}"
+            link_track = LinkTrack(
+                link_track_name,
+                ratio=self._link_track_ratio,
+                upper_feature_track=upper_feature_track,
+                lower_feature_track=feature_track,
+            )
+            self._tracks.append(link_track)
+
         self._tracks.append(feature_track)
+        self._update_track_status()
+
         return feature_track
 
     def add_link(
         self,
-        track_link1: tuple[str, int, int],
-        track_link2: tuple[str, int, int],
-        normal_color: str = "grey",
-        inverted_color: str = "red",
+        target1: tuple[str, int, int] | tuple[str, str | None, int, int],
+        target2: tuple[str, int, int] | tuple[str, str | None, int, int],
+        color: str = "grey",
+        inverted_color: str | None = None,
         alpha: float = 0.8,
         v: float | None = None,
         vmin: float = 0,
         vmax: float = 100,
+        size: float = 1.0,
         curve: bool = False,
-        size_ratio: float = 1.0,
-        patch_kws: dict[str, Any] | None = None,
+        filter_length: int = 0,
+        ignore_outside_range: bool = False,
+        **kwargs,
     ) -> None:
-        """Add link data to link track between adjacent feature tracks
+        """Add link patch to link track between adjacent feature tracks
 
         Parameters
         ----------
-        track_link1 : tuple[str, int, int]
-            Track link1 (track_name, start, end)
-        track_link2 : tuple[str, int, int]
-            Track link2 (track_name, start, end)
-        normal_color : str, optional
-            Normal link color
-        inverted_color : str, optional
-            Inverted link color
+        target1 : tuple[str, int, int] | tuple[str, int | str | None, int, int]
+            Target link1 `(track_name, start, end)` or `(track_name, target_segment, start, end)`
+        target2 : tuple[str, int, int] | tuple[str, int | str | None, int, int]
+            Target link2 `(track_name, start, end)` or `(track_name, target_segment, start, end)`
+        color : str, optional
+            Link color
+        inverted_color : str | None, optional
+            Inverted link color. If None, `color` is set.
         alpha : float, optional
             Color transparency
         v : float | None, optional
-            Value for color interpolation
+            Value for color interpolation. If None, no color interpolation is done.
         vmin : float, optional
             Min value for color interpolation
         vmax : float, optional
             Max value for color interpolation
+        size : float, optional
+            Link vertical size ratio for track
         curve : bool, optional
             If True, bezier curve link is plotted
-        size_ratio : float, optional
-            Link size ratio to track
-        patch_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(fc="red", ec="black", lw=0.5, ...)`)
+        filter_length : int, optional
+            If link length is shorter than `filter_length`, ignore it.
+        ignore_outside_range : bool, optional
+            If True and the link position is outside the range of the target track,
+            ignore it without raising an error.
+        **kwargs: dict, optional
+            Patch properties (e.g. `ec="black", lw=0.5, hatch="//", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        link_track = self._get_link_track(track_link1[0], track_link2[0])
-        tracks = [t.name for t in self.get_tracks()]
-        track_idx1 = tracks.index(track_link1[0])
-        track_idx2 = tracks.index(track_link2[0])
-        if track_idx1 < track_idx2:
-            above_track_link, below_track_link = track_link1, track_link2
-        else:
-            above_track_link, below_track_link = track_link2, track_link1
+        """  # noqa: E501
+        # Get target link track
+        if len(target1) == 3:
+            target1 = (target1[0], None, target1[1], target1[2])
+        if len(target2) == 3:
+            target2 = (target2[0], None, target2[1], target2[2])
+        link_track = self._get_target_link_track(target1, target2)
 
-        # Check link start-end position within valid range or not
-        above_track_name, above_link_start, above_link_end = above_track_link
-        above_track = self.get_track(above_track_name)
-        below_track_name, below_link_start, below_link_end = below_track_link
-        below_track = self.get_track(below_track_name)
-        ft = FeatureTrack
-        if isinstance(above_track, ft) and isinstance(below_track, ft):
-            if not above_track._within_valid_range(above_link_start, above_link_end):
-                err_msg = f"track_link1 = {track_link1} has invalid track range.\n"
-                err_msg += f"'{above_track_name}' track start-end range must be "
-                err_msg += f"'{above_track.start} <= pos <= {above_track.end}'"
-                raise ValueError(err_msg)
-            if not below_track._within_valid_range(below_link_start, below_link_end):
-                err_msg = f"track_link2 = {track_link2} has invalid track range.\n"
-                err_msg += f"'{below_track_name}' track start-end range must be "
-                err_msg += f"'{below_track.start} <= pos <= {below_track.end}'"
-                raise ValueError(err_msg)
-        else:
-            raise ValueError("Unexpected error. Why not FeatureTrack object?")
+        # Get upper & lower target feature track, segment info
+        track_name2target = {target1[0]: target1, target2[0]: target2}
+        upper_target = track_name2target[link_track.upper_feature_track.name]
+        lower_target = track_name2target[link_track.lower_feature_track.name]
+        upper_seg_name, upper_start, upper_end = upper_target[1:]
+        lower_seg_name, lower_start, lower_end = lower_target[1:]
+        upper_seg = link_track.upper_feature_track.get_segment(upper_seg_name)
+        lower_seg = link_track.lower_feature_track.get_segment(lower_seg_name)
 
-        link_track.add_link(
-            Link(
-                above_track_name,
-                above_link_start,
-                above_link_end,
-                below_track_name,
-                below_link_start,
-                below_link_end,
-                normal_color,
-                inverted_color,
-                alpha,
-                v,
-                vmin,
-                vmax,
-                curve,
-                size_ratio,
-                patch_kws,
+        # Filter by link length
+        upper_size = max(upper_start, upper_end) - min(upper_start, upper_end)
+        lower_size = max(lower_start, lower_end) - min(lower_start, lower_end)
+        if upper_size < filter_length or lower_size < filter_length:
+            return
+
+        # If target is inverted, set inverted_color to color
+        is_inverted = (upper_end - upper_start) * (lower_end - lower_start) < 0
+        if inverted_color is not None and is_inverted:
+            color = inverted_color
+
+        # Interpolate color if v exists
+        if v is not None:
+            color = interpolate_color(color, v, vmin, vmax)
+
+        # Set patch properties
+        kwargs.update(color=color, alpha=alpha)
+
+        try:
+            link_track.add_link(
+                upper_seg,
+                upper_start,
+                upper_end,
+                lower_seg,
+                lower_start,
+                lower_end,
+                v=v,
+                size=size,
+                curve=curve,
+                **kwargs,
             )
-        )
-
-    def get_track(self, track_name: str) -> Track:
-        """Get track by name
-
-        Parameters
-        ----------
-        track_name : str
-            Target track name
-
-        Returns
-        -------
-        track : Track
-            Target track
-        """
-        name2track = {t.name: t for t in self.get_tracks()}
-        track_names = name2track.keys()
-        if track_name not in track_names:
-            err_msg = f"{track_name=} is not found ({track_names=})."
-            raise ValueError(err_msg)
-        return name2track[track_name]
-
-    def get_tracks(self, subtrack: bool = False) -> list[Track]:
-        """Get tracks
-
-        Parameters
-        ----------
-        subtrack : bool, optional
-            If True, include feature subtracks
-
-        Returns
-        -------
-        tracks : list[Track]
-            Track list
-        """
-        tracks = []
-        for track in self._tracks:
-            if isinstance(track, FeatureTrack):
-                if subtrack:
-                    tracks.extend([t for t in track.subtracks if t.position == "above"])
-                tracks.append(track)
-                if subtrack:
-                    tracks.extend([t for t in track.subtracks if t.position == "below"])
+        except LinkRangeError:
+            if ignore_outside_range:
+                return
             else:
-                tracks.append(track)
-        return tracks
+                raise
 
-    def get_feature_tracks(self) -> list[FeatureTrack]:
-        """Get feature tracks
+    def set_scale_bar(
+        self,
+        *,
+        ymargin: float = 1.0,
+        labelsize: float = 15,
+        scale_size_label: tuple[int, str] | None = None,
+    ) -> None:
+        """Set scale bar
 
-        Returns
-        -------
-        feature_tracks : list[FeatureTrack]
-            Feature track list
+        Parameters
+        ----------
+        ymargin : float, optional
+            Scale bar y margin
+        labelsize : float, optional
+            Label size
+        scale_size_label : tuple[int, str] | None, optional
+            Scale bar size & label tuple (e.g. `(1000, "1.0 kb")`)
+            If None, scale bar size & label are automatically set.
         """
-        return [t for t in self.get_tracks() if isinstance(t, FeatureTrack)]
 
-    def get_link_tracks(self) -> list[LinkTrack]:
-        """Get link tracks
+        def plot_scale_bar(lowest_track_ax: Axes):
+            if scale_size_label is None:
+                scale_size = lowest_track_ax.get_xticks()[1]
+                scale_label = size_label_formatter(scale_size)
+            else:
+                scale_size, scale_label = scale_size_label
+            scale_bar = AnchoredSizeBar(
+                lowest_track_ax.transData,
+                size=scale_size,
+                label=scale_label,
+                loc="upper right",
+                sep=5,
+                frameon=False,
+                fontproperties=FontProperties(size=labelsize),
+                bbox_to_anchor=(1, -ymargin),
+                bbox_transform=lowest_track_ax.transAxes,
+            )
+            lowest_track_ax.add_artist(scale_bar)
 
-        Returns
-        -------
-        link_tracks : list[LinkTrack]
-            Link track list
+        self._plot_scale_bar = plot_scale_bar
+
+    def set_scale_xticks(
+        self,
+        *,
+        ymargin: float = 1.0,
+        labelsize: float = 15,
+        start: int = 0,
+    ) -> None:
+        """Set scale xticks
+
+        Parameters
+        ----------
+        ymargin : float, optional
+            X ticks y margin
+        labelsize : float, optional
+            Label size
+        start : int, optional
+            X ticks start position
         """
-        return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
+
+        def plot_axis_ticks(lowest_track_ax: Axes) -> None:
+            # Create new axes for axis xticks
+            ticks_ax = lowest_track_ax.twiny()
+
+            # Setup ticks properties of new axes
+            x_size = max(lowest_track_ax.get_xlim()) - min(lowest_track_ax.get_xlim())
+            xlim = (start, start + x_size)
+            ticks_ax.set_xlim(*xlim)
+            for pos in ("top", "left", "right"):
+                ticks_ax.spines[pos].set_visible(False)
+            ticks_ax.tick_params(top=False, bottom=False, left=False, right=False)
+            ticks_ax.tick_params(labelsize=labelsize)
+            ticks_ax.xaxis.set_ticks_position("bottom")
+            ticks_ax.spines["bottom"].set_position(("axes", -ymargin))
+
+            # Plot axis xticks
+            xticks: list[float] = ticks_ax.get_xticks()
+            xticks = list(filter(lambda x: min(xlim) <= x <= max(xlim), xticks))
+            xticklabels = size_label_formatter(xticks)
+            ticks_ax.set_xticks(xticks)
+            ticks_ax.set_xticklabels(xticklabels)
+
+            # Remove lowest track unnecessary ticks
+            lowest_track_ax.set_xticks([])
+
+        self._plot_axis_ticks = plot_axis_ticks
 
     def set_colorbar(
         self,
-        figure: Figure,
-        bar_colors: list[str] | None = None,
+        colors: list[str] | None = None,
+        *,
         alpha: float = 0.8,
         vmin: float = 0,
         vmax: float = 100,
@@ -379,16 +414,12 @@ class GenomeViz:
         bar_labelsize: float = 15,
         tick_labelsize: float = 10,
     ) -> None:
-        """Set colorbars to figure
-
-        Set colorbars for similarity links between genome tracks
+        """Set colorbar
 
         Parameters
         ----------
-        figure : Figure
-            Matplotlib figure
-        bar_colors : list[str] | None, optional
-            Bar color list
+        colors : list[str] | None, optional
+            Colors for bar
         alpha : float, optional
             Color transparency
         vmin : float, optional
@@ -396,166 +427,116 @@ class GenomeViz:
         vmax : float, optional
             Colorbar max value
         bar_height : float, optional
-            Colorbar height
+            Colorbar height ratio
         bar_width : float, optional
-            Colorbar width
+            Colorbar width ratio
         bar_left : float, optional
             Colorbar left position
         bar_bottom : float, optional
             Colorbar bottom position
         bar_label : str, optional
-            Colorbar label name
+            Colorbar label
         bar_labelsize : float, optional
             Colorbar label size
         tick_labelsize : float, optional
             Colorbar tick label size
         """
-        if bar_height == 0 or bar_width == 0:
+        if bar_height <= 0 or bar_width <= 0:
             return
-        bar_colors = ["grey", "red"] if bar_colors is None else bar_colors
-        bar_colors = list(dict.fromkeys([colors.to_hex(c) for c in bar_colors]))
-        for cnt, color in enumerate(bar_colors):
-            left = bar_left + bar_width * cnt
-            cbar_ax = figure.add_axes([left, bar_bottom, bar_width, bar_height])
 
-            def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
-                """Convert target color to nearly white"""
-                cmap = colors.LinearSegmentedColormap.from_list("m", ["white", color])
-                return colors.to_hex(cmap(nearly_value))
+        # Set colors & remove duplicated colors
+        colors = ["grey"] if colors is None else colors
+        colors = list(dict.fromkeys([to_hex(c) for c in colors]))
 
-            nearly_white = to_nearly_white(color)
-            cmap = colors.LinearSegmentedColormap.from_list("m", [nearly_white, color])
-            norm = colors.Normalize(vmin=vmin, vmax=vmax)
-            cb_kws = {"orientation": "vertical", "ticks": []}
-            cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)
-            if cnt == len(bar_colors) - 1:
-                ticks = [vmin, vmax]
-                labels = [f"{t}%" for t in ticks]
-                cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
-                x, y = 2.0, (vmin + vmax) / 2
-                text_kws = {"rotation": 90, "ha": "left", "va": "center"}
-                cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)
+        def plot_colorbar(fig: Figure) -> None:
+            for cnt, color in enumerate(colors):
+                # Add new axes for colorbar
+                left = bar_left + bar_width * cnt
+                cbar_ax = fig.add_axes([left, bar_bottom, bar_width, bar_height])
+                # Set colorbar
+                nealy_white = interpolate_color(color, v=0)
+                cmap = LinearSegmentedColormap.from_list("m", [nealy_white, color])
+                norm = Normalize(vmin=vmin, vmax=vmax)
+                cb_kws = dict(orientation="vertical", ticks=[])
+                cb = Colorbar(cbar_ax, cmap=cmap, norm=norm, alpha=alpha, **cb_kws)  # type: ignore
+                if cnt == len(colors) - 1:
+                    # Set vmin, vmax ticks label
+                    ticks = [vmin, vmax]
+                    labels = [f"{t}%" for t in ticks]
+                    cb.set_ticks(ticks, labels=labels, fontsize=tick_labelsize)
+                    # Set colorbar label
+                    x, y = 2.0, (vmin + vmax) / 2
+                    text_kws = dict(rotation=90, ha="left", va="center")
+                    cbar_ax.text(x, y, bar_label, size=bar_labelsize, **text_kws)  # type: ignore
 
-    def plotfig(self, dpi: int = 100) -> Figure:
+        self._plot_colorbar = plot_colorbar
+
+    def plotfig(
+        self,
+        *,
+        dpi: int = 100,
+        fast_render: bool = True,
+    ) -> Figure:
         """Plot figure
 
         Parameters
         ----------
         dpi : int, optional
             DPI
+        fast_render : bool, optional
+            Enable fast rendering mode using PatchCollection.
+            Set fast_render=True by default, and set it to False
+            when used in the `savefig_html()` method.
+            Fast rendering mode cannot generate tooltips for html display.
 
         Returns
         -------
-        figure : Figure
+        fig : Figure
             Plot figure result
         """
-        if len(self.get_tracks()) == 0:
-            raise ValueError("No tracks are defined for plotting figure.")
+        # Check track num
+        tracks = self.get_tracks(subtrack=True)
+        if len(tracks) == 0:
+            raise ValueError("Failed to plot figure. No track found!!")
 
-        # Set tick track if required
-        self._tracks = [t for t in self.get_tracks() if not isinstance(t, TickTrack)]
-        max_track_size = self.max_track_size
-        if self.tick_style is not None:
-            self._tracks.append(
-                TickTrack(
-                    max_track_size,
-                    self.tick_labelsize,
-                    self.track_spines,
-                    self.tick_track_ratio,
-                    self.tick_style,
-                )
-            )
-
-        # Set figure
-        track_num = len(self.get_tracks(subtrack=True))
-        figsize = (self.fig_width, self.fig_track_height * track_num)
-        tight_layout = False if track_num < 3 else True
-        figure: Figure = plt.figure(  # type: ignore
-            figsize=figsize, facecolor="white", dpi=dpi, tight_layout=tight_layout
-        )
-
-        # Set gridspec
-        height_ratios = [t.ratio for t in self.get_tracks(subtrack=True)]
-        gs = gridspec.GridSpec(nrows=track_num, ncols=1, height_ratios=height_ratios)
+        # Setup figure & gridspece
+        fig = plt.figure(figsize=self.figsize, dpi=dpi, facecolor="white")
+        fig.tight_layout()
+        height_ratios = [t.ratio for t in tracks]
+        gs = GridSpec(nrows=len(tracks), ncols=1, height_ratios=height_ratios)
         gs.update(left=0, right=1, bottom=0, top=1, hspace=0, wspace=0)
 
-        # Plot each track
-        plot_length_thr = max_track_size * self.plot_size_thr
-        for idx, track in enumerate(self.get_tracks(subtrack=True)):
-            # Create new track subplot
-            xlim, ylim = (0, max_track_size), track.ylim
-            ax: Axes = figure.add_subplot(
-                gs[idx], xlim=xlim, ylim=ylim, fc="none", zorder=track.zorder
-            )
-            if not isinstance(ax, Axes):
-                raise TypeError("Error: Not matplotlib Axes class instance.")
-            ax.set_gid(f"{track.__class__.__name__}{idx:02d}")
-            track_offset = self._get_track_offset(track)
-            track._ax, track._offset = ax, track_offset
-            # Set 'spines' and 'ticks' visibility
-            for spine, display in track.spines_params.items():
-                ax.spines[spine].set_visible(display)
-            ax.tick_params(**track.tick_params)  # type: ignore
+        for idx, track in enumerate(tracks):
+            # Create axes & set axes to track
+            ax: Axes = fig.add_subplot(gs[idx])
+            track.set_ax(ax, self._show_axis)
 
             if isinstance(track, FeatureTrack):
-                ax.set_gid(str(ax.get_gid()) + f" {track})")
-                # Plot track scale line
-                xmin, xmax = track_offset, track.size + track_offset
-                ax.hlines(0, xmin, xmax, track.linecolor, linewidth=track.linewidth)
-                # Plot track label
-                if track.labelsize != 0:
-                    margin = -max_track_size * track.labelmargin
-                    ax.text(margin, 0, **track.label_params)
-                # Plot track sublabel
-                if track._sublabel_text is not None and track._sublabel_size != 0:
-                    ha2x = dict(left=xmin, center=(xmax + xmin) / 2, right=xmax)
-                    x = ha2x[track._sublabel_ha]
-                    ax.text(**{**dict(x=x), **track.sublabel_params})
-
-                feature_offset = track_offset - track.start
-                for feature in [f + feature_offset for f in track.features]:
-                    # Don't plot too small feature (To reduce drawing time)
-                    if feature.length < plot_length_thr:
-                        continue
-                    # Plot feature patch & label text
-                    feature.plot_feature(ax, max_track_size, ylim)
-                    feature.plot_label(ax, ylim)
-
+                track.plot_all(fast_render)
             elif isinstance(track, FeatureSubTrack):
-                # No specific plans to implementation at this time
                 pass
-
             elif isinstance(track, LinkTrack):
-                for link in track.links:
-                    # Don't plot too small link (To reduce drawing time)
-                    length1, length2 = link.track_length1, link.track_length2
-                    if 0 < length1 < plot_length_thr or 0 < length2 < plot_length_thr:
-                        continue
-                    link = link.add_offset(self.track_name2link_offset)
-                    link.plot_link(ax, ylim)
-
-            elif isinstance(track, TickTrack):
-                if self.tick_style == "axis":
-                    ax.xaxis.set_major_locator(MaxNLocator(10, steps=[1, 2, 5, 10]))
-                    ax.xaxis.set_major_formatter(track.tick_formatter)
-                elif self.tick_style == "bar":
-                    avg_height_ratio = sum(height_ratios) / len(height_ratios)
-                    track.height_scale = avg_height_ratio / self.tick_track_ratio
-                    ymin, ycenter, ymax = track.ymin, track.ycenter, track.ymax
-                    line_kws = {"colors": "black", "linewidth": 1, "clip_on": False}
-                    ax.hlines(ycenter, track.xmin, track.xmax, **line_kws)
-                    ax.vlines(track.xmin, ymin, ymax, **line_kws)
-                    ax.vlines(track.xmax, ymin, ymax, **line_kws)
-                    ax.text(**track.scalebar_text_params)
-
+                track.plot_links(fast_render)
             else:
-                raise NotImplementedError()
+                track_class = track.__class__.__name__
+                raise NotImplementedError(f"{track_class=} is invalid track class!!")
 
-        return figure
+        lowest_track_ax = tracks[-1].ax
+        if self._plot_scale_bar:
+            self._plot_scale_bar(lowest_track_ax)
+
+        if self._plot_axis_ticks:
+            self._plot_axis_ticks(lowest_track_ax)
+
+        if self._plot_colorbar:
+            self._plot_colorbar(fig)
+
+        return fig
 
     def savefig(
         self,
         savefile: str | Path,
+        *,
         dpi: int = 100,
         pad_inches: float = 0.5,
     ) -> None:
@@ -572,19 +553,20 @@ class GenomeViz:
         """
         fig = self.plotfig(dpi=dpi)
         fig.savefig(
-            fname=savefile,
+            fname=str(savefile),
             dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",
         )
         # Clear & close figure to suppress memory leak
-        fig.clear()
-        plt.close(fig)
+        if self.clear_savefig:
+            fig.clear()
+            plt.close(fig)
 
     def savefig_html(
         self,
         html_outfile: str | Path | io.StringIO | io.BytesIO,
-        fig: Figure | None = None,
+        figure: Figure | None = None,
     ) -> None:
         """Save figure in html format
 
@@ -592,49 +574,26 @@ class GenomeViz:
         ----------
         html_outfile : str | Path | StringIO | BytesIO
             Output HTML file (*.html)
-        fig : Figure | None, optional
-            If Figure set, plot html viewer using user customized fig
+        figure : Figure | None, optional
+            If Figure set, plot html viewer using user customized figure
         """
         # Load SVG contents
-        if fig is None:
-            fig = self.plotfig()
-        svg_bytes = io.BytesIO()
-        fig.savefig(fname=svg_bytes, format="svg")
-        svg_bytes.seek(0)
-        svg_contents = svg_bytes.read().decode("utf-8")
+        fig = self.plotfig(fast_render=False) if figure is None else figure
+        svg_fig_bytes = io.BytesIO()
+        fig.savefig(fname=svg_fig_bytes, format="svg")
+        svg_fig_bytes.seek(0)
+        svg_fig_contents = svg_fig_bytes.read().decode("utf-8")
 
-        # Setup viewer html SVG contents
-        with open(TEMPLATE_HTML_FILE) as f:
-            viewer_html = f.read()
-        viewer_html = viewer_html.replace("$PGV_SVG_FIG", f"\n{svg_contents}")
-        viewer_html = viewer_html.replace("$VERSION", pygenomeviz.__version__)
-        datetime_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        viewer_html = viewer_html.replace("$DATETIME_NOW", datetime_now)
+        # Clear & close figure to suppress memory leak
+        if figure is None:
+            fig.clear()
+            plt.close(fig)
 
-        # Setup viewer html assets contents
-        style_contents, script_contents = "\n", "\n"
-        for file in ASSETS_FILES:
-            with open(file) as f:
-                contents = f.read()
-            if file.suffix == ".css":
-                style_contents += contents + "\n"
-            elif file.suffix == ".js":
-                script_contents += contents + "\n"
-        feature_tooltip_json = json.dumps(self.gid2feature_tooltip, indent=4)
-        script_contents = script_contents.replace(
-            "FEATURE_TOOLTIP_JSON = {}",
-            f"FEATURE_TOOLTIP_JSON = {feature_tooltip_json}",
-        )
-        link_tooltip_json = json.dumps(self.gid2link_tooltip, indent=4)
-        script_contents = script_contents.replace(
-            "LINK_TOOLTIP_JSON = {}",
-            f"LINK_TOOLTIP_JSON = {link_tooltip_json}",
-        )
-        viewer_html = viewer_html.replace(
-            "<style></style>", f"<style>{style_contents}</style>"
-        )
-        viewer_html = viewer_html.replace(
-            "<script></script>", f"<script>{script_contents}</script>"
+        # Setup viewer html SVG & embed CSS, JS assets
+        viewer_html = setup_viewer_html(
+            svg_fig_contents,
+            self._get_gid2feature_tooltip(),
+            self._get_gid2link_tooltip(),
         )
 
         # Write viewer html contents
@@ -646,103 +605,114 @@ class GenomeViz:
             with open(html_outfile, "w") as f:
                 f.write(viewer_html)
 
-    def print_tracks_info(self, detail=False) -> None:
-        """Print tracks info (Mainly for debugging work)
-
-        Parameters
-        ----------
-        detail : bool, optional
-            If True, also output feature and link details
-        """
-        for idx, track in enumerate(self.get_tracks(subtrack=True), 1):
-            # Print track common info
-            class_name = track.__class__.__name__
-            print(f"\n# Track{idx:02d}: Name='{track.name}' ({class_name})")
-            size, ratio, zorder = track.size, track.ratio, track.zorder
-            print(f"# Size={size}, Ratio={ratio}, Zorder={zorder}", end="")
-
-            # Print each track specific info
-            if isinstance(track, FeatureTrack):
-                print(f", FeatureNumber={len(track.features)}")
-                if detail:
-                    for feature in track.features:
-                        print(feature)
-            elif isinstance(track, FeatureSubTrack):
-                print()
-            elif isinstance(track, LinkTrack):
-                print(f", LinkNumber={len(track.links)}")
-                if detail:
-                    for link in track.links:
-                        print(link)
-            elif isinstance(track, TickTrack):
-                print()
-
     ############################################################
     # Private Method
     ############################################################
 
-    def _check_init_values(self) -> None:
-        """Check initial values"""
-        if self.align_type not in get_args(LiteralTypes.ALIGN_TYPE):
-            err_msg = f"{self.align_type=} is invalid."
-            raise ValueError(err_msg)
+    def _update_track_status(self) -> None:
+        """Update track status
 
-        if self.tick_style not in get_args(LiteralTypes.TICK_STYLE):
-            err_msg = f"{self.tick_style=} is invalid."
-            raise ValueError(err_msg)
-
-    def _get_track_offset(self, track: Track) -> int:
-        """Get track offset
-
-        Parameters
-        ----------
-        track : Track
-            Target track offset for alignment
-
-        Returns
-        -------
-        track_offset : int
-            Track offset
+        This method is called at the end of `add_feature_track()`
         """
-        if self.align_type == "left":
-            return 0
-        elif self.align_type == "center":
-            return int((self.max_track_size - track.size) / 2)
-        elif self.align_type == "right":
-            return self.max_track_size - track.size
-        else:
-            raise NotImplementedError
+        # Set `max_track_total_seg_size` & `xlim` for each feature track
+        max_track_total_seg_size = max([t.total_seg_size for t in self.feature_tracks])
+        for t in self.feature_tracks:
+            t.set_max_track_total_seg_size(max_track_total_seg_size)
 
-    def _get_link_track(
-        self, feature_track_name1: str, feature_track_name2: str
+        plot_size_list = []
+        for t in self.feature_tracks:
+            offset = t._offset if isinstance(t._offset, int) else 0
+            plot_size_list.append(t.plot_size + offset)
+        for t in self.get_tracks(subtrack=True):
+            t.set_xlim((0, max(plot_size_list)))
+
+    def _to_seg_name2range(
+        self,
+        segments: int
+        | tuple[int, int]
+        | Sequence[int | tuple[int, int]]
+        | Mapping[str, int | tuple[int, int]],
+    ) -> dict[str, tuple[int, int]]:
+        """Convert segments type to `segment name` & `range` dict"""
+        # Convert segments to dict type
+        if isinstance(segments, int):
+            segments = [segments]
+        if isinstance(segments, tuple) and len(segments) == 2:
+            if isinstance(segments[0], int) and isinstance(segments[1], int):
+                segments = [segments]  # type: ignore
+        if isinstance(segments, (list, tuple)):
+            segments = {f"seg{idx}": seg for idx, seg in enumerate(segments, 1)}  # type: ignore
+
+        seg_name2range: dict[str, tuple[int, int]] = {}
+        for seg_name, value in segments.items():  # type: ignore
+            start, end = (0, value) if isinstance(value, int) else value
+            if not start < end:
+                raise ValueError(f"end must be larger than start ({start=}, {end=})")
+            seg_name2range[seg_name] = (start, end)
+
+        return seg_name2range
+
+    def _get_target_link_track(
+        self,
+        target1: tuple[str, str | None, int, int],
+        target2: tuple[str, str | None, int, int],
     ) -> LinkTrack:
-        """Get link track from two adjacent feature track names
+        for target in (target1, target2):
+            track_name, target_seg, _, _ = target
+            # Check track name
+            track_name2feature_track = {t.name: t for t in self.feature_tracks}
+            if track_name not in track_name2feature_track:
+                raise FeatureTrackNotFoundError(f"{track_name=} is not found!!")
+            # Check segment name
+            target_feature_track = track_name2feature_track[track_name]
+            target_feature_track.get_segment(target_seg)
 
-        Parameters
-        ----------
-        feature_track_name1 : str
-            Feature track name1
-        feature_track_name2 : str
-            Feature track name2
+        target_link_track = None
+        name2target = {t[0]: t for t in (target1, target2)}
+        for link_track in self.link_tracks:
+            upper_track_name = link_track.upper_feature_track.name
+            lower_track_name = link_track.lower_feature_track.name
+            if upper_track_name in name2target and lower_track_name in name2target:
+                target_link_track = link_track
+
+        if target_link_track is None:
+            err_msg = f"Failed to get link track.\n{target1=}\n{target2=})\n"
+            err_msg += "Target feature tracks must be adjacent feature tracks!!"
+            raise LinkTrackNotFoundError(err_msg)
+
+        return target_link_track
+
+    def _get_gid2feature_tooltip(self) -> dict[str, str]:
+        """Get group ID & feature tooltip dict
 
         Returns
         -------
-        link_track : LinkTrack
-            Target link track
+        gid2feature_tooltip : dict[str, str]
+            Group ID & feature tooltip dict
         """
-        track_names = [t.name for t in self.get_tracks()]
-        feature_track_idx1 = track_names.index(feature_track_name1)
-        feature_track_idx2 = track_names.index(feature_track_name2)
-        if abs(feature_track_idx1 - feature_track_idx2) == 2:
-            link_track_idx = int((feature_track_idx1 + feature_track_idx2) / 2)
-            target_link_track = self.get_tracks()[link_track_idx]
-            if isinstance(target_link_track, LinkTrack):
-                return target_link_track
-            else:
-                err_msg = "LinkTrack is not found between target feature tracks "
-                err_msg += f"({feature_track_name1=}, {feature_track_name2=})"
-                raise ValueError(err_msg)
-        else:
-            err_msg = f"{feature_track_name1=} and {feature_track_name2=} "
-            err_msg += "are not adjacent feature tracks."
-            raise ValueError(err_msg)
+        gid2feature_tooltip = {}
+        for feature_track in self.feature_tracks:
+            for seg in feature_track.segments:
+                gid2feature_tooltip.update(seg.gid2tooltip)
+        return gid2feature_tooltip
+
+    def _get_gid2link_tooltip(self) -> dict[str, str]:
+        """Get group ID & link tooltip dict
+
+        Returns
+        -------
+        gid2link_tooltip : dict[str, str]
+            Group ID & link tooltip dict
+        """
+        gid2link_tooltip = {}
+        for link_track in self.link_tracks:
+            gid2link_tooltip.update(link_track.gid2tooltip)
+        return gid2link_tooltip
+
+    def __str__(self):
+        ret_val = ""
+        for feature_track in self.feature_tracks:
+            ret_val += f"{feature_track}\n"
+            for idx, seg in enumerate(feature_track.segments, 1):
+                ret_val += f"  {idx}: {seg}\n"
+        return ret_val

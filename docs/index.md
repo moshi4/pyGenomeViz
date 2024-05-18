@@ -23,11 +23,9 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 <figure markdown>
   ![pgv-viewer-demo.gif](./images/pgv-viewer-demo.gif)
   <figcaption>
-    Interactive HTML Viewer (<a href="./images/pgv-viewer-demo.html">Demo Page</a>)
+    Interactive HTML Viewer (<a href="./images/pgv-viewer_demo1.html">Demo Page1</a>, <a href="./images/pgv-viewer_demo2.html">Demo Page2</a>)
   </figcaption>
 </figure>
-
-:sparkles: GUI (Web Application) functionality is newly added from v0.4.0
 
 <figure markdown>
   ![pygenomeviz_gui_demo.png](https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif)
@@ -50,10 +48,4 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 
 **Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
 
-Case1. Run CLI Workflow:
-
-    docker run -it --rm ghcr.io/moshi4/pygenomeviz:latest pgv-mummer -h
-
-Case2. Launch GUI (Web Application):
-
-    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui
+    docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui -h

@@ -1,2 +1,3 @@
+ncbi-blast+
 mummer
 mmseqs2

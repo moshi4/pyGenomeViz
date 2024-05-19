@@ -1,4 +1,4 @@
-# pgv-mummer CLI Document
+# pgv-mummer
 
 `pgv-mummer` is one of the CLI workflows in pyGenomeViz for
 visualization of genome alignment using MUMmer(nucmer, promer).

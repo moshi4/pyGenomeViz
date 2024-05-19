@@ -4,7 +4,7 @@
 ![OS](https://img.shields.io/badge/OS-_Windows_|_Mac_|_Linux-steelblue)
 ![License](https://img.shields.io/badge/License-MIT-steelblue)
 [![Latest PyPI version](https://img.shields.io/pypi/v/pygenomeviz.svg)](https://pypi.python.org/pypi/pygenomeviz)
-[![Bioconda](https://img.shields.io/conda/vn/bioconda/pygenomeviz.svg?color=green)](https://anaconda.org/bioconda/pygenomeviz)  
+[![conda-forge](https://img.shields.io/conda/vn/conda-forge/pygenomeviz.svg?color=green)](https://anaconda.org/conda-forge/pygenomeviz)  
 
 ## Overview
 
@@ -42,9 +42,9 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 
     pip install pygenomeviz
 
-**Install bioconda package:**
+**Install conda-forge package:**
 
-    conda install -c conda-forge -c bioconda pygenomeviz
+    conda install -c conda-forge pygenomeviz
 
 **Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
 

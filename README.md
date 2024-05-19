@@ -50,9 +50,9 @@ For more information, please see full documentation [here](https://moshi4.github
 
     pip install pygenomeviz
 
-**Install bioconda package:**
+**Install conda-forge package:**
 
-    conda install -c conda-forge -c bioconda pygenomeviz
+    conda install -c conda-forge pygenomeviz
 
 **Use Docker ([Image Registry](https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz)):**
 

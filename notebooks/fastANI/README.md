@@ -10,9 +10,9 @@ Python script (`visualize.py`) that can plot the FastANI visual result using pyG
 
     pip install pygenomeviz
 
-**Install bioconda package:**
+**Install conda-forge package:**
 
-    conda install -c conda-forge -c bioconda pygenomeviz
+    conda install -c conda-forge pygenomeviz
 
 ## Usage
 

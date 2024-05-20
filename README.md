@@ -238,9 +238,9 @@ for seqid, size in gff.get_seqid2size().items():
     track = gv.add_feature_track(seqid, size, labelsize=15)
     track.add_sublabel(size=10, color="grey")
     cds_features = gff.get_seqid2features(feature_type="CDS")[seqid]
-    # CDS: blue, CDS(pseudo): lightgrey
+    # CDS: blue, CDS(pseudo): grey
     for cds_feature in cds_features:
-        color = "lightgrey" if is_pseudo_feature(cds_feature) else "blue"
+        color = "grey" if is_pseudo_feature(cds_feature) else "blue"
         track.add_features(cds_feature, color=color)
     # rRNA: lime
     rrna_features = gff.get_seqid2features(feature_type="rRNA")[seqid]

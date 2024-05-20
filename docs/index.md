@@ -6,6 +6,13 @@
 [![Latest PyPI version](https://img.shields.io/pypi/v/pygenomeviz.svg)](https://pypi.python.org/pypi/pygenomeviz)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/pygenomeviz.svg?color=green)](https://anaconda.org/conda-forge/pygenomeviz)  
 
+!!! info "Major Version Upgrade v1.0.0"
+
+    A major version upgrade, pyGenomeViz **v1.0.0**, was released on 2024/05.
+    Backward incompatible changes have been made between v1.0.0 and v0.X.X to make for a more sophisticated API/CLI design.
+    Therefore, v0.X.X users should pin the version to v0.4.4 or update existing code for v1.0.0.
+    Previous v0.4.4 documentation is available [here](https://moshi4.github.io/docs/pygenomeviz/v0.4.4/).
+
 ## Overview
 
 pyGenomeViz is a genome visualization python package for comparative genomics implemented based on matplotlib.

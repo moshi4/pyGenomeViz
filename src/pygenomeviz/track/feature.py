@@ -833,8 +833,10 @@ class FeatureTrack(Track):
 
         Returns
         -------
-        exon_locs, intron_locs : tuple[list[tuple[int, int]], list[tuple[int, int]]]
-            Exon & intron locations
+        exon_locs : list[tuple[int, int]]
+            Exon locations
+        intron_locs : list[tuple[int, int]]
+            Intron locations
         """
         exon_locs: list[tuple[int, int]] = []
         intron_locs: list[tuple[int, int]] = []

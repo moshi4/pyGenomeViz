@@ -28,8 +28,10 @@ def plot_by_gui_cfg(
 
     Returns
     -------
-    gv, align_coords : tuple[GenomeViz, list[AlignCoord]]
-        GenomeViz instance, AlignCoord list
+    gv : GenomeViz
+        GenomeViz instance
+    align_coords : list[AlignCoord]
+        AlignCoord list
     """
     # Create genomeviz instance
     gv = GenomeViz(

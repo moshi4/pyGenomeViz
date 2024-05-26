@@ -69,7 +69,7 @@ def load_example_genbank_dataset(
 ) -> list[Path]:
     """Load pygenomeviz example genbank dataset
 
-    Load genbank datasets from https://github.com/moshi4/pygenomeviz-data-v1
+    Load genbank datasets from <https://github.com/moshi4/pygenomeviz-data-v1>
     and cache datasets in local directory (Default: `~/.cache/pygenomeviz/`).
 
     List of dataset name
@@ -137,7 +137,7 @@ def load_example_gff_file(
 ) -> Path:
     """Load pygenomeviz example GFF file
 
-    Load example GFF file from https://github.com/moshi4/pygenomeviz-data-v1/
+    Load example GFF file from <https://github.com/moshi4/pygenomeviz-data-v1/>
     and cache GFF file in local directory (Default: `~/.cache/pygenomeviz/`).
 
     List of example GFF filename

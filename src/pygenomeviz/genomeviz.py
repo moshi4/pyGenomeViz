@@ -550,6 +550,11 @@ class GenomeViz:
             DPI
         pad_inches : float, optional
             Padding inches
+
+        Warnings
+        --------
+        To plot a figure that settings a user-defined legend, subtracks, or annotations,
+        call `fig.savefig()` instead of `gv.savefig()`.
         """
         fig = self.plotfig(dpi=dpi)
         fig.savefig(
@@ -575,7 +580,8 @@ class GenomeViz:
         html_outfile : str | Path | StringIO | BytesIO
             Output HTML file (*.html)
         figure : Figure | None, optional
-            If Figure set, plot html viewer using user customized figure
+            If Figure is set, plot html viewer using user customized figure.
+            Set to output figure including user-specified legend, subtracks, etc.
         """
         # Load SVG contents
         fig = self.plotfig(fast_render=False) if figure is None else figure

@@ -94,8 +94,8 @@ def plot_by_gui_cfg(
     utils.remove_old_files(gui_cache_dir)
 
     # Create md5 hash unique filename to enable cache alignment result
-    md5_hash_source = "\n".join([str(gbk) for gbk in gbk_list]).encode()
-    md5_hash_value = hashlib.md5(md5_hash_source).hexdigest()
+    md5_hash_source = "\n".join([f"{gbk} {gbk.full_genome_seq}" for gbk in gbk_list])
+    md5_hash_value = hashlib.md5(md5_hash_source.encode()).hexdigest()
     aln_coords_filename = f"{md5_hash_value}_{cfg.aln.method}.tsv"
     aln_coords_file = gui_cache_dir / aln_coords_filename.replace(" ", "")
 

@@ -389,10 +389,10 @@ genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
     title_col, form_col = st.columns([4, 1])
-    title_col.markdown("**Genome Min-Max Range Option**")
+    title_col.markdown("**Genome Min-Max Range & Reverse Option**")
     form_col.form_submit_button(
         label="Update Figure",
-        help="Apply min-max range option changes to figure",
+        help="Apply min-max range & reverse option changes to figure",
     )
 
     name2seqid2range: dict[str, dict[str, tuple[int, int]]] = {}
@@ -401,7 +401,7 @@ with genome_info_container.form(key="form"):
         with st.expander(expander_label, expanded=False):
             seqid2range = {}
             seqid2features = gbk.get_seqid2features(None)
-            for seqid, size in gbk.get_seqid2size().items():
+            for idx, (seqid, size) in enumerate(gbk.get_seqid2size().items()):
                 range_cols = st.columns([3, 3, 1])
                 min_range = range_cols[0].number_input(
                     label=f"**{seqid}** ({size:,} bp)",
@@ -427,9 +427,19 @@ with genome_info_container.form(key="form"):
                 if min_range > max_range:
                     st.error(f"**{max_range=}** must be larger than **{min_range=}**")
                     st.stop()
-                if min_range == max_range:
-                    continue
-                seqid2range[seqid] = (min_range, max_range)
+                if min_range != max_range:
+                    seqid2range[seqid] = (min_range, max_range)
+                reverse = range_cols[2].selectbox(
+                    label="Reverse",
+                    options=[True, False],
+                    index=1,
+                    format_func=lambda b: "Yes" if b else "No",
+                    key=f"{gbk.name} {seqid} reverse",
+                )
+                if reverse is True:
+                    gbk.records[idx] = gbk.records[idx].reverse_complement(
+                        id=True, name=True, description=True
+                    )
             name2seqid2range[gbk.name] = seqid2range
 
 

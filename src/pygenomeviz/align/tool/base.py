@@ -120,12 +120,12 @@ class AlignToolBase(ABC):
             if len(stdout_lines) > 0:
                 logger.error("STDOUT:")
                 for line in stdout_lines:
-                    logger.error(line)
+                    logger.error(f"> {line}")
             stderr_lines = cmd_res.stderr.splitlines()
             if len(stderr_lines) > 0:
                 logger.error("STDERR:")
                 for line in stderr_lines:
-                    logger.error(line)
+                    logger.error(f"> {line}")
             raise RuntimeError(f"Failed to run '{self.get_tool_name()}' aligner!!")
 
     def _parse_input_gbk_seqs(

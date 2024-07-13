@@ -224,6 +224,7 @@ class GenomeViz:
         curve: bool = False,
         filter_length: int = 0,
         ignore_outside_range: bool = False,
+        v_tooltip: float | None = None,
         **kwargs,
     ) -> None:
         """Add link patch to link track between adjacent feature tracks
@@ -241,7 +242,7 @@ class GenomeViz:
         alpha : float, optional
             Color transparency
         v : float | None, optional
-            Value for color interpolation. If None, no color interpolation is done.
+            Identity value for color interpolation. If None, no color interpolation is done.
         vmin : float, optional
             Min value for color interpolation
         vmax : float, optional
@@ -255,6 +256,9 @@ class GenomeViz:
         ignore_outside_range : bool, optional
             If True and the link position is outside the range of the target track,
             ignore it without raising an error.
+        v_tooltip: float | None, optional
+            Identity value for only tooltip display.
+            If no color interpolation is required, use this option instead of `v`.
         **kwargs: dict, optional
             Patch properties (e.g. `ec="black", lw=0.5, hatch="//", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -301,7 +305,7 @@ class GenomeViz:
                 lower_seg,
                 lower_start,
                 lower_end,
-                v=v,
+                v=v if v is not None else v_tooltip,
                 size=size,
                 curve=curve,
                 **kwargs,

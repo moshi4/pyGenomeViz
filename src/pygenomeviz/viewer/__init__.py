@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import pygenomeviz
 
@@ -21,11 +23,15 @@ _viewer_dir = Path(__file__).parent
 _assets_dir = _viewer_dir / "assets"
 _assets_files = [
     "lib/spectrum.min.css",
-    "lib/jquery-ui.min.css",
+    "lib/tabulator.min.css",
+    "lib/micromodal.css",
     "lib/jquery.min.js",
     "lib/spectrum.min.js",
-    "lib/jquery-ui.min.js",
     "lib/panzoom.min.js",
+    "lib/tabulator.min.js",
+    "lib/micromodal.min.js",
+    "lib/popper.min.js",
+    "lib/tippy-bundle.umd.min.js",
     "pgv-viewer.js",
 ]
 _assets_files = [_assets_dir / f for f in _assets_files]
@@ -37,8 +43,8 @@ JS_CONTENTS = _concat_target_files_contents(_assets_files, ".js")
 
 def setup_viewer_html(
     svg_figure: str,
-    gid2feature_tooltip: dict[str, str],
-    gid2link_tooltip: dict[str, str],
+    gid2feature_dict: dict[str, dict[str, Any]],
+    gid2link_dict: dict[str, dict[str, Any]],
 ) -> str:
     """Setup viewer html (Embed SVG figure, CSS & JS assets)
 
@@ -46,10 +52,10 @@ def setup_viewer_html(
     ----------
     svg_figure : str
         SVG figure strings
-    gid2feature_tooltip : dict[str, str]
-        GID(Group ID) & feature tooltip dict
-    gid2link_tooltip : dict[str, str]
-        GID(Group ID) & link tooltip dict
+    gid2feature_dict : dict[str, dict[str, Any]]
+        GID(Group ID) & feature dict
+    gid2link_dict : dict[str, dict[str, Any]]
+        GID(Group ID) & link dict
 
     Returns
     -------
@@ -64,15 +70,17 @@ def setup_viewer_html(
         viewer_html.replace("$PGV_SVG_FIG", f"\n{svg_figure}")
         .replace("$VERSION", pygenomeviz.__version__)
         .replace("$DATETIME_NOW", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        .replace("$CSS_CONTENTS", CSS_CONTENTS)
+        .replace("/*$CSS_CONTENTS*/", CSS_CONTENTS)
         .replace(
-            "$JS_CONTENTS",
-            JS_CONTENTS.replace(
-                "FEATURE_TOOLTIP_JSON = {}",
-                f"FEATURE_TOOLTIP_JSON = {json.dumps(gid2feature_tooltip, indent=4)}",
-            ).replace(
-                "LINK_TOOLTIP_JSON = {}",
-                f"LINK_TOOLTIP_JSON = {json.dumps(gid2link_tooltip, indent=4)}",
+            "/*$JS_CONTENTS*/",
+            re.sub("^import ", "// import ", JS_CONTENTS, flags=(re.MULTILINE))
+            .replace(
+                "FEATURES_JSON = {}",
+                f"FEATURES_JSON = {json.dumps(gid2feature_dict, indent=4)}",
+            )
+            .replace(
+                "LINKS_JSON = {}",
+                f"LINKS_JSON = {json.dumps(gid2link_dict, indent=4)}",
             ),
         )
     )

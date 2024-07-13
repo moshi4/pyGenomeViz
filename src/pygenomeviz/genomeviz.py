@@ -598,8 +598,8 @@ class GenomeViz:
         # Setup viewer html SVG & embed CSS, JS assets
         viewer_html = setup_viewer_html(
             svg_fig_contents,
-            self._get_gid2feature_tooltip(),
-            self._get_gid2link_tooltip(),
+            self._get_gid2feature_dict(),
+            self._get_gid2link_dict(),
         )
 
         # Write viewer html contents
@@ -688,32 +688,32 @@ class GenomeViz:
 
         return target_link_track
 
-    def _get_gid2feature_tooltip(self) -> dict[str, str]:
-        """Get group ID & feature tooltip dict
+    def _get_gid2feature_dict(self) -> dict[str, dict[str, Any]]:
+        """Get group ID & feature dict
 
         Returns
         -------
-        gid2feature_tooltip : dict[str, str]
-            Group ID & feature tooltip dict
+        gid2feature_dict : dict[str, dict[str, Any]]
+            Group ID & feature dict
         """
-        gid2feature_tooltip = {}
+        gid2feature_dict = {}
         for feature_track in self.feature_tracks:
             for seg in feature_track.segments:
-                gid2feature_tooltip.update(seg.gid2tooltip)
-        return gid2feature_tooltip
+                gid2feature_dict.update(seg.gid2feature_dict)
+        return gid2feature_dict
 
-    def _get_gid2link_tooltip(self) -> dict[str, str]:
-        """Get group ID & link tooltip dict
+    def _get_gid2link_dict(self) -> dict[str, dict[str, Any]]:
+        """Get group ID & link dict
 
         Returns
         -------
-        gid2link_tooltip : dict[str, str]
-            Group ID & link tooltip dict
+        gid2link_dict : dict[str, dict[str, Any]]
+            Group ID & link dict
         """
-        gid2link_tooltip = {}
+        gid2link_dict = {}
         for link_track in self.link_tracks:
-            gid2link_tooltip.update(link_track.gid2tooltip)
-        return gid2link_tooltip
+            gid2link_dict.update(link_track.gid2link_dict)
+        return gid2link_dict
 
     def __str__(self):
         ret_val = ""

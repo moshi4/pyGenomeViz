@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import textwrap
 import uuid
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Callable, overload
@@ -47,7 +46,7 @@ class FeatureSegment:
         self._features: list[SeqFeature] = []
         self._exon_features: list[SeqFeature] = []
         self._text_kws_list: list[dict[str, Any]] = []
-        self._gid2tooltip: dict[str, str] = {}
+        self._gid2feature_dict: dict[str, dict[str, Any]] = {}
 
     ############################################################
     # Property
@@ -101,9 +100,9 @@ class FeatureSegment:
         return self.track_start + self.size
 
     @property
-    def gid2tooltip(self) -> dict[str, str]:
-        """gid & feature tooltip dict"""
-        return self._gid2tooltip
+    def gid2feature_dict(self) -> dict[str, dict[str, Any]]:
+        """gid & feature dict (Sort by start coordinate)"""
+        return dict(sorted(self._gid2feature_dict.items(), key=lambda v: v[1]["start"]))
 
     @property
     def transform_features(self) -> list[SeqFeature]:
@@ -407,7 +406,7 @@ class FeatureSegment:
             # Update feature qualifiers for feature patch plot
             gid = f"Feature-{uuid.uuid4().hex}"
             kwargs.update(gid=gid)
-            self._add_gid2feature_tooltip(gid, feature, extra_tooltip)
+            self._add_gid2feature_dict(gid, feature, extra_tooltip)
             feature.qualifiers.update(
                 plotstyle=plotstyle,
                 arrow_shaft_ratio=arrow_shaft_ratio,
@@ -551,7 +550,7 @@ class FeatureSegment:
             # Update feature qualifiers for feature patch plot
             gid = f"Feature-{uuid.uuid4().hex}"
             patch_kws.update(gid=gid)
-            self._add_gid2feature_tooltip(gid, feature, extra_tooltip)
+            self._add_gid2feature_dict(gid, feature, extra_tooltip)
             feature.qualifiers.update(
                 plotstyle=plotstyle,
                 arrow_shaft_ratio=arrow_shaft_ratio,
@@ -616,13 +615,13 @@ class FeatureSegment:
         )
         return transform_feature
 
-    def _add_gid2feature_tooltip(
+    def _add_gid2feature_dict(
         self,
         gid: str,
         feature: SeqFeature,
         extra_tooltip: dict[str, str] | None = None,
     ) -> None:
-        """Add gid & feature tooltip dict
+        """Add gid & feature dict
 
         Parameters
         ----------
@@ -633,59 +632,29 @@ class FeatureSegment:
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict
         """
-
-        def to_html_table_row(key: str, value: str) -> str:
-            return f"<tr><td><b>{key} </b></td><td>{value}</td></tr>"
-
-        # Get extra tooltip info
         extra_tooltip = {} if extra_tooltip is None else deepcopy(extra_tooltip)
-        extra_tooltip_html = ""
-        for k, v in extra_tooltip.items():
-            extra_tooltip_html += to_html_table_row(k, v)
 
-        # Get feature info
         start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
         strand = "-" if feature.location.strand == -1 else "+"
         location = f"{start:,} - {end:,} ({strand})"
-        length = f"{end - start:,}"
-        feature_type = "na" if feature.type == "" else feature.type
-        gene = feature.qualifiers.get("gene", ["na"])[0]
-        protein_id = feature.qualifiers.get("protein_id", ["na"])[0]
-        product = feature.qualifiers.get("product", ["na"])[0]
-        pseudo_tooltip = ""
-        if "pseudo" in feature.qualifiers or "pseudogene" in feature.qualifiers:
-            pseudo_tooltip = to_html_table_row("pseudo", "tagged as pseudo")
 
-        # Set tooltip text
-        if (feature_type, gene, protein_id, product) == ("na", "na", "na", "na"):
-            tooltip = textwrap.dedent(
-                f"""
-                <table>
-                {to_html_table_row('segment', self.name)}
-                {to_html_table_row('location', location)}
-                {to_html_table_row('length', length)}
-                {extra_tooltip_html}
-                </table>
-                """
-            )[1:-1]
-        else:
-            tooltip = textwrap.dedent(
-                f"""
-                <table>
-                {to_html_table_row('segment', self.name)}
-                {to_html_table_row('location', location)}
-                {to_html_table_row('length', length)}
-                {to_html_table_row('type', feature_type)}
-                {to_html_table_row('gene', gene)}
-                {to_html_table_row('protein_id', protein_id)}
-                {to_html_table_row('product', product)}
-                {pseudo_tooltip}
-                {extra_tooltip_html}
-                </table>
-                """
-            )[1:-1]
-
-        self._gid2tooltip[gid] = tooltip
+        self._gid2feature_dict[gid] = dict(
+            gid=gid,
+            track=self.feature_track.label,
+            segment=self.name,
+            start=start,
+            end=end,
+            strand=strand,
+            location=location,
+            length=end - start,
+            type="na" if feature.type == "" else feature.type,
+            gene=feature.qualifiers.get("gene", ["na"])[0],
+            protein_id=feature.qualifiers.get("protein_id", ["na"])[0],
+            product=feature.qualifiers.get("product", ["na"])[0],
+            pseudo="pseudo" in feature.qualifiers or "pseudogene" in feature.qualifiers,
+            translation=feature.qualifiers.get("translation", ["na"])[0],
+            extra=extra_tooltip,
+        )
 
     def __str__(self):
         seg_name = self.name

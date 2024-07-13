@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 
 from pygenomeviz import GenomeViz
@@ -118,3 +119,15 @@ def test_gff_plot(gff_file: Path, tmp_path: Path):
 
     gv.savefig(tmp_path / "result.png")
     gv.savefig_html(tmp_path / "result.html")
+
+
+def test_savefig_html_failed(gbk_file: Path, tmp_path: Path):
+    """Test `gv.savefig_html()` failed when fast_render=True"""
+    gbk = Genbank(gbk_file)
+
+    gv = GenomeViz()
+    track = gv.add_feature_track(gbk.name, gbk.genome_length)
+    track.add_features(gbk.extract_features())
+    fig = gv.plotfig(fast_render=True)
+    with pytest.raises(ValueError):
+        gv.savefig_html(tmp_path / "result.html", fig)

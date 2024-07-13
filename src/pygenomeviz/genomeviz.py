@@ -459,7 +459,7 @@ class GenomeViz:
             for cnt, color in enumerate(colors):
                 # Add new axes for colorbar
                 left = bar_left + bar_width * cnt
-                cbar_ax = fig.add_axes([left, bar_bottom, bar_width, bar_height])
+                cbar_ax = fig.add_axes((left, bar_bottom, bar_width, bar_height))
                 # Set colorbar
                 nealy_white = interpolate_color(color, v=0)
                 cmap = LinearSegmentedColormap.from_list("m", [nealy_white, color])

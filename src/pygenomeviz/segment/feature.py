@@ -284,8 +284,8 @@ class FeatureSegment:
             hpos2x[hpos],
             text,
             size=size,
-            vpos=vpos,
-            hpos=hpos,
+            vpos=vpos,  # type: ignore
+            hpos=hpos,  # type: ignore
             ymargin=ymargin,
             rotation=rotation,
             **kwargs,

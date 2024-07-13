@@ -7,6 +7,8 @@ import numpy as np
 from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 
+from pygenomeviz.typing import Unit
+
 
 class ColorCycler:
     """Color Cycler Class"""
@@ -172,16 +174,20 @@ def interpolate_color(
 
 
 @overload
-def size_label_formatter(size: float) -> str: ...
+def size_label_formatter(size: float, unit: Unit | None = None) -> str: ...
 @overload
-def size_label_formatter(size: list[float]) -> list[str]: ...
-def size_label_formatter(size: float | list[float]) -> str | list[str]:
+def size_label_formatter(size: list[float], unit: Unit | None = None) -> list[str]: ...
+def size_label_formatter(
+    size: float | list[float], unit: Unit | None = None
+) -> str | list[str]:
     """Format scale size to human readable style (e.g. 1000 -> `1.0 Kb`))
 
     Parameters
     ----------
     size : float | list[float]
         Scale size (or size list)
+    unit : Unit | None, optional
+        Format target unit (`Gb`|`Mb`|`Kb`|`bp`)
 
     Returns
     -------
@@ -193,13 +199,20 @@ def size_label_formatter(size: float | list[float]) -> str | list[str]:
         size = [size]
 
     # Get target unit & unit size
-    unit2unit_size = dict(Gb=10**9, Mb=10**6, Kb=10**3, bp=1)
-    max_size = max(size)
-    target_unit, target_unit_size = "", 0
-    for unit, unit_size in unit2unit_size.items():
-        if max_size >= unit_size:
-            target_unit, target_unit_size = unit, unit_size
-            break
+    # unit2unit_size: dict[Unit, int] = dict(Gb=10**9, Mb=10**6, Kb=10**3, bp=1)
+    unit2unit_size: dict[Unit, int] = {"Gb": 10**9, "Mb": 10**6, "Kb": 10**3, "bp": 1}
+    if unit is None:
+        max_size = max(size)
+        target_unit, target_unit_size = "", 0
+        for unit, unit_size in unit2unit_size.items():
+            if max_size >= unit_size:
+                target_unit, target_unit_size = unit, unit_size
+                break
+    else:
+        if unit not in unit2unit_size:
+            raise ValueError(f"{unit=} is invalid (Gb, Mb, Kb, bp)")
+        else:
+            target_unit, target_unit_size = unit, unit2unit_size[unit]
 
     # Format size
     format_size: list[str] = []
@@ -208,7 +221,7 @@ def size_label_formatter(size: float | list[float]) -> str | list[str]:
             format_size.append(f"0 {target_unit}")
         else:
             plot_size = value / target_unit_size
-            str_format = ".0f" if plot_size >= 10 else ".1f"
+            str_format = ",.0f" if plot_size >= 10 else ".1f"
             format_size.append(f"{value / target_unit_size:{str_format}} {target_unit}")
 
     return format_size[0] if len(format_size) == 1 else format_size

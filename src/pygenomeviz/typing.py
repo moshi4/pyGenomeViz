@@ -7,6 +7,7 @@ PlotStyle = Literal["bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox"]
 VPos = Literal["top", "center", "bottom"]
 HPos = Literal["left", "center", "right"]
 SeqType = Literal["nucleotide", "protein"]
+Unit = Literal["Gb", "Mb", "Kb", "bp"]
 
 AlnCliName = Literal["pgv-blast", "pgv-mummer", "pgv-mmseqs", "pgv-pmauve"]
 GenbankDatasetName = Literal[

@@ -21,7 +21,7 @@ from pygenomeviz.exception import (
     LinkTrackNotFoundError,
 )
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, Track
-from pygenomeviz.typing import TrackAlignType
+from pygenomeviz.typing import TrackAlignType, Unit
 from pygenomeviz.utils.helper import interpolate_color, size_label_formatter
 from pygenomeviz.viewer import setup_viewer_html
 
@@ -359,6 +359,7 @@ class GenomeViz:
         ymargin: float = 1.0,
         labelsize: float = 15,
         start: int = 0,
+        unit: Unit | None = None,
     ) -> None:
         """Set scale xticks
 
@@ -370,6 +371,8 @@ class GenomeViz:
             Label size
         start : int, optional
             X ticks start position
+        unit : Unit | None, optional
+            Display unit (`Gb`|`Mb`|`Kb`|`bp`)
         """
 
         def plot_axis_ticks(lowest_track_ax: Axes) -> None:
@@ -388,9 +391,9 @@ class GenomeViz:
             ticks_ax.spines["bottom"].set_position(("axes", -ymargin))
 
             # Plot axis xticks
-            xticks: list[float] = ticks_ax.get_xticks()
+            xticks: list[float] = ticks_ax.get_xticks()  # type: ignore
             xticks = list(filter(lambda x: min(xlim) <= x <= max(xlim), xticks))
-            xticklabels = size_label_formatter(xticks)
+            xticklabels = size_label_formatter(xticks, unit)
             ticks_ax.set_xticks(xticks)
             ticks_ax.set_xticklabels(xticklabels)
 

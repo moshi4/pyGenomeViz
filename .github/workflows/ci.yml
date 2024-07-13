@@ -19,10 +19,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python ${{ matrix.python-version}}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+      # - name: Setup Python ${{ matrix.python-version}}
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
 
       - name: Install Rye
         run: |
@@ -30,7 +30,9 @@ jobs:
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
       - name: Install python dependencies
-        run: rye sync --update-all --all-features
+        run: |
+          rye pin ${{ matrix.python-version }}
+          rye sync --update-all --all-features
 
       - name: Install external tool dependencies
         run: |

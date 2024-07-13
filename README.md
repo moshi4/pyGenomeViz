@@ -372,10 +372,11 @@ As shown below, pan/zoom, tooltip display, object color change, text change, etc
 
 Following libraries were used to implement HTML viewer.  
 
-- [jQuery](https://github.com/jquery/jquery): HTML document traversal and manipulation  
-- [jQuery UI](https://github.com/jquery/jquery-ui): Tooltip, Dialog  
 - [Spectrum](https://github.com/bgrins/spectrum): Colorpicker  
-- [panzoom](https://github.com/timmywil/panzoom): SVG panning and zooming  
+- [Panzoom](https://github.com/timmywil/panzoom): SVG panning and zooming  
+- [Tabulator](https://github.com/olifolkerd/tabulator): Interactive Table
+- [Micromodal](https://github.com/Ghosh/micromodal): Modal dialog
+- [Tippy.js](https://github.com/atomiks/tippyjs): Tooltip
 
 ## Inspiration
 

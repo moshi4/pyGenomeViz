@@ -17,10 +17,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install MkDocs & Plugins
+      - name: Install Rye
         run: |
-          pip install .
-          pip install mkdocs mkdocs-material mkdocs-jupyter mkdocstrings[python] black
+          curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+
+      - name: Install MkDocs & Plugins
+        run: rye sync
 
       - name: Publish document
-        run: mkdocs gh-deploy --force
+        run: rye run mkdocs gh-deploy --force

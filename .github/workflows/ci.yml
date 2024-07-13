@@ -24,20 +24,25 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install python dependencies
-        run: pip install -e . pytest pytest-cov ruff streamlit
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
-      - name: Install external dependencies
+      - name: Install python dependencies
+        run: rye sync --update-all --all-features
+
+      - name: Install external tool dependencies
         run: |
           sudo apt update -y
           sudo apt install -y ncbi-blast+ mmseqs2 mummer progressivemauve
         if: ${{ matrix.os=='ubuntu-latest' }}
 
       - name: Run ruff lint check
-        run: ruff check --diff
+        run: rye run ruff check --diff
 
       - name: Run ruff format check
-        run: ruff format --check --diff
+        run: rye run ruff format --check --diff
 
       - name: Run pytest
-        run: pytest
+        run: rye run pytest

@@ -1,11 +1,9 @@
-[tool.poetry]
+[project]
 name = "pygenomeviz"
-version = "1.1.0"
+dynamic = ["version"]
 description = "A genome visualization python package for comparative genomics"
-authors = ["moshi4"]
+authors = [{ name = "moshi4", email = "" }]
 license = "MIT"
-homepage = "https://moshi4.github.io/pyGenomeViz/"
-repository = "https://github.com/moshi4/pyGenomeViz/"
 readme = "README.md"
 keywords = [
     "bioinformatics",
@@ -18,6 +16,42 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Framework :: Matplotlib",
+]
+requires-python = ">=3.8"
+dependencies = ["matplotlib>=3.6.3", "biopython>=1.80", "numpy>=1.21"]
+
+[project.optional-dependencies]
+gui = ["streamlit>=1.32.0"]
+
+[project.urls]
+homepage = "https://moshi4.github.io/pyGenomeViz/"
+repository = "https://github.com/moshi4/pyGenomeViz/"
+
+[project.scripts]
+pgv-blast = "pygenomeviz.scripts.blast:main"
+pgv-mummer = "pygenomeviz.scripts.mummer:main"
+pgv-mmseqs = "pygenomeviz.scripts.mmseqs:main"
+pgv-pmauve = "pygenomeviz.scripts.pmauve:main"
+pgv-download = "pygenomeviz.scripts.download:main"
+pgv-gui = "pygenomeviz.scripts.gui:main"
+
+[tool.hatch.version]
+path = "src/pygenomeviz/__init__.py"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "ruff>=0.4.0",
+    "pre-commit>=3.5.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "ipykernel>=6.13.0",
+    # docs
+    "mkdocs>=1.2",
+    "mkdocstrings[python]>=0.19.0",
+    "mkdocs-jupyter>=0.21.0",
+    "mkdocs-material>=8.2",
+    "black>=22.3.0",
 ]
 
 [tool.pytest.ini_options]
@@ -53,38 +87,6 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
-[tool.poetry.scripts]
-pgv-blast = "pygenomeviz.scripts.blast:main"
-pgv-mummer = "pygenomeviz.scripts.mummer:main"
-pgv-mmseqs = "pygenomeviz.scripts.mmseqs:main"
-pgv-pmauve = "pygenomeviz.scripts.pmauve:main"
-pgv-download = "pygenomeviz.scripts.download:main"
-pgv-gui = "pygenomeviz.scripts.gui:main"
-
-[tool.poetry.dependencies]
-python = "^3.8"
-matplotlib = ">=3.6.3"
-biopython = ">=1.80"
-numpy = ">=1.21"
-streamlit = { version = ">=1.32.0", optional = true, python = ">=3.8,<3.9.7 || >3.9.7,<4.0" }
-
-[tool.poetry.group.dev.dependencies]
-ruff = ">=0.4.0"
-pre-commit = ">=3.5.0"
-pytest = ">=8.0.0"
-pytest-cov = ">=4.0.0"
-ipykernel = ">=6.13.0"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = ">=1.2"
-mkdocstrings = { extras = ["python"], version = ">=0.19.0" }
-mkdocs-jupyter = ">=0.21.0"
-mkdocs-material = ">=8.2"
-black = ">=22.3.0"
-
-[tool.poetry.extras]
-gui = ["streamlit"]
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

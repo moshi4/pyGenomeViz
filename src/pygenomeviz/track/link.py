@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import textwrap
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
@@ -44,7 +43,7 @@ class LinkTrack(Track):
         self._lower_feature_track = lower_feature_track
 
         self._link_record_list: list[LinkRecord] = []
-        self._gid2tooltip: dict[str, str] = {}
+        self._gid2link_dict: dict[str, dict[str, Any]] = {}
 
     @property
     def upper_feature_track(self) -> FeatureTrack:
@@ -62,9 +61,9 @@ class LinkTrack(Track):
         return self._link_record_list
 
     @property
-    def gid2tooltip(self) -> dict[str, str]:
-        """gid & link tooltip dict"""
-        return self._gid2tooltip
+    def gid2link_dict(self) -> dict[str, dict[str, Any]]:
+        """gid & link dict"""
+        return self._gid2link_dict
 
     def add_link(
         self,
@@ -129,7 +128,7 @@ class LinkTrack(Track):
             patch_kws=kwargs,
         )
         self._link_record_list.append(link_record)
-        self._gid2tooltip[link_record.gid] = link_record.to_tooltip()
+        self._gid2link_dict[link_record.gid] = link_record.to_dict()
 
     def plot_links(self, fast_render: bool = True) -> None:
         """Plot links
@@ -198,25 +197,24 @@ class LinkRecord:
             **self.patch_kws,
         )
 
-    def to_tooltip(self) -> str:
-        """Convert to tooltip text
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dict for tooltip display
 
         Returns
         -------
-        tooltip : str
-            Tooltip text
+        link_dict : dict[str, Any]
+            link dict
         """
-        identity = "na" if self.v is None else f"{self.v:.2f}%"
-        tooltip = textwrap.dedent(
-            f"""
-            <table>
-            <tr><td><b>track </b></td><td>{self.track1.name}</td><td>{self.track2.name}</td></tr>
-            <tr><td><b>segment </b></td><td>{self.seg1.name}</td><td>{self.seg2.name}</td></tr>
-            <tr><td><b>start </b></td><td>{self.start1:,}</td><td>{self.start2:,}</td></tr>
-            <tr><td><b>end </b></td><td>{self.end1:,}</td><td>{self.end2:,}</td></tr>
-            <tr><td><b>length </b></td><td>{self.length1:,}</td><td>{self.length2:,}</td></tr>
-            <tr><td><b>identity </b></td><td colspan="2">{identity}</td></tr>
-            </table>
-            """  # noqa: E501
-        )[1:-1]
-        return tooltip
+        return dict(
+            track1=self.track1.name,
+            track2=self.track2.name,
+            segment1=self.seg1.name,
+            segment2=self.seg2.name,
+            start1=self.start1,
+            start2=self.start2,
+            end1=self.end1,
+            end2=self.end2,
+            length1=self.length1,
+            length2=self.length2,
+            identity=self.v if self.v else "na",
+        )

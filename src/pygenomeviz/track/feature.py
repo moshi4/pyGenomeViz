@@ -706,7 +706,7 @@ class FeatureTrack(Track):
         # Plot track label
         self._label_kws.update(
             ha="right",
-            va="center",
+            va="center_baseline",
             fontsize=self._labelsize,
             transform=self.ax.transAxes,
         )

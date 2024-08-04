@@ -166,3 +166,21 @@ def fasta_dataset_files(fasta_testdata_dir: Path) -> list[Path]:
     """
     fasta_dataset_dir = fasta_testdata_dir / "influA"
     return list(fasta_dataset_dir.glob("*.fna"))
+
+
+@pytest.fixture
+def fasta_gz_file(fasta_testdata_dir: Path) -> Path:
+    """Fasta file (GZ compressed)"""
+    return fasta_testdata_dir / "test.fna.gz"
+
+
+@pytest.fixture
+def fasta_bz2_file(fasta_testdata_dir: Path) -> Path:
+    """Fasta file (BZ2 compressed)"""
+    return fasta_testdata_dir / "test.fna.bz2"
+
+
+@pytest.fixture
+def fasta_zip_file(fasta_testdata_dir: Path) -> Path:
+    """Fasta file (ZIP compressed)"""
+    return fasta_testdata_dir / "test.zip"

@@ -11,7 +11,7 @@ from typing import Sequence
 
 from pygenomeviz.align import AlignCoord
 from pygenomeviz.logger import get_logger
-from pygenomeviz.parser import Genbank
+from pygenomeviz.parser import Fasta, Genbank
 
 
 class AlignToolBase(ABC):
@@ -156,25 +156,25 @@ class AlignToolBase(ABC):
         return parse_seqs
 
     def _parse_input_gbk_and_fasta_seqs(
-        self, seqs: Sequence[str | Path | Genbank]
-    ) -> Sequence[Path | Genbank]:
+        self, seqs: Sequence[str | Path | Fasta | Genbank]
+    ) -> Sequence[Fasta | Genbank]:
         """Parse input genbank and fasta sequences
 
         Parameters
         ----------
-        seqs : Sequence[str | Path | Genbank]
-            List of `fasta file` or `genbank file` or `Genbank object`
+        seqs : Sequence[str | Path | Fasta | Genbank]
+            List of fasta or genbank
 
         Returns
         -------
-        parse_seqs : Sequence[Path | Genbank]
-            List of `fasta file` or `Genbank object`
+        parse_seqs : Sequence[Fasta | Genbank]
+            List of fasta or genbank
         """
         # Check number of seqs
         if len(seqs) < 2:
             raise ValueError("Number of input seqs is less than 2.")
         # Parse genbank or fasta files
-        parse_seqs: Sequence[Path | Genbank] = []
+        parse_seqs: Sequence[Fasta | Genbank] = []
         for seq in seqs:
             if isinstance(seq, str):
                 seq = Path(seq)
@@ -184,7 +184,7 @@ class AlignToolBase(ABC):
                 if seq.suffix in gbk_suffixes:
                     parse_seqs.append(Genbank(seq))
                 elif seq.suffix in fasta_suffixes:
-                    parse_seqs.append(seq)
+                    parse_seqs.append(Fasta(seq))
                 else:
                     valid_suffixes = gbk_suffixes + fasta_suffixes
                     err_msg = f"'{seq}' is invalid file suffix ({valid_suffixes=})"

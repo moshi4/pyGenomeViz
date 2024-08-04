@@ -4,10 +4,24 @@ import pytest
 
 from pygenomeviz.utils import (
     fetch_genbank_by_accid,
+    load_example_fasta_dataset,
     load_example_genbank_dataset,
     load_example_gff_file,
 )
 from tests.marker import skipif_network_connection_failed
+
+
+@skipif_network_connection_failed
+def test_load_example_fasta_dataset_success():
+    """Test `load_example_fasta_dataset()`"""
+    fasta_files = load_example_fasta_dataset("yersinia_phage")
+    assert all([fasta_file.exists() for fasta_file in fasta_files])
+
+
+def test_load_example_fasta_dataset_fail():
+    """Test `load_example_fasta_dataset()` with invalid dataset name"""
+    with pytest.raises(ValueError):
+        load_example_fasta_dataset("invalid_name")  # type: ignore
 
 
 @skipif_network_connection_failed

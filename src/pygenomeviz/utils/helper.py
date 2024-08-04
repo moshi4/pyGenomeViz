@@ -133,6 +133,41 @@ def extract_features_within_range(
     return range_features
 
 
+def to_stack_features(features: list[SeqFeature]) -> list[list[SeqFeature]]:
+    """Convert feature list to non-overlap stack feature list of lists
+
+    Parameters
+    ----------
+    features : list[SeqFeature]
+        Features
+
+    Returns
+    -------
+    stack_features : list[list[SeqFeature]]
+        Stacked features
+    """
+    sorted_features = sorted(features, key=lambda f: int(f.location.start))  # type: ignore
+
+    def is_overlap(feature1: SeqFeature, feature2: SeqFeature) -> bool:
+        """Check if features overlap each other"""
+        start1, end1 = int(feature1.location.start), int(feature1.location.end)  # type: ignore
+        start2, end2 = int(feature2.location.start), int(feature2.location.end)  # type: ignore
+        return start1 < end2 and start2 < end1
+
+    stack_features: list[list[SeqFeature]] = []
+    for feature in sorted_features:
+        placed = False
+        for sublist_features in stack_features:
+            if not is_overlap(feature, sublist_features[-1]):
+                sublist_features.append(feature)
+                placed = True
+                break
+        if not placed:
+            stack_features.append([feature])
+
+    return stack_features
+
+
 def interpolate_color(
     base_color: str,
     v: float,

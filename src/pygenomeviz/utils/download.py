@@ -8,6 +8,7 @@ from urllib.request import urlretrieve
 from Bio import Entrez
 
 from pygenomeviz.logger import get_logger
+from pygenomeviz.parser import Genbank
 from pygenomeviz.typing import GenbankDatasetName, GffExampleFileName
 
 GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pygenomeviz-data-v1/main/"
@@ -58,6 +59,73 @@ GFF_FILES = [
     "escherichia_coli.gff.gz",
     "saccharomyces_cerevisiae.gff.gz",
 ]
+
+
+def load_example_fasta_dataset(
+    name: GenbankDatasetName,
+    *,
+    cache_dir: str | Path | None = None,
+    overwrite_cache: bool = False,
+    quiet: bool = True,
+) -> list[Path]:
+    """Load pygenomeviz example fasta dataset
+
+    Load genbank datasets from <https://github.com/moshi4/pygenomeviz-data-v1>
+    and convert genbank to fasta format.
+    Cache datasets in local directory (Default: `~/.cache/pygenomeviz/`).
+
+    List of dataset name
+
+    - `acinetobacter_phage` (4 species)
+    - `yersinia_phage` (4 species)
+    - `enterobacteria_phage` (6 species)
+    - `mycoplasma_mycoides` (4 species)
+    - `escherichia_coli` (4 species, gzip compressed)
+    - `saccharomyces` (3 species, gzip compressed)
+
+    Parameters
+    ----------
+    name : str
+        Dataset name (e.g. `enterobacteria_phage`)
+    cache_dir : str | Path | None, optional
+        Output cache directory (Default: `~/.cache/pygenomeviz/`)
+    overwrite_cache : bool, optional
+        If True, overwrite cached dataset
+    quiet : bool, optional
+        If True, no print log on screen.
+
+    Returns
+    -------
+    fasta_files : list[Path]
+        Fasta files
+    """
+    logger = get_logger(__name__, quiet=quiet)
+
+    # Download genbank dataset
+    gbk_files = load_example_genbank_dataset(name, quiet=quiet)
+    gbk_list = list(map(Genbank, gbk_files))
+
+    # Dataset cache local directory
+    if cache_dir is None:
+        package_name = __name__.split(".")[0]
+        cache_base_dir = Path.home() / ".cache" / package_name
+        cache_dir = cache_base_dir / "fasta" / name
+        os.makedirs(cache_dir, exist_ok=True)
+    else:
+        cache_dir = Path(cache_dir)
+
+    # Convert genbank to fasta format
+    fasta_files: list[Path] = []
+    for gbk in gbk_list:
+        fasta_file = cache_dir / f"{gbk.name}.fna"
+        if overwrite_cache or not fasta_file.exists():
+            gbk.write_genome_fasta(fasta_file)
+            logger.info(f"Save fasta file in '{fasta_file}'")
+        else:
+            logger.info(f"Cached fasta files found in '{fasta_file}'")
+        fasta_files.append(fasta_file)
+
+    return fasta_files
 
 
 def load_example_genbank_dataset(

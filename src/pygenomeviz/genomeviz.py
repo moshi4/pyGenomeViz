@@ -6,6 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
@@ -21,7 +22,7 @@ from pygenomeviz.exception import (
     LinkTrackNotFoundError,
 )
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, Track
-from pygenomeviz.typing import TrackAlignType, Unit
+from pygenomeviz.typing import Theme, TrackAlignType, Unit
 from pygenomeviz.utils.helper import interpolate_color, size_label_formatter
 from pygenomeviz.viewer import setup_viewer_html
 
@@ -43,6 +44,7 @@ class GenomeViz:
         track_align_type: TrackAlignType = "left",
         feature_track_ratio: float = 0.25,
         link_track_ratio: float = 1.0,
+        theme: Theme = "light",
         show_axis: bool = False,
     ):
         """
@@ -58,6 +60,9 @@ class GenomeViz:
             Feature track size ratio
         link_track_ratio : float, optional
             Link track size ratio
+        theme : Theme, optional
+            `light`: white background + black text, edge
+            `dark`: black background + white text, edge
         show_axis : bool, optional
             Show axis for debug purpose
         """
@@ -72,6 +77,11 @@ class GenomeViz:
         self._plot_colorbar: Callable[[Figure], None] | None = None
         self._plot_scale_bar: Callable[[Axes], None] | None = None
         self._plot_axis_ticks: Callable[[Axes], None] | None = None
+
+        self._mpl_style = {
+            "light": "default",
+            "dark": "dark_background",
+        }[theme]
 
     ############################################################
     # Property
@@ -349,6 +359,7 @@ class GenomeViz:
                 loc="upper right",
                 sep=5,
                 frameon=False,
+                color=mpl.rcParams["text.color"],
                 fontproperties=FontProperties(size=labelsize),
                 bbox_to_anchor=(1, -ymargin),
                 bbox_transform=lowest_track_ax.transAxes,
@@ -506,37 +517,42 @@ class GenomeViz:
         if len(tracks) == 0:
             raise ValueError("Failed to plot figure. No track found!!")
 
-        # Setup figure & gridspece
-        fig = plt.figure(figsize=self.figsize, dpi=dpi, facecolor="white")
-        fig.tight_layout()
-        height_ratios = [t.ratio for t in tracks]
-        gs = GridSpec(nrows=len(tracks), ncols=1, height_ratios=height_ratios)
-        gs.update(left=0, right=1, bottom=0, top=1, hspace=0, wspace=0)
+        with plt.style.context(self._mpl_style):  # type: ignore
+            # Setup figure & gridspece
+            fig = plt.figure(figsize=self.figsize, dpi=dpi)
+            fig.tight_layout()
+            height_ratios = [t.ratio for t in tracks]
+            gs = GridSpec(nrows=len(tracks), ncols=1, height_ratios=height_ratios)
+            gs.update(left=0, right=1, bottom=0, top=1, hspace=0, wspace=0)
 
-        for idx, track in enumerate(tracks):
-            # Create axes & set axes to track
-            ax: Axes = fig.add_subplot(gs[idx])
-            track.set_ax(ax, self._show_axis)
+            for idx, track in enumerate(tracks):
+                # Create axes & set axes to track
+                ax: Axes = fig.add_subplot(gs[idx])
+                track.set_ax(ax, self._show_axis)
 
-            if isinstance(track, FeatureTrack):
-                track.plot_all(fast_render)
-            elif isinstance(track, FeatureSubTrack):
-                pass
-            elif isinstance(track, LinkTrack):
-                track.plot_links(fast_render)
-            else:
-                track_class = track.__class__.__name__
-                raise NotImplementedError(f"{track_class=} is invalid track class!!")
+                if isinstance(track, FeatureTrack):
+                    track.plot_all(fast_render)
+                elif isinstance(track, FeatureSubTrack):
+                    pass
+                elif isinstance(track, LinkTrack):
+                    track.plot_links(fast_render)
+                else:
+                    track_class = track.__class__.__name__
+                    raise NotImplementedError(
+                        f"{track_class=} is invalid track class!!"
+                    )
 
-        lowest_track_ax = tracks[-1].ax
-        if self._plot_scale_bar:
-            self._plot_scale_bar(lowest_track_ax)
+            lowest_track_ax = tracks[-1].ax
+            if self._plot_scale_bar:
+                self._plot_scale_bar(lowest_track_ax)
 
-        if self._plot_axis_ticks:
-            self._plot_axis_ticks(lowest_track_ax)
+            if self._plot_axis_ticks:
+                self._plot_axis_ticks(lowest_track_ax)
 
-        if self._plot_colorbar:
-            self._plot_colorbar(fig)
+            if self._plot_colorbar:
+                self._plot_colorbar(fig)
+
+        self._setup_jupyter_inline()
 
         return fig
 
@@ -722,6 +738,23 @@ class GenomeViz:
         for link_track in self.link_tracks:
             gid2link_dict.update(link_track.gid2link_dict)
         return gid2link_dict
+
+    def _setup_jupyter_inline(self) -> None:
+        """Setup `%matplotline inline` magic command
+
+        `plt.style.context()` overrides jupyter notebook
+        default `%matplotlib inline` setting.
+        Set `%matplotlib inline` on every plot to avoid this issue.
+
+        [Bug]: mpl.style.context() stops plotting inline in Jupyter
+        <https://github.com/matplotlib/matplotlib/issues/26716>
+        """
+        try:
+            from IPython import get_ipython  # type: ignore
+
+            get_ipython().run_line_magic("matplotlib", "inline")
+        except Exception:
+            pass
 
     def __str__(self):
         ret_val = ""

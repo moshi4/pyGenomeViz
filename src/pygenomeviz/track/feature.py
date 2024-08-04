@@ -747,7 +747,7 @@ class FeatureTrack(Track):
             for f in seg.transform_features:
                 start = int(f.location.parts[0].start)  # type: ignore
                 end = int(f.location.parts[-1].end)  # type: ignore
-                strand = int(f.location.strand)  # type: ignore
+                strand = -1 if f.location.strand == -1 else 1
                 plotstyle = str(f.qualifiers["plotstyle"])
                 arrow_shaft_ratio = float(f.qualifiers["arrow_shaft_ratio"])
                 patch_kws = dict(f.qualifiers["patch_kws"])
@@ -782,7 +782,7 @@ class FeatureTrack(Track):
                 patch_kws = dict(f.qualifiers["patch_kws"])
 
                 # Plot exon patches
-                strand = int(f.location.strand)  # type: ignore
+                strand = -1 if f.location.strand == -1 else 1
                 exon_locs = exon_locs[::-1] if strand == -1 else exon_locs
                 for idx, exon_loc in enumerate(exon_locs, 1):
                     exon_start, exon_end = exon_loc

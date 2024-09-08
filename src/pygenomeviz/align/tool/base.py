@@ -175,15 +175,18 @@ class AlignToolBase(ABC):
             raise ValueError("Number of input seqs is less than 2.")
         # Parse genbank or fasta files
         parse_seqs: Sequence[Fasta | Genbank] = []
+        gbk_suffixes = (".gb", ".gbk", ".gbff", ".gb.gz", ".gbk.gz", ".gbff.gz")
+        fasta_suffixes = (".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz")
         for seq in seqs:
             if isinstance(seq, str):
                 seq = Path(seq)
             if isinstance(seq, Path):
-                gbk_suffixes = (".gb", ".gbk", ".gbff", ".gz")
-                fasta_suffixes = (".fa", ".fna", ".fasta")
-                if seq.suffix in gbk_suffixes:
+                suffix = seq.suffix
+                if suffix == ".gz" and len(seq.suffixes) >= 2:
+                    suffix = seq.suffixes[-2].join("")
+                if suffix in gbk_suffixes:
                     parse_seqs.append(Genbank(seq))
-                elif seq.suffix in fasta_suffixes:
+                elif suffix in fasta_suffixes:
                     parse_seqs.append(Fasta(seq))
                 else:
                     valid_suffixes = gbk_suffixes + fasta_suffixes

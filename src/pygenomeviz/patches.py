@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import partial
+
 from matplotlib.patches import FancyArrow, PathPatch
 from matplotlib.path import Path
 
@@ -85,32 +87,7 @@ class Arrow(FancyArrow):
         )
 
 
-class BigArrow(Arrow):
-    """BigArrow Patch Class"""
-
-    def __init__(
-        self,
-        start: int,
-        end: int,
-        strand: int,
-        *,
-        max_size: int,
-        show_head: bool = True,
-        shaft_ratio: float = 0.5,
-        ylim: tuple[float, float] = (-1, 1),
-        **kwargs,
-    ) -> None:
-        super().__init__(
-            start,
-            end,
-            strand,
-            max_size=max_size,
-            bigstyle=True,
-            show_head=show_head,
-            shaft_ratio=shaft_ratio,
-            ylim=ylim,
-            **kwargs,
-        )
+BigArrow = partial(Arrow, bigstyle=True)
 
 
 class Box(PathPatch):
@@ -165,26 +142,7 @@ class Box(PathPatch):
         super().__init__(box, **kwargs)
 
 
-class BigBox(Box):
-    """BigBox Patch Class"""
-
-    def __init__(
-        self,
-        start: int,
-        end: int,
-        strand: int,
-        *,
-        ylim: tuple[float, float] = (-1, 1),
-        **kwargs,
-    ) -> None:
-        super().__init__(
-            start,
-            end,
-            strand,
-            bigstyle=True,
-            ylim=ylim,
-            **kwargs,
-        )
+BigBox = partial(Box, bigstyle=True)
 
 
 class RoundBox(PathPatch):
@@ -255,28 +213,7 @@ class RoundBox(PathPatch):
         super().__init__(Path(verts, codes), **kwargs)
 
 
-class BigRoundBox(RoundBox):
-    """BigRoundBox Patch Class"""
-
-    def __init__(
-        self,
-        start: int,
-        end: int,
-        strand: int,
-        *,
-        max_size: int,
-        ylim: tuple[float, float] = (-1, 1),
-        **kwargs,
-    ) -> None:
-        super().__init__(
-            start,
-            end,
-            strand,
-            bigstyle=True,
-            max_size=max_size,
-            ylim=ylim,
-            **kwargs,
-        )
+BigRoundBox = partial(RoundBox, bigstyle=True)
 
 
 class Intron(PathPatch):

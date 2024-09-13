@@ -15,7 +15,7 @@ altair==5.4.1
 attrs==24.2.0
     # via jsonschema
     # via referencing
-biopython==1.83
+biopython==1.84
     # via pygenomeviz
 blinker==1.8.2
     # via streamlit
@@ -27,7 +27,7 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via streamlit
-contourpy==1.1.1
+contourpy==1.3.0
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
@@ -39,9 +39,7 @@ gitpython==3.1.43
     # via streamlit
 idna==3.8
     # via requests
-importlib-resources==6.4.4
-    # via jsonschema
-    # via jsonschema-specifications
+importlib-resources==6.4.5
     # via matplotlib
 jinja2==3.1.4
     # via altair
@@ -56,13 +54,13 @@ markdown-it-py==3.0.0
     # via rich
 markupsafe==2.1.5
     # via jinja2
-matplotlib==3.7.5
+matplotlib==3.9.2
     # via pygenomeviz
 mdurl==0.1.2
     # via markdown-it-py
-narwhals==1.6.2
+narwhals==1.6.4
     # via altair
-numpy==1.24.4
+numpy==2.0.2
     # via biopython
     # via contourpy
     # via matplotlib
@@ -75,13 +73,11 @@ packaging==24.1
     # via altair
     # via matplotlib
     # via streamlit
-pandas==2.0.3
+pandas==2.2.2
     # via streamlit
 pillow==10.4.0
     # via matplotlib
     # via streamlit
-pkgutil-resolve-name==1.3.10
-    # via jsonschema
 protobuf==5.28.0
     # via streamlit
 pyarrow==17.0.0
@@ -102,7 +98,7 @@ referencing==0.35.1
     # via jsonschema-specifications
 requests==2.32.3
     # via streamlit
-rich==13.8.0
+rich==13.8.1
     # via streamlit
 rpds-py==0.20.0
     # via jsonschema
@@ -121,7 +117,6 @@ tornado==6.4.1
     # via streamlit
 typing-extensions==4.12.2
     # via altair
-    # via rich
     # via streamlit
 tzdata==2024.1
     # via pandas

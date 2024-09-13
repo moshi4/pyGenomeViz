@@ -428,6 +428,7 @@ class FeatureTrack(Track):
         target_seg: str | None = None,
         plotstyle: PlotStyle = "arrow",
         arrow_shaft_ratio: float = 0.5,
+        extra_tooltip: dict[str, str] | None = None,
         label: str = "",
         text_kws: dict[str, Any] | None = None,
         **kwargs,
@@ -448,6 +449,8 @@ class FeatureTrack(Track):
             Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
         arrow_shaft_ratio : float, optional
             Arrow shaft size ratio
+        extra_tooltip : dict[str, str] | None, optional
+            Extra tooltip dict for html figure
         label : str, optional
             Feature label
         text_kws : dict[str, Any] | None, optional
@@ -464,6 +467,7 @@ class FeatureTrack(Track):
             strand,
             plotstyle=plotstyle,
             arrow_shaft_ratio=arrow_shaft_ratio,
+            extra_tooltip=extra_tooltip,
             label=label,
             text_kws=text_kws,
             **kwargs,

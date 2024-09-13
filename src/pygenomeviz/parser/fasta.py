@@ -102,6 +102,16 @@ class Fasta:
         """
         return {seqid: len(seq) for seqid, seq in self.get_seqid2seq().items()}
 
+    def get_seqid2record(self) -> dict[str, SeqRecord]:
+        """Get seqid & complete/contig/scaffold genome record dict
+
+        Returns
+        -------
+        seqid2record : dict[str, SeqRecord]
+            seqi & genome record dict
+        """
+        return {str(rec.id): rec for rec in self.records}
+
     def write_genome_fasta(self, outfile: str | Path) -> None:
         """Write genome fasta file
 

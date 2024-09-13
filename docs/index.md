@@ -43,7 +43,7 @@ or automatic genome visualization figure plotting in genome analysis scripts/pip
 
 ## Installation
 
-`Python 3.8 or later` is required for installation.
+`Python 3.9 or later` is required for installation.
 
 **Install PyPI package:**
 

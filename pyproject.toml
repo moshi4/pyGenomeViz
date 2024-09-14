@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Framework :: Matplotlib",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = ["matplotlib>=3.6.3", "biopython>=1.80", "numpy>=1.21"]
 
 [project.optional-dependencies]
@@ -60,7 +60,7 @@ addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
 
 [tool.ruff]
-src = ["src", "tests"]
+include = ["src/**.py", "tests/**.py"]
 line-length = 88
 
 # Lint Rules: https://docs.astral.sh/ruff/rules/

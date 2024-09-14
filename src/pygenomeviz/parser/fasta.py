@@ -87,10 +87,10 @@ class Fasta:
 
         Returns
         -------
-        seqid2seq : dict[str, int]
+        seqid2seq : dict[str, str]
             seqid & genome sequence dict
         """
-        return {str(rec.id): rec.seq for rec in self.records}
+        return {str(rec.id): str(rec.seq) for rec in self.records}
 
     def get_seqid2size(self) -> dict[str, int]:
         """Get seqid & complete/contig/scaffold genome size dict
@@ -101,6 +101,16 @@ class Fasta:
             seqid & genome size dict
         """
         return {seqid: len(seq) for seqid, seq in self.get_seqid2seq().items()}
+
+    def get_seqid2record(self) -> dict[str, SeqRecord]:
+        """Get seqid & complete/contig/scaffold genome record dict
+
+        Returns
+        -------
+        seqid2record : dict[str, SeqRecord]
+            seqi & genome record dict
+        """
+        return {str(rec.id): rec for rec in self.records}
 
     def write_genome_fasta(self, outfile: str | Path) -> None:
         """Write genome fasta file

@@ -75,15 +75,21 @@ class MMseqs(AlignToolBase):
             for idx in range(len(cds_files) - 1):
                 qfile, rfile = cds_files[idx], cds_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                rbh_file = outdir / f"{idx+1:02d}_{qname}_vs_{rname}.tsv"
                 log_msg = f"{idx+1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'"
                 self._logger.info(log_msg)
-                cmd = f"mmseqs easy-rbh '{qfile}' '{rfile}' '{rbh_file}' {outdir} --threads {self._threads} -e {self._evalue} -v 0"  # noqa: E501
-                if self._cmd_opts:
-                    cmd = f"{cmd} {self._cmd_opts}"
-                self.run_cmd(cmd, self._logger)
-
-                align_coords.extend(self._parse_coords_file(rbh_file, qname, rname))
+                if qfile.stat().st_size == 0:
+                    warn_msg = "No query CDS found. Skip MMseqs RBH search."
+                    self._logger.warning(warn_msg)
+                elif rfile.stat().st_size == 0:
+                    warn_msg = "No reference CDS found. Skip MMseqs RBH search."
+                    self._logger.warning(warn_msg)
+                else:
+                    rbh_file = outdir / f"{idx+1:02d}_{qname}_vs_{rname}.tsv"
+                    cmd = f"mmseqs easy-rbh '{qfile}' '{rfile}' '{rbh_file}' {outdir} --threads {self._threads} -e {self._evalue} -v 0"  # noqa: E501
+                    if self._cmd_opts:
+                        cmd = f"{cmd} {self._cmd_opts}"
+                    self.run_cmd(cmd, self._logger)
+                    align_coords.extend(self._parse_coords_file(rbh_file, qname, rname))
             self._logger.info(f"{'='*10} Finish MMseqs RBH Search {'='*10}")
 
         return align_coords

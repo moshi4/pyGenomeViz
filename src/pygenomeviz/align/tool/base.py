@@ -111,7 +111,7 @@ class AlignToolBase(ABC):
             # Write stdout result if stdout_file is set
             if stdout_file:
                 logger.info(f"> Save cmd stdout results to '{stdout_file}'")
-                with open(stdout_file, "w") as f:
+                with open(stdout_file, "w", encoding="utf-8") as f:
                     f.write(cmd_res.stdout)
         else:
             logger.error("Failed to run command below!!")
@@ -183,7 +183,7 @@ class AlignToolBase(ABC):
             if isinstance(seq, Path):
                 suffix = seq.suffix
                 if suffix == ".gz" and len(seq.suffixes) >= 2:
-                    suffix = seq.suffixes[-2].join("")
+                    suffix = "".join(seq.suffixes[-2])
                 if suffix in gbk_suffixes:
                     parse_seqs.append(Genbank(seq))
                 elif suffix in fasta_suffixes:

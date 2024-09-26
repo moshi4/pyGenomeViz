@@ -287,7 +287,7 @@ def fetch_genbank_by_accid(
     )
     if gbk_outfile is not None:
         gbk_text = gbk_fetch_data.read()
-        with open(gbk_outfile, "w") as f:
+        with open(gbk_outfile, "w", encoding="utf-8") as f:
             f.write(gbk_text)
         gbk_fetch_data = StringIO(gbk_text)
 

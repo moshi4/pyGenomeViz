@@ -24,7 +24,7 @@ fasta_txt = textwrap.dedent(
 def test_fasta_property(tmp_path: Path):
     """Test Fasta instance properties"""
     fasta_file = tmp_path / "test.fa"
-    with open(fasta_file, "w") as f:
+    with open(fasta_file, "w", encoding="utf-8") as f:
         f.write(fasta_txt)
     fasta = Fasta(fasta_file)
 

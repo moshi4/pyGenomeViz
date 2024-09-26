@@ -632,7 +632,7 @@ class GenomeViz:
         elif isinstance(html_outfile, io.BytesIO):
             html_outfile.write(bytes(viewer_html, encoding="utf-8"))
         else:
-            with open(html_outfile, "w") as f:
+            with open(html_outfile, "w", encoding="utf-8") as f:
                 f.write(viewer_html)
 
     ############################################################

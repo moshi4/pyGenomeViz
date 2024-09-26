@@ -233,7 +233,7 @@ class AlignCoord:
         align_coords : list[AlignCoord]
             Align coord list
         """
-        with open(bbone_file) as f:
+        with open(bbone_file, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t")
             header_row = next(reader)
             genome_num = int(len(header_row) / 2)
@@ -316,7 +316,7 @@ class AlignCoord:
         elif isinstance(outfile, io.BytesIO):
             outfile.write(bytes(contents, encoding="utf-8"))
         else:
-            with open(outfile, "w") as f:
+            with open(outfile, "w", encoding="utf-8") as f:
                 f.write(contents)
 
     @staticmethod
@@ -334,7 +334,7 @@ class AlignCoord:
             Alignment coords
         """
         align_coords = []
-        with open(align_coords_file) as f:
+        with open(align_coords_file, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t")
             next(reader)
             for row in reader:

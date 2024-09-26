@@ -82,7 +82,7 @@ def test_genbank_write_genome_fasta(multi_record_gbk_file: Path, tmp_path: Path)
     assert outfile.exists()
 
     # Check number of genome fasta
-    with open(outfile) as f:
+    with open(outfile, encoding="utf-8") as f:
         lines = f.read().splitlines()
     fasta_count = len([line for line in lines if line.startswith(">")])
     assert fasta_count == 8

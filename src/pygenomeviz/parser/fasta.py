@@ -120,7 +120,7 @@ class Fasta:
         outfile : str | Path
             Output genome fasta file
         """
-        with open(outfile, "w") as f:
+        with open(outfile, "w", encoding="utf-8") as f:
             for seqid, seq in self.get_seqid2seq().items():
                 f.write(f">{seqid}\n{seq}\n")
 
@@ -142,14 +142,16 @@ class Fasta:
             SeqRecord list
         """
         if Path(fasta_file).suffix == ".gz":
-            with gzip.open(fasta_file, mode="rt") as f:
+            with gzip.open(fasta_file, mode="rt", encoding="utf-8") as f:
                 return list(SeqIO.parse(f, "fasta"))
         elif Path(fasta_file).suffix == ".bz2":
-            with bz2.open(fasta_file, mode="rt") as f:
+            with bz2.open(fasta_file, mode="rt", encoding="utf-8") as f:
                 return list(SeqIO.parse(f, "fasta"))
         elif Path(fasta_file).suffix == ".zip":
             with zipfile.ZipFile(fasta_file) as zip:
                 with zip.open(zip.namelist()[0]) as f:
-                    return list(SeqIO.parse(TextIOWrapper(f), "fasta"))
+                    io = TextIOWrapper(f, encoding="utf-8")
+                    return list(SeqIO.parse(io, "fasta"))
         else:
-            return list(SeqIO.parse(fasta_file, "fasta"))
+            with open(fasta_file, encoding="utf-8") as f:
+                return list(SeqIO.parse(f, "fasta"))

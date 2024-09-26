@@ -129,7 +129,7 @@ class MMseqs(AlignToolBase):
         """
         align_coords = []
         dup_check_list = []
-        with open(rbh_result_file) as f:
+        with open(rbh_result_file, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
                 # Query [e.g. `GENE000001_NC_XXXXXX.X|name|8205_8559_1|`]

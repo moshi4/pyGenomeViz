@@ -111,7 +111,7 @@ class AlignToolBase(ABC):
             # Write stdout result if stdout_file is set
             if stdout_file:
                 logger.info(f"> Save cmd stdout results to '{stdout_file}'")
-                with open(stdout_file, "w") as f:
+                with open(stdout_file, "w", encoding="utf-8") as f:
                     f.write(cmd_res.stdout)
         else:
             logger.error("Failed to run command below!!")

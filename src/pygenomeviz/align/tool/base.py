@@ -183,7 +183,7 @@ class AlignToolBase(ABC):
             if isinstance(seq, Path):
                 suffix = seq.suffix
                 if suffix == ".gz" and len(seq.suffixes) >= 2:
-                    suffix = seq.suffixes[-2].join("")
+                    suffix = "".join(seq.suffixes[-2])
                 if suffix in gbk_suffixes:
                     parse_seqs.append(Genbank(seq))
                 elif suffix in fasta_suffixes:

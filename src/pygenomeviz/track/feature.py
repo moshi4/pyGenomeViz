@@ -726,7 +726,7 @@ class FeatureTrack(Track):
         """Plot break symbol for each segment"""
         if len(self._segment_sep_text_kws_list) == 0:
             return
-        pos = 0
+        pos = self.offset
         for idx, space in enumerate(self.spaces):
             target_pos = pos + self.segments[idx].size + (space / 2)
             seg_sep_text_kws = self._segment_sep_text_kws_list[idx]

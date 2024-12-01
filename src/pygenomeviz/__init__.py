@@ -2,7 +2,7 @@ import matplotlib as mpl
 
 from pygenomeviz.genomeviz import GenomeViz
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 __all__ = [
     "GenomeViz",

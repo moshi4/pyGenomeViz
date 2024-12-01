@@ -92,7 +92,7 @@ class FeatureSegment:
                 break
             if idx < len(self.feature_track.segments) - 1:
                 pos += segment.size + self.feature_track.spaces[idx]
-        return start_pos
+        return start_pos  # type: ignore
 
     @property
     def track_end(self) -> int:

@@ -117,6 +117,29 @@ def test_align_coord_filter(
     assert len(filter_align_coords) == expected_count
 
 
+def test_align_coord_filter_overlap(align_coords: list[AlignCoord]):
+    """Test `AlignCoord.filter_overlap()`"""
+    align_coords = [
+        AlignCoord("q1", "q1", 10, 20, "r1", "r1", 10, 20),
+        AlignCoord("q1", "q1", 12, 18, "r1", "r1", 12, 18),  # overlap
+        AlignCoord("q1", "q1", 15, 25, "r1", "r1", 15, 25),  # partial overlap
+        AlignCoord("q1", "q1", 30, 50, "r1", "r1", 30, 50),  # no overlap
+        AlignCoord("q2", "q2", 10, 20, "r1", "r1", 10, 20),  # different query
+        AlignCoord("q1", "q1", 10, 20, "r2", "r2", 10, 20),  # different ref
+        AlignCoord("q2", "q2", 10, 20, "r2", "r2", 10, 20),  # different query-ref
+    ]
+    filtered_align_coords = AlignCoord.filter_overlap(align_coords)
+
+    assert filtered_align_coords == [
+        AlignCoord("q1", "q1", 10, 20, "r1", "r1", 10, 20),
+        AlignCoord("q1", "q1", 15, 25, "r1", "r1", 15, 25),  # partial overlap
+        AlignCoord("q1", "q1", 30, 50, "r1", "r1", 30, 50),  # no overlap
+        AlignCoord("q2", "q2", 10, 20, "r1", "r1", 10, 20),  # different query
+        AlignCoord("q1", "q1", 10, 20, "r2", "r2", 10, 20),  # different ref
+        AlignCoord("q2", "q2", 10, 20, "r2", "r2", 10, 20),  # different query-ref
+    ]
+
+
 def test_contains_special_method():
     """Test `__contains__` overlap check special method"""
     # Case1. Same object

@@ -145,7 +145,7 @@ class AlignCoord:
                         evalue,
                     ),
                 )
-        return align_coords
+        return AlignCoord.filter_overlap(align_coords)
 
     @staticmethod
     def parse_mummer_file(
@@ -209,7 +209,7 @@ class AlignCoord:
                     ),
                 )
 
-        return align_coords
+        return AlignCoord.filter_overlap(align_coords)
 
     @staticmethod
     def parse_pmauve_file(
@@ -278,7 +278,7 @@ class AlignCoord:
                     rend,
                 )
                 align_coords.append(align_coord)
-        return align_coords
+        return AlignCoord.filter_overlap(align_coords)
 
     @staticmethod
     def write(
@@ -391,8 +391,43 @@ class AlignCoord:
             filtered_align_coords.append(AlignCoord(*astuple(ac)))
         return filtered_align_coords
 
+    @staticmethod
+    def filter_overlap(align_coords: list[AlignCoord]) -> list[AlignCoord]:
+        """Filter completely overlapping align coords
+
+        Parameters
+        ----------
+        align_coords : list[AlignCoord]
+            Align coord list
+
+        Returns
+        -------
+        filtered_align_coords : AlignCoord
+            Filtered align coord list
+        """
+        filtered_align_coords: list[AlignCoord] = []
+        for ac1 in align_coords:
+            is_overlap = False
+            for ac2 in align_coords:
+                if ac1 in ac2 and ac1 != ac2:
+                    is_overlap = True
+                    break
+            if not is_overlap:
+                filtered_align_coords.append(ac1)
+        return filtered_align_coords
+
     def __contains__(self, target_ac: AlignCoord) -> bool:
         """Check whether target is completely overlapping with self"""
+        # Check query-ref is same value or not
+        if not (
+            self.query_id == target_ac.query_id
+            and self.query_name == target_ac.query_name
+            and self.ref_id == target_ac.ref_id
+            and self.ref_name == target_ac.ref_name
+        ):
+            return False
+
+        # Check same query-ref coord overlap
         ac1, ac2 = target_ac, self
         ac1_qmin = min(ac1.query_start, ac1.query_end)
         ac1_qmax = max(ac1.query_start, ac1.query_end)
@@ -409,3 +444,6 @@ class AlignCoord:
             return True
         else:
             return False
+
+    def __eq__(self, target_ac: AlignCoord) -> bool:
+        return self.as_tsv_format == target_ac.as_tsv_format

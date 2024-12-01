@@ -54,7 +54,6 @@ def log_basic_env_info(
     logger.info(f"$ {Path(sys.argv[0]).name} {' '.join(sys.argv[1:])}")
     logger.info(f"Operating System: {sys.platform}")
     logger.info(f"Python Version: v{platform.python_version()}")
-    logger.info(f"pyGenomeViz Version: v{pygenomeviz.__version__}")
     logger.info(f"Check Dependencies: matplotlib v{matplotlib.__version__}")  # type: ignore
     logger.info(f"Check Dependencies: biopython v{Bio.__version__}")
     if log_params:

@@ -6,6 +6,8 @@ repos:
     hooks:
       - id: ruff
         name: ruff lint check
+        types_or: [python, pyi]
         args: [--fix]
       - id: ruff-format
         name: ruff format check
+        types_or: [python, pyi]

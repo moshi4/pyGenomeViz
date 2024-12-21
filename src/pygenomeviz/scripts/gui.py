@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import os
+import signal
 import subprocess as sp
 import sys
 import textwrap
@@ -43,7 +44,10 @@ def main() -> None:
     os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
     os.environ["STREAMLIT_SERVER_MAX_UPLOAD_SIZE"] = "100"
     os.environ["PGV_GUI_LOCAL"] = "true"
-    sp.run(f"streamlit run {app_path} --server.port {port}", shell=True)
+    try:
+        sp.run(f"streamlit run {app_path} --server.port {port}", shell=True)
+    except KeyboardInterrupt:
+        sys.exit(-signal.SIGINT)
 
 
 def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:

@@ -3,11 +3,16 @@ from importlib.util import find_spec
 
 import pytest
 
-from pygenomeviz.align import Blast, MMseqs, MUMmer, ProgressiveMauve
+from pygenomeviz.align import Blast, Last, MMseqs, MUMmer, ProgressiveMauve
 
 skipif_blast_not_installed = pytest.mark.skipif(
     not Blast.check_installation(exit_on_false=False),
     reason=f"{Blast.get_tool_name()} is not installed.",
+)
+
+skipif_last_not_installed = pytest.mark.skipif(
+    not Last.check_installation(exit_on_false=False),
+    reason=f"{Last.get_tool_name()} is not installed.",
 )
 
 skipif_mummer_not_installed = pytest.mark.skipif(

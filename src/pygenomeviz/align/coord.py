@@ -3,12 +3,13 @@ from __future__ import annotations
 import csv
 import io
 from dataclasses import astuple, dataclass
+from functools import cached_property
 from pathlib import Path
 
 from pygenomeviz.typing import SeqType
 
 
-@dataclass
+@dataclass(frozen=True)
 class AlignCoord:
     """Alignment Coordinates DataClass (0-based coordinate)"""
 
@@ -23,22 +24,22 @@ class AlignCoord:
     identity: float | None = None
     evalue: float | None = None
 
-    @property
+    @cached_property
     def query_length(self) -> int:
         """Query length"""
         return abs(self.query_end - self.query_start)
 
-    @property
+    @cached_property
     def query_strand(self) -> int:
         """Query strand"""
         return 1 if self.query_end >= self.query_start else -1
 
-    @property
+    @cached_property
     def query_link(self) -> tuple[str, str, int, int]:
         """Query (name, start, end) link"""
         return (self.query_id, self.query_name, self.query_start, self.query_end)
 
-    @property
+    @cached_property
     def query_block(self) -> tuple[int, int, int]:
         """Query (start, end, strand) block"""
         if self.query_start < self.query_end:
@@ -46,22 +47,22 @@ class AlignCoord:
         else:
             return (self.query_end, self.query_start, self.query_strand)
 
-    @property
+    @cached_property
     def ref_length(self) -> int:
         """Reference length"""
         return abs(self.query_end - self.query_start)
 
-    @property
+    @cached_property
     def ref_strand(self) -> int:
         """Reference strand"""
         return 1 if self.ref_end >= self.ref_start else -1
 
-    @property
+    @cached_property
     def ref_link(self) -> tuple[str, str, int, int]:
         """Reference (name, start, end) link"""
         return (self.ref_id, self.ref_name, self.ref_start, self.ref_end)
 
-    @property
+    @cached_property
     def ref_block(self) -> tuple[int, int, int]:
         """Reference (start, end, strand) block"""
         if self.ref_start < self.ref_end:
@@ -69,12 +70,12 @@ class AlignCoord:
         else:
             return (self.ref_end, self.ref_start, self.ref_strand)
 
-    @property
+    @cached_property
     def is_inverted(self) -> bool:
         """Check inverted or not"""
         return self.query_strand * self.ref_strand < 0
 
-    @property
+    @cached_property
     def as_tsv_format(self) -> str:
         """TSV format text"""
         return "\t".join(
@@ -100,12 +101,12 @@ class AlignCoord:
         query_id: str,
         ref_id: str,
     ) -> list[AlignCoord]:
-        """Parse blast result file (outfmt=6)
+        """Parse blast format result file (outfmt=6)
 
         Parameters
         ----------
         blast_file : str | Path
-            Blast result file
+            Blast format result file
         query_id : str
             Query ID
         ref_id : str
@@ -120,8 +121,11 @@ class AlignCoord:
         with open(blast_file) as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
+                if row[0].startswith("#"):
+                    continue
                 qseqid, sseqid = row[0], row[1]
                 # Blast  pident: 0 <= pident <= 100
+                # Last   pident: 0 <= pident <= 100
                 # MMseqs pident: 0 <= pident <= 1.0
                 pident = float(row[2])
                 if 0 <= pident <= 1.0:
@@ -129,7 +133,8 @@ class AlignCoord:
                     pident = int(float(pident) * 10000) / 100
                 qstart, qend, sstart, send = map(int, row[6:10])
                 qstart, sstart = qstart - 1, sstart - 1  # 1-based to 0-based coordinate
-                evalue = float(row[10])
+                # No evalue column exist in Last output
+                evalue = float(row[10]) if len(row) >= 11 else None
 
                 align_coords.append(
                     AlignCoord(
@@ -419,31 +424,39 @@ class AlignCoord:
     def __contains__(self, target_ac: AlignCoord) -> bool:
         """Check whether target is completely overlapping with self"""
         # Check query-ref is same value or not
-        if not (
-            self.query_id == target_ac.query_id
-            and self.query_name == target_ac.query_name
-            and self.ref_id == target_ac.ref_id
-            and self.ref_name == target_ac.ref_name
+        if (
+            self.query_id != target_ac.query_id
+            or self.query_name != target_ac.query_name
+            or self.ref_id != target_ac.ref_id
+            or self.ref_name != target_ac.ref_name
         ):
             return False
 
         # Check same query-ref coord overlap
         ac1, ac2 = target_ac, self
-        ac1_qmin = min(ac1.query_start, ac1.query_end)
-        ac1_qmax = max(ac1.query_start, ac1.query_end)
-        ac2_qmin = min(ac2.query_start, ac2.query_end)
-        ac2_qmax = max(ac2.query_start, ac2.query_end)
-        ac1_rmin = min(ac1.ref_start, ac1.ref_end)
-        ac1_rmax = max(ac1.ref_start, ac1.ref_end)
-        ac2_rmin = min(ac2.ref_start, ac2.ref_end)
-        ac2_rmax = max(ac2.ref_start, ac2.ref_end)
         if (
-            ac2_qmin <= ac1_qmin <= ac1_qmax <= ac2_qmax
-            and ac2_rmin <= ac1_rmin <= ac1_rmax <= ac2_rmax
+            ac2._qmin <= ac1._qmin <= ac1._qmax <= ac2._qmax
+            and ac2._rmin <= ac1._rmin <= ac1._rmax <= ac2._rmax
         ):
             return True
         else:
             return False
+
+    @cached_property
+    def _qmin(self) -> int:
+        return min(self.query_start, self.query_end)
+
+    @cached_property
+    def _qmax(self) -> int:
+        return max(self.query_start, self.query_end)
+
+    @cached_property
+    def _rmin(self) -> int:
+        return min(self.ref_start, self.ref_end)
+
+    @cached_property
+    def _rmax(self) -> int:
+        return max(self.ref_start, self.ref_end)
 
     def __eq__(self, target_ac: AlignCoord) -> bool:
         return self.as_tsv_format == target_ac.as_tsv_format

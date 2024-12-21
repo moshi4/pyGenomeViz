@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - name: Checkout
@@ -32,7 +32,7 @@ jobs:
       - name: Install external tool dependencies
         run: |
           sudo apt update -y
-          sudo apt install -y ncbi-blast+ mmseqs2 mummer progressivemauve
+          sudo apt install -y ncbi-blast+ mmseqs2 mummer progressivemauve last-align
         if: ${{ matrix.os=='ubuntu-latest' }}
 
       - name: Run ruff lint check

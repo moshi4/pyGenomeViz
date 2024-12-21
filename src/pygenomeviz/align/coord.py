@@ -101,12 +101,12 @@ class AlignCoord:
         query_id: str,
         ref_id: str,
     ) -> list[AlignCoord]:
-        """Parse blast result file (outfmt=6)
+        """Parse blast format result file (outfmt=6)
 
         Parameters
         ----------
         blast_file : str | Path
-            Blast result file
+            Blast format result file
         query_id : str
             Query ID
         ref_id : str
@@ -121,8 +121,11 @@ class AlignCoord:
         with open(blast_file) as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
+                if row[0].startswith("#"):
+                    continue
                 qseqid, sseqid = row[0], row[1]
                 # Blast  pident: 0 <= pident <= 100
+                # Last   pident: 0 <= pident <= 100
                 # MMseqs pident: 0 <= pident <= 1.0
                 pident = float(row[2])
                 if 0 <= pident <= 1.0:
@@ -130,7 +133,8 @@ class AlignCoord:
                     pident = int(float(pident) * 10000) / 100
                 qstart, qend, sstart, send = map(int, row[6:10])
                 qstart, sstart = qstart - 1, sstart - 1  # 1-based to 0-based coordinate
-                evalue = float(row[10])
+                # No evalue column exist in Last output
+                evalue = float(row[10]) if len(row) >= 11 else None
 
                 align_coords.append(
                     AlignCoord(

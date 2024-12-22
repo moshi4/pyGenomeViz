@@ -196,3 +196,32 @@ class AlignToolBase(ABC):
             else:
                 parse_seqs.append(seq)
         return parse_seqs
+
+    def _write_genome_files(
+        self,
+        seqs: Sequence[Fasta | Genbank],
+        outdir: str | Path,
+    ) -> list[Path]:
+        """Write genome fasta files to output directory
+
+        Parameters
+        ----------
+        seqs : Sequence[Fasta | Genbank]
+            List of fasta or genbank
+        outdir : str | Path
+            Target output directory
+
+        Returns
+        -------
+        genome_files : list[Path]
+            Genome fasta files
+        """
+        genome_files: list[Path] = []
+        for seq in seqs:
+            genome_file = Path(outdir) / f"{seq.name}.fna"
+            cls_name = seq.__class__.__name__
+            log_msg = f"Convert {cls_name} object to genome fasta file '{genome_file}'"
+            self._logger.info(log_msg)
+            seq.write_genome_fasta(genome_file)
+            genome_files.append(genome_file)
+        return genome_files

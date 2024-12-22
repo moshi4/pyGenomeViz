@@ -80,7 +80,7 @@ class MUMmer(AlignToolBase):
             outdir = self._outdir if self._outdir else tmpdir
             outdir = Path(outdir)
             os.makedirs(outdir, exist_ok=True)
-            genome_files: list[Path] = self._write_genome_files(outdir)
+            genome_files: list[Path] = self._write_genome_files(self._seqs, outdir)
 
             # Run MUMmer(nucmer/promer)
             self._logger.info(f"{'='*10} Start MUMmer Alignment {'='*10}")
@@ -123,26 +123,3 @@ class MUMmer(AlignToolBase):
             self._logger.info(f"{'='*10} Finish MUMmer Alignment {'='*10}")
 
         return align_coords
-
-    def _write_genome_files(self, outdir: str | Path) -> list[Path]:
-        """Write genome fasta files to output directory
-
-        Parameters
-        ----------
-        outdir : str | Path
-            Target output directory
-
-        Returns
-        -------
-        genome_files : list[Path]
-            Genome fasta files
-        """
-        genome_files: list[Path] = []
-        for seq in self._seqs:
-            genome_file = Path(outdir) / f"{seq.name}.fna"
-            cls_name = seq.__class__.__name__
-            log_msg = f"Convert {cls_name} object to genome fasta file '{genome_file}'"
-            self._logger.info(log_msg)
-            seq.write_genome_fasta(genome_file)
-            genome_files.append(genome_file)
-        return genome_files

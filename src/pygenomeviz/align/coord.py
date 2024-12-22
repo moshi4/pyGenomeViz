@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+from collections import defaultdict
 from dataclasses import astuple, dataclass
 from functools import cached_property
 from pathlib import Path
@@ -411,14 +412,19 @@ class AlignCoord:
             Filtered align coord list
         """
         filtered_align_coords: list[AlignCoord] = []
-        for ac1 in align_coords:
-            is_overlap = False
-            for ac2 in align_coords:
-                if ac1 in ac2 and ac1 != ac2:
-                    is_overlap = True
-                    break
-            if not is_overlap:
-                filtered_align_coords.append(ac1)
+        combi2align_coords: dict[str, list[AlignCoord]] = defaultdict(list)
+        for ac in align_coords:
+            combi = f"{ac.query_id}{ac.query_name}-{ac.ref_id}{ac.ref_name}"
+            combi2align_coords[combi].append(ac)
+        for combi, combi_align_coords in combi2align_coords.items():
+            for ac1 in combi_align_coords:
+                is_overlap = False
+                for ac2 in combi_align_coords:
+                    if ac1 in ac2 and ac1 != ac2:
+                        is_overlap = True
+                        break
+                if not is_overlap:
+                    filtered_align_coords.append(ac1)
         return filtered_align_coords
 
     def __contains__(self, target_ac: AlignCoord) -> bool:

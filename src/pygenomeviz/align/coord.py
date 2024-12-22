@@ -118,7 +118,7 @@ class AlignCoord:
             Alignment coords
         """
         align_coords = []
-        with open(blast_file) as f:
+        with open(blast_file, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
                 if row[0].startswith("#"):
@@ -178,7 +178,7 @@ class AlignCoord:
             Align coord list
         """
         align_coords = []
-        with open(mummer_file) as f:
+        with open(mummer_file, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
                 # Check read file contents & extract required row values

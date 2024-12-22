@@ -33,7 +33,7 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt install -y ncbi-blast+ mmseqs2 mummer progressivemauve last-align
-        if: ${{ matrix.os=='ubuntu-latest' }}
+        if: ${{ matrix.os=='ubuntu-24.04' }}
 
       - name: Run ruff lint check
         run: rye run ruff check --diff

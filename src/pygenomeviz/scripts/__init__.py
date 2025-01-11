@@ -6,23 +6,24 @@ import os
 import platform
 import sys
 from pathlib import Path
+from typing import Type
 
 import Bio
 import matplotlib
 from matplotlib.colors import is_color_like
 
 import pygenomeviz
-from pygenomeviz.align import Blast, MMseqs, MUMmer, ProgressiveMauve
+from pygenomeviz.align import AlignToolBase, Blast, MMseqs, MUMmer, ProgressiveMauve
 from pygenomeviz.typing import AlnCliName
 
 LOG_FILENAME = "pgv-cli.log"
 ALIGN_COORDS_FILENAME = "align_coords.tsv"
 
-CLI_NAME2TOOL_NAME: dict[AlnCliName, str] = {
-    "pgv-blast": Blast.get_tool_name(),
-    "pgv-mummer": MUMmer.get_tool_name(),
-    "pgv-mmseqs": MMseqs.get_tool_name(),
-    "pgv-pmauve": ProgressiveMauve.get_tool_name(),
+CLI_NAME2TOOL: dict[AlnCliName, Type[AlignToolBase]] = {
+    "pgv-blast": Blast,
+    "pgv-mummer": MUMmer,
+    "pgv-mmseqs": MMseqs,
+    "pgv-pmauve": ProgressiveMauve,
 }
 
 
@@ -53,6 +54,9 @@ def log_basic_env_info(
     logger.info(f"Run pyGenomeViz v{pygenomeviz.__version__} CLI workflow ({cli_name})")
     logger.info(f"$ {Path(sys.argv[0]).name} {' '.join(sys.argv[1:])}")
     logger.info(f"Operating System: {sys.platform}")
+    tool_name = CLI_NAME2TOOL[cli_name].get_tool_name()
+    tool_version = CLI_NAME2TOOL[cli_name].get_version()
+    logger.info(f"{tool_name} Version: v{tool_version}")
     logger.info(f"Python Version: v{platform.python_version()}")
     logger.info(f"Check Dependencies: matplotlib v{matplotlib.__version__}")  # type: ignore
     logger.info(f"Check Dependencies: biopython v{Bio.__version__}")
@@ -93,7 +97,7 @@ def setup_argparser(
 
     # Alignment Options
     if cli_name in ("pgv-blast", "pgv-mummer", "pgv-mmseqs"):
-        tool_name = CLI_NAME2TOOL_NAME[cli_name]
+        tool_name = CLI_NAME2TOOL[cli_name].get_tool_name()
         align_arg_group = parser.add_argument_group(f"{tool_name} Alignment Options")
         _setup_align_arg_group(align_arg_group, cli_name)
 

@@ -83,12 +83,14 @@ class ProgressiveMauve(AlignToolBase):
             # Run progressiveMauve
             xmfa_file = outdir / "pmauve.xmfa"
             bbone_file = outdir / "pmauve_bbone.tsv"
-            self._logger.info(f"{'='*10} Start progressiveMauve Alignment {'='*10}")
+            self._logger.info(f"{'=' * 10} Start progressiveMauve Alignment {'=' * 10}")
             cmd = f"progressiveMauve --output={xmfa_file} --backbone-output={bbone_file} {' '.join(map(str, genome_files))}"  # noqa: E501
             if self._cmd_opts:
                 cmd = f"{cmd} {self._cmd_opts}"
             self.run_cmd(cmd, self._logger)
-            self._logger.info(f"{'='*10} Finish progressiveMauve Alignment {'='*10}")
+            self._logger.info(
+                f"{'=' * 10} Finish progressiveMauve Alignment {'=' * 10}"
+            )
 
             names = [file.stem for file in genome_files]
             return AlignCoord.parse_pmauve_file(bbone_file, names, self._refid)

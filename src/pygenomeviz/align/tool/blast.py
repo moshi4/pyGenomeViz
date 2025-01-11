@@ -87,12 +87,12 @@ class Blast(AlignToolBase):
             os.makedirs(outdir, exist_ok=True)
             genome_files: list[Path] = self._write_genome_files(self._seqs, outdir)
 
-            self._logger.info(f"{'='*10} Start Blast Search {'='*10}")
+            self._logger.info(f"{'=' * 10} Start Blast Search {'=' * 10}")
             align_coords = []
             for idx in range(len(genome_files) - 1):
                 qfile, rfile = genome_files[idx], genome_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                self._logger.info(f"{idx+1:02d}. Blast Search '{qname}' vs '{rname}'")
+                self._logger.info(f"{idx + 1:02d}. Blast Search '{qname}' vs '{rname}'")
                 # Make blast database
                 blastdb = outdir / f"{rname}_blastdb"
                 cmd = f"makeblastdb -in '{rfile}' -dbtype nucl -out '{blastdb}'"
@@ -100,7 +100,7 @@ class Blast(AlignToolBase):
                 # Blast search ('blastn' or 'tblastx')
                 seqtype2blast_tool = dict(nucleotide="blastn", protein="tblastx")
                 blast_tool = seqtype2blast_tool[self._seqtype]
-                blast_outfile = outdir / f"{idx+1:02d}_{qname}_vs_{rname}.tsv"
+                blast_outfile = outdir / f"{idx + 1:02d}_{qname}_vs_{rname}.tsv"
                 cmd = f"{blast_tool} -query '{qfile}' -db '{blastdb}' -out '{blast_outfile}' -outfmt 6 -evalue {self._evalue} -num_threads {self._threads}"  # noqa: E501
                 if self._cmd_opts:
                     cmd = f"{cmd} {self._cmd_opts}"
@@ -109,6 +109,6 @@ class Blast(AlignToolBase):
                 align_coords.extend(
                     AlignCoord.parse_blast_file(blast_outfile, qname, rname)
                 )
-            self._logger.info(f"{'='*10} Finish Blast Search {'='*10}")
+            self._logger.info(f"{'=' * 10} Finish Blast Search {'=' * 10}")
 
         return align_coords

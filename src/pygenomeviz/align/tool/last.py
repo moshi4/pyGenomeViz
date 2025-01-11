@@ -79,18 +79,20 @@ class Last(AlignToolBase):
             os.makedirs(outdir, exist_ok=True)
             genome_files: list[Path] = self._write_genome_files(self._seqs, outdir)
 
-            self._logger.info(f"{'='*10} Start Last Alignment {'='*10}")
+            self._logger.info(f"{'=' * 10} Start Last Alignment {'=' * 10}")
             align_coords = []
             for idx in range(len(genome_files) - 1):
                 qfile, rfile = genome_files[idx], genome_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                self._logger.info(f"{idx+1:02d}. Last Alignment '{qname}' vs '{rname}'")
+                self._logger.info(
+                    f"{idx + 1:02d}. Last Alignment '{qname}' vs '{rname}'"
+                )
                 # Make Last database
                 lastdb = outdir / f"{rname}_lastdb"
                 cmd = f"lastdb '{lastdb}' '{rfile}' -P {self._threads}"
                 self.run_cmd(cmd, self._logger)
                 # Run Last alignment
-                outfile_prefix = f"{idx+1:02d}_{qname}_vs_{rname}"
+                outfile_prefix = f"{idx + 1:02d}_{qname}_vs_{rname}"
                 maf_outfile1 = outdir / f"{outfile_prefix}_many-to-one.maf"
                 cmd = f"lastal '{lastdb}' '{qfile}' -P {self._threads} -D 1e9 --split-f=MAF+"  # noqa
                 if self._cmd_opts:
@@ -108,6 +110,6 @@ class Last(AlignToolBase):
                 align_coords.extend(
                     AlignCoord.parse_blast_file(blast_outfile, qname, rname)
                 )
-            self._logger.info(f"{'='*10} Finish Last Alignment {'='*10}")
+            self._logger.info(f"{'=' * 10} Finish Last Alignment {'=' * 10}")
 
         return align_coords

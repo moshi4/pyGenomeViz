@@ -91,16 +91,16 @@ class MUMmer(AlignToolBase):
             genome_files: list[Path] = self._write_genome_files(self._seqs, outdir)
 
             # Run MUMmer(nucmer/promer)
-            self._logger.info(f"{'='*10} Start MUMmer Alignment {'='*10}")
+            self._logger.info(f"{'=' * 10} Start MUMmer Alignment {'=' * 10}")
             align_coords: list[AlignCoord] = []
             for idx in range(len(genome_files) - 1):
                 qfile, rfile = genome_files[idx], genome_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                log_msg = f"{idx+1:02d}. MUMmer Alignment '{qname}' vs '{rname}'"
+                log_msg = f"{idx + 1:02d}. MUMmer Alignment '{qname}' vs '{rname}'"
                 self._logger.info(log_msg)
 
                 # Run genome alignment using nucmer or promer
-                prefix = outdir / f"{idx+1:02d}_{qname}_vs_{rname}"
+                prefix = outdir / f"{idx + 1:02d}_{qname}_vs_{rname}"
                 seqtype2align_tool = dict(nucleotide="nucmer", protein="promer")
                 align_tool = seqtype2align_tool[self._seqtype]
                 cmd = f"{align_tool} --mum '{rfile}' '{qfile}' --prefix={prefix}"
@@ -128,6 +128,6 @@ class MUMmer(AlignToolBase):
                         coords_file, qname, rname, self._seqtype
                     )
                 )
-            self._logger.info(f"{'='*10} Finish MUMmer Alignment {'='*10}")
+            self._logger.info(f"{'=' * 10} Finish MUMmer Alignment {'=' * 10}")
 
         return align_coords

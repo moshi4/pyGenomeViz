@@ -8,6 +8,7 @@ from typing import Sequence
 
 from pygenomeviz.align import AlignCoord
 from pygenomeviz.align.tool import AlignToolBase
+from pygenomeviz.const import UNKNOWN_VERSION
 from pygenomeviz.parser import Fasta, Genbank
 
 
@@ -57,6 +58,11 @@ class ProgressiveMauve(AlignToolBase):
     def get_binary_names(cls) -> list[str]:
         """Binary names"""
         return ["progressiveMauve"]
+
+    @classmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        return UNKNOWN_VERSION  # No version found in progressiveMauve
 
     @property
     def name2seqlen(self) -> dict[str, int]:

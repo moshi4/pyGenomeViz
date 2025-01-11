@@ -61,6 +61,14 @@ class Last(AlignToolBase):
         """Binary names"""
         return ["lastdb", "lastal", "last-split", "maf-convert"]
 
+    @classmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        return cls._get_version(
+            cmd="lastal --version",
+            pattern=r"lastal (\S+)",
+        )
+
     def run(self) -> list[AlignCoord]:
         """Run genome alignment"""
         # Last genome alignment parameters are selected based on this page

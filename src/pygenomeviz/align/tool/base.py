@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import shlex
 import shutil
 import subprocess as sp
@@ -10,6 +11,7 @@ from pathlib import Path
 from typing import Sequence
 
 from pygenomeviz.align import AlignCoord
+from pygenomeviz.const import UNKNOWN_VERSION
 from pygenomeviz.logger import get_logger
 from pygenomeviz.parser import Fasta, Genbank
 
@@ -45,6 +47,12 @@ class AlignToolBase(ABC):
     @abstractmethod
     def get_binary_names(cls) -> list[str]:
         """Binary names"""
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def get_version(cls) -> str:
+        """Tool version"""
         raise NotImplementedError
 
     @abstractmethod
@@ -128,6 +136,31 @@ class AlignToolBase(ABC):
                 for line in stderr_lines:
                     logger.error(f"> {line}")
             raise RuntimeError(f"Failed to run '{self.get_tool_name()}' aligner!!")
+
+    @classmethod
+    def _get_version(cls, cmd: str, pattern: str) -> str:
+        """Get tool version by cmd & regex pattern
+
+        Parameters
+        ----------
+        cmd : str
+            Command to get version info
+        pattern : str
+            Regex pattern for search version
+
+        Returns
+        -------
+        version : str
+            Tool version (e.g. `v1.2.3`)
+        """
+        try:
+            cmd_args = shlex.split(cmd)
+            cmd_res = sp.run(cmd_args, capture_output=True, text=True)
+            output = cmd_res.stderr if cmd_res.stdout == "" else cmd_res.stdout
+            version = re.findall(pattern, output, re.MULTILINE)[0]
+            return version
+        except Exception:
+            return UNKNOWN_VERSION
 
     def _parse_input_gbk_seqs(
         self, seqs: Sequence[str | Path | Genbank]

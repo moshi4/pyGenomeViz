@@ -62,6 +62,14 @@ class MMseqs(AlignToolBase):
         """Binary names"""
         return ["mmseqs"]
 
+    @classmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        return cls._get_version(
+            cmd="mmseqs --help",
+            pattern=r"MMseqs2 Version: (\S+)",
+        )
+
     def run(self) -> list[AlignCoord]:
         """Run genome alignment"""
         with TemporaryDirectory() as tmpdir:

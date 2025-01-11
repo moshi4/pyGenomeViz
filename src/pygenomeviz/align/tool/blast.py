@@ -71,6 +71,14 @@ class Blast(AlignToolBase):
         """Binary names"""
         return ["makeblastdb", "blastn", "tblastx"]
 
+    @classmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        return cls._get_version(
+            cmd="makeblastdb -version",
+            pattern=r"makeblastdb: (\d+.\d+.\d+)",
+        )
+
     def run(self) -> list[AlignCoord]:
         """Run genome alignment"""
         with TemporaryDirectory() as tmpdir:

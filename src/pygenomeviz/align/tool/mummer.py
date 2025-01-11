@@ -73,6 +73,14 @@ class MUMmer(AlignToolBase):
         """Binary names"""
         return ["nucmer", "promer", "delta-filter", "show-coords"]
 
+    @classmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        return cls._get_version(
+            cmd="nucmer --version",
+            pattern=r"version (\S+)",
+        )
+
     def run(self) -> list[AlignCoord]:
         """Run genome alignment"""
         with TemporaryDirectory() as tmpdir:

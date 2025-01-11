@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pygenomeviz.align import MMseqs
+from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_mmseqs_not_installed
 
 
@@ -14,6 +15,12 @@ def test_mmseqs_get_tool_name():
 def test_mmseqs_get_binary_names():
     """Test `get_binary_names()`"""
     assert MMseqs.get_binary_names() == ["mmseqs"]
+
+
+@skipif_mmseqs_not_installed
+def test_mmseqs_get_version():
+    """Test `get_version()`"""
+    assert MMseqs.get_version() != UNKNOWN_VERSION
 
 
 @skipif_mmseqs_not_installed

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pygenomeviz.align import ProgressiveMauve
+from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_pmauve_not_installed
 
 
@@ -14,6 +15,12 @@ def test_pmauve_get_tool_name():
 def test_pmauve_get_binary_names():
     """Test `get_binary_names()`"""
     assert ProgressiveMauve.get_binary_names() == ["progressiveMauve"]
+
+
+@skipif_pmauve_not_installed
+def test_pmauve_get_version():
+    """Test `get_version()`"""
+    assert ProgressiveMauve.get_version() == UNKNOWN_VERSION
 
 
 @skipif_pmauve_not_installed

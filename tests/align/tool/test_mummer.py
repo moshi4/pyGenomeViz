@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from pygenomeviz.align import MUMmer
+from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_mummer_not_installed
 
 
@@ -21,6 +22,12 @@ def test_mummer_get_binary_names():
         "delta-filter",
         "show-coords",
     ]
+
+
+@skipif_mummer_not_installed
+def test_mummer_get_version():
+    """Test `get_version()`"""
+    assert MUMmer.get_version() != UNKNOWN_VERSION
 
 
 @skipif_mummer_not_installed

@@ -11,6 +11,8 @@ from pygenomeviz.align.tool import AlignToolBase
 from pygenomeviz.const import UNKNOWN_VERSION
 from pygenomeviz.parser import Fasta, Genbank
 
+logger = logging.getLogger(__name__)
+
 
 class ProgressiveMauve(AlignToolBase):
     """progressiveMauve Alignment Class"""
@@ -22,27 +24,20 @@ class ProgressiveMauve(AlignToolBase):
         outdir: str | Path | None = None,
         refid: int = 0,
         cmd_opts: str | None = None,
-        logger: logging.Logger | None = None,
-        quiet: bool = True,
     ):
         """
         Parameters
         ----------
         seqs : Sequence[str | Path | Fasta | Genbank]
-            List of fasta or genbank
-            (file suffix must be `.fa`, `.fna`, `.fasta`, `.gb`, `.gbk`, `.gbff`)
+            List of fasta or genbank (file suffix must be `.fa`, `.fna`, `.fasta`, `.gb`, `.gbk`, `.gbff`)
         outdir : str | Path | None, optional
             Temporary result directory. If None, tmp directory is auto created.
         refid : int, optional
             Reference genome index
         cmd_opts : str | None, optional
             `progressiveMauve` additional command options
-        logger : logging.Logger | None, optional
-            Logger object. If None, logger instance newly created.
-        quiet : bool, optional
-            If True, don't display log message
-        """
-        super().__init__(logger, quiet)
+        """  # noqa: E501
+        super().__init__()
 
         self._seqs = self._parse_input_gbk_and_fasta_seqs(seqs)
         self._outdir = None if outdir is None else Path(outdir)
@@ -83,14 +78,12 @@ class ProgressiveMauve(AlignToolBase):
             # Run progressiveMauve
             xmfa_file = outdir / "pmauve.xmfa"
             bbone_file = outdir / "pmauve_bbone.tsv"
-            self._logger.info(f"{'=' * 10} Start progressiveMauve Alignment {'=' * 10}")
+            logger.info(f"{'=' * 10} Start progressiveMauve Alignment {'=' * 10}")
             cmd = f"progressiveMauve --output={xmfa_file} --backbone-output={bbone_file} {' '.join(map(str, genome_files))}"  # noqa: E501
             if self._cmd_opts:
                 cmd = f"{cmd} {self._cmd_opts}"
-            self.run_cmd(cmd, self._logger)
-            self._logger.info(
-                f"{'=' * 10} Finish progressiveMauve Alignment {'=' * 10}"
-            )
+            self.run_cmd(cmd)
+            logger.info(f"{'=' * 10} Finish progressiveMauve Alignment {'=' * 10}")
 
             names = [file.stem for file in genome_files]
             return AlignCoord.parse_pmauve_file(bbone_file, names, self._refid)

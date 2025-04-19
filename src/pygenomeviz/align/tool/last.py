@@ -10,6 +10,8 @@ from pygenomeviz.align import AlignCoord
 from pygenomeviz.align.tool import AlignToolBase
 from pygenomeviz.parser import Fasta, Genbank
 
+logger = logging.getLogger(__name__)
+
 
 class Last(AlignToolBase):
     """Last Alignment Class
@@ -24,8 +26,6 @@ class Last(AlignToolBase):
         outdir: str | Path | None = None,
         threads: int | None = None,
         cmd_opts: str | None = None,
-        logger: logging.Logger | None = None,
-        quiet: bool = True,
     ):
         """
         Parameters
@@ -39,12 +39,8 @@ class Last(AlignToolBase):
             Threads parameter for lastal run
         cmd_opts : str | None, optional
             `lastal` additional command options
-        logger : logging.Logger | None, optional
-            Logger object. If None, logger instance newly created.
-        quiet : bool, optional
-            If True, don't display log message
         """
-        super().__init__(logger, quiet)
+        super().__init__()
 
         self._seqs = self._parse_input_gbk_and_fasta_seqs(seqs)
         self._outdir = None if outdir is None else Path(outdir)
@@ -79,37 +75,35 @@ class Last(AlignToolBase):
             os.makedirs(outdir, exist_ok=True)
             genome_files: list[Path] = self._write_genome_files(self._seqs, outdir)
 
-            self._logger.info(f"{'=' * 10} Start Last Alignment {'=' * 10}")
+            logger.info(f"{'=' * 10} Start Last Alignment {'=' * 10}")
             align_coords = []
             for idx in range(len(genome_files) - 1):
                 qfile, rfile = genome_files[idx], genome_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                self._logger.info(
-                    f"{idx + 1:02d}. Last Alignment '{qname}' vs '{rname}'"
-                )
+                logger.info(f"{idx + 1:02d}. Last Alignment '{qname}' vs '{rname}'")
                 # Make Last database
                 lastdb = outdir / f"{rname}_lastdb"
                 cmd = f"lastdb '{lastdb}' '{rfile}' -P {self._threads}"
-                self.run_cmd(cmd, self._logger)
+                self.run_cmd(cmd)
                 # Run Last alignment
                 outfile_prefix = f"{idx + 1:02d}_{qname}_vs_{rname}"
                 maf_outfile1 = outdir / f"{outfile_prefix}_many-to-one.maf"
                 cmd = f"lastal '{lastdb}' '{qfile}' -P {self._threads} -D 1e9 --split-f=MAF+"  # noqa
                 if self._cmd_opts:
                     cmd = f"{cmd} {self._cmd_opts}"
-                self.run_cmd(cmd, self._logger, maf_outfile1)
+                self.run_cmd(cmd, maf_outfile1)
                 # Convert many-to-one -> one-to-one
                 maf_outfile2 = outdir / f"{outfile_prefix}_one-to-one.maf"
                 cmd = f"last-split -r '{maf_outfile1}'"
-                self.run_cmd(cmd, self._logger, maf_outfile2)
+                self.run_cmd(cmd, maf_outfile2)
                 # Convert MAF -> BlastTab format
                 blast_outfile = outdir / f"{outfile_prefix}.tsv"
                 cmd = f"maf-convert -n blasttab '{maf_outfile2}'"
-                self.run_cmd(cmd, self._logger, blast_outfile)
+                self.run_cmd(cmd, blast_outfile)
 
                 align_coords.extend(
                     AlignCoord.parse_blast_file(blast_outfile, qname, rname)
                 )
-            self._logger.info(f"{'=' * 10} Finish Last Alignment {'=' * 10}")
+            logger.info(f"{'=' * 10} Finish Last Alignment {'=' * 10}")
 
         return align_coords

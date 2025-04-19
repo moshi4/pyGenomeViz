@@ -12,24 +12,16 @@ from typing import Sequence
 
 from pygenomeviz.align import AlignCoord
 from pygenomeviz.const import UNKNOWN_VERSION
-from pygenomeviz.logger import get_logger
 from pygenomeviz.parser import Fasta, Genbank
+
+logger = logging.getLogger(__name__)
 
 
 class AlignToolBase(ABC):
     """Alignment Tool Abstract Base Class"""
 
-    def __init__(self, logger: logging.Logger | None, quiet: bool = False):
-        """
-        Parameters
-        ----------
-        logger : logging.Logger | None
-            Logger object. If None, logger instance newly created.
-        quiet : bool, optional
-            If True, don't display log message.
-        """
-        self._logger = logger if logger else get_logger(__name__, quiet=quiet)
-        self.check_installation(logger=self._logger)
+    def __init__(self):
+        self.check_installation()
 
     @property
     def max_threads(self) -> int:
@@ -64,7 +56,6 @@ class AlignToolBase(ABC):
     def check_installation(
         cls,
         exit_on_false: bool = True,
-        logger: logging.Logger | None = None,
     ) -> bool:
         """Check required binaries installation
 
@@ -72,8 +63,6 @@ class AlignToolBase(ABC):
         ----------
         exit_on_false : bool, optional
             If True and check result is False, raise RuntimeError.
-        logger : logging.Logger | None, optional
-            Logger object. If None, logger instance newly created.
 
         Returns
         -------
@@ -87,7 +76,6 @@ class AlignToolBase(ABC):
 
         if not is_installed and exit_on_false:
             tool_name = cls.get_tool_name()
-            logger = logger if logger else get_logger(__name__)
             logger.error(f"'{tool_name}' is not available in this environment.")
             logger.error(f"Please check '{tool_name}' installation.")
             raise RuntimeError(f"Failed to run '{tool_name}' aligner!!")
@@ -97,7 +85,6 @@ class AlignToolBase(ABC):
     def run_cmd(
         self,
         cmd: str,
-        logger: logging.Logger,
         stdout_file: str | Path | None = None,
     ) -> None:
         """Run command
@@ -106,8 +93,6 @@ class AlignToolBase(ABC):
         ----------
         cmd : str
             Command to run
-        logger : logging.Logger
-            Logger object
         stdout_file : str | Path | None, optional
             Write stdout result if file is set
         """
@@ -252,7 +237,7 @@ class AlignToolBase(ABC):
         for seq in seqs:
             genome_file = Path(outdir) / f"{seq.name}.fna"
             cls_name = seq.__class__.__name__
-            self._logger.info(f"Convert {cls_name} object to genome fasta file '{genome_file}'")  # fmt: skip  # noqa: E501
+            logger.info(f"Convert {cls_name} object to genome fasta file '{genome_file}'")  # fmt: skip  # noqa: E501
             seq.write_genome_fasta(genome_file)
             genome_files.append(genome_file)
         return genome_files

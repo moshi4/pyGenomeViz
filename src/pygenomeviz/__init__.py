@@ -1,5 +1,6 @@
 import matplotlib as mpl
 
+from pygenomeviz import logger as _logger
 from pygenomeviz.genomeviz import GenomeViz
 
 __version__ = "1.5.0"
@@ -7,6 +8,8 @@ __version__ = "1.5.0"
 __all__ = [
     "GenomeViz",
 ]
+
+_logger.init_null_logger()
 
 ###########################################################
 # Matplotlib Runtime Configuration

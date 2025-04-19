@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import shutil
 from pathlib import Path
 
 import pygenomeviz
-from pygenomeviz.logger import get_logger
-from pygenomeviz.scripts import CustomHelpFormatter
+from pygenomeviz.logger import init_logger
+from pygenomeviz.scripts import CustomHelpFormatter, exit_handler, logging_timeit
 from pygenomeviz.typing import GenbankDatasetName
 from pygenomeviz.utils import load_example_genbank_dataset
 from pygenomeviz.utils.download import GBK_DATASET
@@ -16,6 +17,8 @@ from pygenomeviz.utils.download import GBK_DATASET
 CLI_NAME = "pgv-download"
 
 
+@exit_handler
+@logging_timeit
 def main():
     """Main function called from CLI"""
     # Get arguments
@@ -25,14 +28,16 @@ def main():
     quiet: bool = args.quiet
     cache_only: bool = args.cache_only
 
-    logger = get_logger(__name__, quiet=quiet)
+    init_logger(quiet=quiet)
+    logger = logging.getLogger(__name__)
+    logger.info(f"Download {dataset_name=}")
 
     # Download dataset
     if cache_only:
-        load_example_genbank_dataset(dataset_name, quiet=quiet)
+        load_example_genbank_dataset(dataset_name)
     else:
         os.makedirs(outdir, exist_ok=True)
-        gbk_files = load_example_genbank_dataset(dataset_name, quiet=quiet)
+        gbk_files = load_example_genbank_dataset(dataset_name)
         for gbk_file in gbk_files:
             logger.info(f"Copy '{gbk_file}' to '{outdir}/{gbk_file.name}'")
             shutil.copy(gbk_file, outdir)

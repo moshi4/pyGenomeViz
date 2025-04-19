@@ -104,11 +104,11 @@ def plot_by_gui_cfg(
         align_coords = AlignCoord.read(aln_coords_file)
     else:
         aln_method2aligner: dict[AlnMethod, AlignToolBase] = {
-            "MUMmer (nucleotide)": MUMmer(gbk_list, seqtype="nucleotide", quiet=True),
-            "MUMmer (protein)": MUMmer(gbk_list, seqtype="protein", quiet=True),
-            "MMseqs RBH": MMseqs(gbk_list, quiet=True),
-            "BLAST (nucleotide)": Blast(gbk_list, seqtype="nucleotide", quiet=True),
-            "BLAST (protein)": Blast(gbk_list, seqtype="protein", quiet=True),
+            "MUMmer (nucleotide)": MUMmer(gbk_list, seqtype="nucleotide"),
+            "MUMmer (protein)": MUMmer(gbk_list, seqtype="protein"),
+            "MMseqs RBH": MMseqs(gbk_list),
+            "BLAST (nucleotide)": Blast(gbk_list, seqtype="nucleotide"),
+            "BLAST (protein)": Blast(gbk_list, seqtype="protein"),
         }
         aligner = aln_method2aligner[cfg.aln.method]
         align_coords = aligner.run()

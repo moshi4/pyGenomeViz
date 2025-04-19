@@ -169,8 +169,7 @@ def load_example_genbank_dataset(
 
     # Check specified name dataset exists or not
     if name not in GBK_DATASET.keys():
-        err_msg = f"'{name}' dataset not found."
-        raise ValueError(err_msg)
+        raise ValueError(f"'{name}' dataset not found.")
 
     # Dataset cache local directory
     if cache_dir is None:
@@ -231,8 +230,7 @@ def load_example_gff_file(
     """
     # Check specified filename exists or not
     if filename not in GFF_FILES:
-        err_msg = f"{filename=} not found."
-        raise ValueError(err_msg)
+        raise ValueError(f"{filename=} not found.")
 
     # Cache local directory
     if cache_dir is None:

@@ -83,14 +83,11 @@ class MMseqs(AlignToolBase):
             for idx in range(len(cds_files) - 1):
                 qfile, rfile = cds_files[idx], cds_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                log_msg = f"{idx + 1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'"
-                self._logger.info(log_msg)
+                self._logger.info(f"{idx + 1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'")  # fmt: skip  # noqa: E501
                 if qfile.stat().st_size == 0:
-                    warn_msg = "No query CDS found. Skip MMseqs RBH search."
-                    self._logger.warning(warn_msg)
+                    self._logger.warning("No query CDS found. Skip MMseqs RBH search.")  # fmt: skip  # noqa: E501
                 elif rfile.stat().st_size == 0:
-                    warn_msg = "No reference CDS found. Skip MMseqs RBH search."
-                    self._logger.warning(warn_msg)
+                    self._logger.warning("No reference CDS found. Skip MMseqs RBH search.")  # fmt: skip  # noqa: E501
                 else:
                     rbh_file = outdir / f"{idx + 1:02d}_{qname}_vs_{rname}.tsv"
                     cmd = f"mmseqs easy-rbh '{qfile}' '{rfile}' '{rbh_file}' {outdir} --threads {self._threads} -e {self._evalue} -v 0"  # noqa: E501

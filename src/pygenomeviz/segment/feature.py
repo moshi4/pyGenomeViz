@@ -266,9 +266,7 @@ class FeatureSegment:
         vpos, hpos = pos.split("-")
         vpos_types, hpos_types = ("top", "bottom"), ("left", "center", "right")
         if vpos not in vpos_types or hpos not in hpos_types:
-            err_msg = f"{pos=} is invalid pattern. "
-            err_msg += "position must be '[top|bottom]-[left|center|right]'"
-            raise ValueError(err_msg)
+            raise ValueError(f"{pos=} is invalid pattern. Position must be '[top|bottom]-[left|center|right]'")  # fmt: skip  # noqa: E501
 
         # Set default sublabel text
         if text is None:
@@ -591,8 +589,7 @@ class FeatureSegment:
         if not self.start <= start <= end <= self.end:
             feature_location = str(feature.location)
             segment_range = f"{self.start} - {self.end}"
-            err_msg = f"{feature_location=} is invalid ({segment_range=})"
-            raise FeatureRangeError(err_msg)
+            raise FeatureRangeError(f"{feature_location=} is invalid ({segment_range=})")  # fmt: skip  # noqa: E501
 
     def _transform_feature(self, feature: SeqFeature) -> SeqFeature:
         """Transform segment-level feature coordinate to track-level

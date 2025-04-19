@@ -96,8 +96,7 @@ class MUMmer(AlignToolBase):
             for idx in range(len(genome_files) - 1):
                 qfile, rfile = genome_files[idx], genome_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                log_msg = f"{idx + 1:02d}. MUMmer Alignment '{qname}' vs '{rname}'"
-                self._logger.info(log_msg)
+                self._logger.info(f"{idx + 1:02d}. MUMmer Alignment '{qname}' vs '{rname}'")  # fmt: skip  # noqa: E501
 
                 # Run genome alignment using nucmer or promer
                 prefix = outdir / f"{idx + 1:02d}_{qname}_vs_{rname}"

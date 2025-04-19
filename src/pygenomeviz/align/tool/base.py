@@ -224,8 +224,7 @@ class AlignToolBase(ABC):
                     parse_seqs.append(Fasta(seq))
                 else:
                     valid_suffixes = gbk_suffixes + fasta_suffixes
-                    err_msg = f"'{seq}' is invalid file suffix ({valid_suffixes=})"
-                    raise ValueError(err_msg)
+                    raise ValueError(f"'{seq}' is invalid file suffix ({valid_suffixes=})")  # fmt: skip  # noqa: E501
             else:
                 parse_seqs.append(seq)
         return parse_seqs
@@ -253,8 +252,7 @@ class AlignToolBase(ABC):
         for seq in seqs:
             genome_file = Path(outdir) / f"{seq.name}.fna"
             cls_name = seq.__class__.__name__
-            log_msg = f"Convert {cls_name} object to genome fasta file '{genome_file}'"
-            self._logger.info(log_msg)
+            self._logger.info(f"Convert {cls_name} object to genome fasta file '{genome_file}'")  # fmt: skip  # noqa: E501
             seq.write_genome_fasta(genome_file)
             genome_files.append(genome_file)
         return genome_files

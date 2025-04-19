@@ -327,8 +327,7 @@ class FeatureTrack(Track):
         else:
             name2segment = {seg.name: seg for seg in self.segments}
             if name not in name2segment:
-                err_msg = f"{name=} segment not found (track_name='{self.name}')."
-                raise SegmentNotFoundError(err_msg)
+                raise SegmentNotFoundError(f"{name=} segment not found (track_name='{self.name}').")  # fmt: skip  # noqa: E501
             return name2segment[name]
 
     def add_text(

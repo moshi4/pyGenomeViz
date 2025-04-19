@@ -185,12 +185,10 @@ class AlignCoord:
                 # Check read file contents & extract required row values
                 if seqtype == "nucleotide":
                     if len(row) != 9:
-                        err_msg = f"Invalid nucmer coords file '{mummer_file}'!!"
-                        raise ValueError(err_msg)
+                        raise ValueError(f"Invalid nucmer coords file '{mummer_file}'!!")  # fmt: skip  # noqa: E501
                 elif seqtype == "protein":
                     if len(row) != 13:
-                        err_msg = f"Invalid promer coords file '{mummer_file}'!!"
-                        raise ValueError(err_msg)
+                        raise ValueError(f"Invalid promer coords file '{mummer_file}'!!")  # fmt: skip  # noqa: E501
                     row = row[0:7] + row[11:13]
                 else:
                     raise ValueError(f"Invalid seqtype '{seqtype}'!!")

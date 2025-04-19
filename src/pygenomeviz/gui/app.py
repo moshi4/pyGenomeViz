@@ -5,7 +5,6 @@ import textwrap
 from collections import defaultdict
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.colors import to_hex
 
@@ -380,16 +379,15 @@ if len(gbk_list) == 0:
     st.image(str(demo_gif_file))
     st.stop()
 
-expand_figure = st.checkbox(label="Expand Figure", value=False)
 fig_container = st.container()
-fig_ctl_container = st.container()
+download_container = st.container()
 genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
-    title_col, form_col = st.columns([4, 1])
+    title_col, form_col = st.columns([4, 1.2])
     title_col.markdown("**Genome Min-Max Range & Reverse Option**")
     form_col.form_submit_button(
-        label="Update Figure",
+        label=":material/refresh: Update Figure",
         help="Apply min-max range & reverse option changes to figure",
     )
 
@@ -440,49 +438,34 @@ with genome_info_container.form(key="form"):
                     )
             name2seqid2range[gbk.name] = seqid2range
 
-
-fig_ctl_cols = fig_ctl_container.columns([1, 2, 3])
-
 # Plot figure
 gv, align_coords = plot.plot_by_gui_cfg(
     gbk_list,
     config.PgvGuiPlotConfig(fig_cfg, feat_cfg, aln_cfg, name2seqid2range),
 )
 fig = gv.plotfig()
-fig_container.pyplot(fig, use_container_width=not expand_figure)
+fig_container.pyplot(fig)
 
-# Set figure download button
-fig_format = fig_ctl_cols[0].selectbox(
-    "Format",
-    options=["png", "svg", "html"],
-    index=0,
-    format_func=str.upper,
-    label_visibility="collapsed",
-)
-
-fig_bytes = io.BytesIO()
-if fig_format in ("png", "svg"):
-    fig.savefig(fig_bytes, format=fig_format)
-elif fig_format == "html":
-    gv.savefig_html(fig_bytes)
-else:
-    raise ValueError(f"{fig_format=} is invalid.")
-
-fig_ctl_cols[1].download_button(
-    label=f"Save Figure as {fig_format.upper()}",
-    data=fig_bytes,
-    file_name=f"pgv_result.{fig_format}",
-)
+# Setup download buttons
+png_btn, svg_btn, html_btn, _, aln_btn = download_container.columns([1, 1, 1, 1.5, 2])
 
 if align_coords:
     comparison_result_data = io.BytesIO()
     AlignCoord.write(align_coords, comparison_result_data)
-    fig_ctl_cols[2].download_button(
-        label="Save Comparison Result",
+    aln_btn.download_button(
+        label="Comparison Result",
         data=comparison_result_data,
         file_name="pgv_comparison_result.tsv",
+        on_click="ignore",
+        icon=":material/download:",
     )
 
-# Clear & close figure to suppress memory leak
-fig.clear()
-plt.close(fig)
+format2btn = dict(png=png_btn, svg=svg_btn, html=html_btn)
+for format, btn in format2btn.items():
+    btn.download_button(
+        label=f"{format.upper()}",
+        data=utils.get_fig_bytes(gv, fig, format),
+        file_name=f"pgv_result.{format}",
+        on_click="ignore",
+        icon=":material/download:",
+    )

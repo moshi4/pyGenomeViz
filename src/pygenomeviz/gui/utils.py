@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import io
 import os
 import time
 from collections import defaultdict
@@ -10,7 +11,9 @@ from typing import TYPE_CHECKING
 
 import streamlit as st
 from Bio.SeqFeature import SeqFeature
+from matplotlib.figure import Figure
 
+from pygenomeviz import GenomeViz
 from pygenomeviz.parser import Genbank
 
 if TYPE_CHECKING:
@@ -128,3 +131,15 @@ def get_features_count_label(features: list[SeqFeature]) -> str:
     for feature_type, count in sorted_feature_type2count.items():
         label += f"{feature_type}: {count}  \n"
     return label
+
+
+def get_fig_bytes(gv: GenomeViz, fig: Figure, format: str) -> io.BytesIO:
+    """Get figure bytes"""
+    fig_bytes = io.BytesIO()
+    if format in ("png", "svg"):
+        fig.savefig(fig_bytes, format=format)
+    elif format == "html":
+        gv.savefig_html(fig_bytes)
+    else:
+        raise ValueError(f"{format=} is invalid.")
+    return fig_bytes

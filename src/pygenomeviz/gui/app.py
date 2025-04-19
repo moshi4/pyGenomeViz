@@ -55,12 +55,15 @@ elif utils.is_local_launch() and st.sidebar.checkbox(checkbox_label2):
     gbk_files = load_example_genbank_dataset("mycoplasma_mycoides")[0:4]
     gbk_list = list(map(utils.load_gbk_file, gbk_files))
 else:
-    with st.sidebar.expander("Upload User Genbank Files", expanded=True):
+    with st.sidebar.expander(
+        "Upload User Genbank Files", expanded=True, icon=":material/upload:"
+    ):
         # Genbank files upload widgets
         upload_files = st.file_uploader(
-            label="Upload genbank files (\\*.gb|\\*.gbk|\\*.gbff)",
+            label="Upload User Genbank Files",
             type=["gb", "gbk", "gbff", "gz"],
             accept_multiple_files=True,
+            label_visibility="collapsed",
             help=(
                 textwrap.dedent(
                     """

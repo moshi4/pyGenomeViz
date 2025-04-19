@@ -10,13 +10,13 @@ import streamlit as st
 from matplotlib.colors import to_hex
 
 import pygenomeviz
+from pygenomeviz import const
 from pygenomeviz.align import AlignCoord, Blast, MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
 from pygenomeviz.typing import AlnMethod
 from pygenomeviz.utils import load_example_genbank_dataset
 
 # Constant values
-PLOTSTYLES = ["bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox"]
 DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
     lambda: to_hex("black"),
     CDS=to_hex("orange"),
@@ -25,31 +25,26 @@ DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
 )
 DEFAULT_PSEUDO_COLOR = to_hex("lightgrey")
 
-GITHUB_URL = "https://github.com/moshi4/pyGenomeViz"
-DOCS_URL = "https://moshi4.github.io/pyGenomeViz/"
-ABOUD_MD = textwrap.dedent(
-    f"""
-    **pyGenomeViz v{pygenomeviz.__version__}**
-    ( [GitHub]({GITHUB_URL}) | [Document]({DOCS_URL}) )
-    """
-)[1:-1]
-
 # Streamlit page configuration
 st.set_page_config(
     page_title="pyGenomeViz WebApp",
     layout="centered",
     initial_sidebar_state="expanded",
-    menu_items={
-        "Report a bug": "https://github.com/moshi4/pyGenomeViz/issues",
-        "About": ABOUD_MD,
-    },
+    menu_items={"Report a bug": const.GITHUB_ISSUES_URL},
 )
 
 ###########################################################
 # Sidebar
 ###########################################################
 
-st.sidebar.markdown(ABOUD_MD)
+st.sidebar.markdown(
+    textwrap.dedent(
+        f"""
+        **pyGenomeViz v{pygenomeviz.__version__}**\
+        ( [GitHub]({const.GITHUB_URL}) | [Document]({const.DOCS_URL}) )
+        """
+    )[1:-1]
+)
 
 checkbox_label1 = "Example Phage Genbank Files"
 checkbox_label2 = "Example Bacteria Genbank Files"
@@ -187,7 +182,7 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
                 cols = tab.columns([3, 1])
                 plotstyle = cols[0].selectbox(
                     "Plotstyle",
-                    options=PLOTSTYLES,
+                    options=const.PLOTSTYLES,
                     index=1,
                     key=f"{feature_type} plotstyle",
                 )

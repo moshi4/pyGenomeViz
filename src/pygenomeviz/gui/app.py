@@ -64,7 +64,7 @@ else:
         # Genbank files upload widgets
         upload_files = st.file_uploader(
             label="Upload genbank files (\\*.gb|\\*.gbk|\\*.gbff)",
-            type=["gb", "gbk", "gbff"],
+            type=["gb", "gbk", "gbff", "gz"],
             accept_multiple_files=True,
             help=(
                 textwrap.dedent(

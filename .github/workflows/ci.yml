@@ -11,6 +11,9 @@ on:
 jobs:
   CI:
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]

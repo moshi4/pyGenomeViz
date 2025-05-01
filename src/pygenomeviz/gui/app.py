@@ -400,7 +400,7 @@ download_container = st.container()
 genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
-    title_col, form_col = st.columns([4, 1.2])
+    title_col, form_col = st.columns([4, 1.5])
     title_col.markdown("**Genome Min-Max Range & Reverse Option**")
     form_col.form_submit_button(
         label=":material/refresh: Update Figure",
@@ -414,7 +414,7 @@ with genome_info_container.form(key="form"):
             seqid2range = {}
             seqid2features = gbk.get_seqid2features(None)
             for idx, (seqid, size) in enumerate(gbk.get_seqid2size().items()):
-                range_cols = st.columns([3, 3, 1])
+                range_cols = st.columns([3, 3, 1.2])
                 min_range = range_cols[0].number_input(
                     label=f"**{seqid}** ({size:,} bp)",
                     min_value=0,
@@ -463,7 +463,7 @@ fig = gv.plotfig()
 fig_container.pyplot(fig)
 
 # Setup download buttons
-png_btn, svg_btn, html_btn, _, aln_btn = download_container.columns([1, 1, 1, 1.5, 2])
+png_btn, svg_btn, html_btn, _, aln_btn = download_container.columns([1, 1, 1.2, 1.5, 2])
 
 if align_coords:
     comparison_result_data = io.BytesIO()

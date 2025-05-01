@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import gzip
 import io
-import os
 import time
 from collections import defaultdict
 from io import StringIO
@@ -50,9 +49,12 @@ def load_gbk_file(gbk_file: str | Path | UploadedFile) -> Genbank:
             return Genbank(StringIO(gbk_file.getvalue().decode("utf-8")), name=gbk_name)
 
 
-def is_local_launch() -> bool:
-    """Is launch on `local env`(or `streamlit cloud`)"""
-    return os.getenv("PGV_GUI_LOCAL") == "true"
+def is_st_cloud() -> bool:
+    """Is launch on streamlit cloud"""
+    try:
+        return st.context.url.startswith("https://pygenomeviz.streamlit.app")
+    except Exception:
+        return False
 
 
 def remove_old_files(target_dir: Path, ttl: int = 3600) -> None:

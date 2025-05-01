@@ -43,7 +43,6 @@ def main() -> None:
     os.environ["STREAMLIT_SERVER_RUN_ON_SAVE"] = "true"
     os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
     os.environ["STREAMLIT_SERVER_MAX_UPLOAD_SIZE"] = "100"
-    os.environ["PGV_GUI_LOCAL"] = "true"
 
     cmd = f"streamlit run {app_path} --server.port {port}"
     cmd_args = shlex.split(cmd)

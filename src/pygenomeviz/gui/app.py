@@ -50,7 +50,7 @@ checkbox_label2 = "Example Bacteria Genbank Files"
 if st.sidebar.checkbox(checkbox_label1):
     gbk_files = load_example_genbank_dataset("yersinia_phage")[0:4]
     gbk_list = list(map(utils.load_gbk_file, gbk_files))
-elif utils.is_local_launch() and st.sidebar.checkbox(checkbox_label2):
+elif not utils.is_st_cloud() and st.sidebar.checkbox(checkbox_label2):
     gbk_files = load_example_genbank_dataset("mycoplasma_mycoides")[0:4]
     gbk_list = list(map(utils.load_gbk_file, gbk_files))
 else:
@@ -362,7 +362,7 @@ st.header("pyGenomeViz Streamlit Web Application")
 
 # If no genbank file exists, stop execution
 if len(gbk_list) == 0:
-    if not utils.is_local_launch():
+    if utils.is_st_cloud():
         st.warning(
             textwrap.dedent(
                 """

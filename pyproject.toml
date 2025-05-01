@@ -2,7 +2,7 @@
 name = "pygenomeviz"
 dynamic = ["version"]
 description = "A genome visualization python package for comparative genomics"
-authors = [{ name = "moshi4", email = "" }]
+authors = [{ name = "moshi4" }]
 license = "MIT"
 readme = "README.md"
 keywords = [

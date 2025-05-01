@@ -21,7 +21,7 @@ blinker==1.9.0
     # via streamlit
 cachetools==5.5.2
     # via streamlit
-certifi==2025.1.31
+certifi==2025.4.26
     # via requests
 charset-normalizer==3.4.1
     # via requests
@@ -46,7 +46,7 @@ jinja2==3.1.6
     # via pydeck
 jsonschema==4.23.0
     # via altair
-jsonschema-specifications==2024.10.1
+jsonschema-specifications==2025.4.1
     # via jsonschema
 kiwisolver==1.4.7
     # via matplotlib
@@ -54,7 +54,7 @@ markupsafe==3.0.2
     # via jinja2
 matplotlib==3.9.4
     # via pygenomeviz
-narwhals==1.35.0
+narwhals==1.37.1
     # via altair
 numpy==2.0.2
     # via biopython
@@ -73,9 +73,9 @@ pandas==2.2.3
 pillow==11.2.1
     # via matplotlib
     # via streamlit
-protobuf==5.29.4
+protobuf==6.30.2
     # via streamlit
-pyarrow==19.0.1
+pyarrow==20.0.0
     # via streamlit
 pydeck==0.9.1
     # via streamlit
@@ -98,7 +98,7 @@ six==1.17.0
     # via python-dateutil
 smmap==5.0.2
     # via gitdb
-streamlit==1.44.1
+streamlit==1.45.0
     # via pygenomeviz
 tenacity==9.1.2
     # via streamlit

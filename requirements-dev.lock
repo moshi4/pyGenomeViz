@@ -32,7 +32,7 @@ blinker==1.9.0
     # via streamlit
 cachetools==5.5.2
     # via streamlit
-certifi==2025.1.31
+certifi==2025.4.26
     # via requests
 cfgv==3.4.0
     # via pre-commit
@@ -78,13 +78,13 @@ gitdb==4.0.12
     # via gitpython
 gitpython==3.1.44
     # via streamlit
-griffe==1.7.2
+griffe==1.7.3
     # via mkdocstrings-python
-identify==2.6.9
+identify==2.6.10
     # via pre-commit
 idna==3.10
     # via requests
-importlib-metadata==8.6.1
+importlib-metadata==8.7.0
     # via jupyter-client
     # via markdown
     # via mkdocs
@@ -111,7 +111,7 @@ jinja2==3.1.6
 jsonschema==4.23.0
     # via altair
     # via nbformat
-jsonschema-specifications==2024.10.1
+jsonschema-specifications==2025.4.1
     # via jsonschema
 jupyter-client==8.6.3
     # via ipykernel
@@ -124,7 +124,7 @@ jupyter-core==5.7.2
     # via nbformat
 jupyterlab-pygments==0.3.0
     # via nbconvert
-jupytext==1.17.0
+jupytext==1.17.1
     # via mkdocs-jupyter
 kiwisolver==1.4.7
     # via matplotlib
@@ -176,9 +176,9 @@ mkdocstrings==0.29.1
     # via mkdocstrings-python
 mkdocstrings-python==1.16.10
     # via mkdocstrings
-mypy-extensions==1.0.0
+mypy-extensions==1.1.0
     # via black
-narwhals==1.35.0
+narwhals==1.37.1
     # via altair
 nbclient==0.10.2
     # via nbconvert
@@ -236,7 +236,7 @@ pluggy==1.5.0
 pre-commit==4.2.0
 prompt-toolkit==3.0.51
     # via ipython
-protobuf==5.29.4
+protobuf==6.30.2
     # via streamlit
 psutil==7.0.0
     # via ipykernel
@@ -244,7 +244,7 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
-pyarrow==19.0.1
+pyarrow==20.0.0
     # via streamlit
 pydeck==0.9.1
     # via streamlit
@@ -253,7 +253,7 @@ pygments==2.19.1
     # via mkdocs-jupyter
     # via mkdocs-material
     # via nbconvert
-pymdown-extensions==10.14.3
+pymdown-extensions==10.15
     # via mkdocs-material
     # via mkdocstrings
 pyparsing==3.2.3
@@ -289,16 +289,16 @@ requests==2.32.3
 rpds-py==0.24.0
     # via jsonschema
     # via referencing
-ruff==0.11.6
+ruff==0.11.7
 six==1.17.0
     # via python-dateutil
 smmap==5.0.2
     # via gitdb
-soupsieve==2.6
+soupsieve==2.7
     # via beautifulsoup4
 stack-data==0.6.3
     # via ipython
-streamlit==1.44.1
+streamlit==1.45.0
     # via pygenomeviz
 tenacity==9.1.2
     # via streamlit

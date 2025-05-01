@@ -45,7 +45,7 @@ jobs:
         run: rye run ruff format --check --diff
 
       - name: Run pytest
-        run: rye run pytest_failed --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+        run: rye run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
 
       - name: Pytest Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main

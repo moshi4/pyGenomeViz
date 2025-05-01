@@ -42,10 +42,11 @@ jobs:
         run: rye run ruff format --check --diff
 
       - name: Run pytest
-        run: rye run pytest
+        run: rye run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
 
       - name: Pytest Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-xml-coverage-path: ./coverage.xml
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
         if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' }}

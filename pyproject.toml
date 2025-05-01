@@ -21,7 +21,7 @@ requires-python = ">=3.9"
 dependencies = ["matplotlib>=3.6.3", "biopython>=1.80", "numpy>=1.21"]
 
 [project.optional-dependencies]
-gui = ["streamlit>=1.32.0"]
+gui = ["streamlit>=1.45.0"]
 
 [project.urls]
 homepage = "https://moshi4.github.io/pyGenomeViz/"

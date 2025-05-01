@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pygenomeviz.align import Last
+from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_last_not_installed
 
 
@@ -14,6 +15,12 @@ def test_last_get_tool_name():
 def test_last_get_binary_name():
     """Test `get_binary_names()`"""
     assert Last.get_binary_names() == ["lastdb", "lastal", "last-split", "maf-convert"]
+
+
+@skipif_last_not_installed
+def test_last_get_version():
+    """Test `get_version()`"""
+    assert Last.get_version() != UNKNOWN_VERSION
 
 
 @skipif_last_not_installed

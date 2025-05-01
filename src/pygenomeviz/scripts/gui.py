@@ -4,17 +4,18 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import os
-import signal
+import shlex
 import subprocess as sp
-import sys
 import textwrap
 from pathlib import Path
 
 import pygenomeviz
+from pygenomeviz.scripts import exit_handler
 
 CLI_NAME = "pgv-gui"
 
 
+@exit_handler
 def main() -> None:
     """Launch pyGenomeViz WebApp"""
     # Get arguments
@@ -34,8 +35,7 @@ def main() -> None:
             $ conda install -c conda-forge streamlit
             """
         )
-        print(err_msg)
-        sys.exit(1)
+        raise RuntimeError(err_msg)
 
     # Launch app
     app_path = Path(__file__).parent.parent / "gui" / "app.py"
@@ -43,11 +43,10 @@ def main() -> None:
     os.environ["STREAMLIT_SERVER_RUN_ON_SAVE"] = "true"
     os.environ["STREAMLIT_BROWSER_GATHER_USAGE_STATS"] = "false"
     os.environ["STREAMLIT_SERVER_MAX_UPLOAD_SIZE"] = "100"
-    os.environ["PGV_GUI_LOCAL"] = "true"
-    try:
-        sp.run(f"streamlit run {app_path} --server.port {port}", shell=True)
-    except KeyboardInterrupt:
-        sys.exit(-signal.SIGINT)
+
+    cmd = f"streamlit run {app_path} --server.port {port}"
+    cmd_args = shlex.split(cmd)
+    sp.run(cmd_args)
 
 
 def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from io import StringIO, TextIOWrapper
 from pathlib import Path
@@ -7,7 +8,6 @@ from urllib.request import urlretrieve
 
 from Bio import Entrez
 
-from pygenomeviz.logger import get_logger
 from pygenomeviz.parser import Genbank
 from pygenomeviz.typing import GenbankDatasetName, GffExampleFileName
 
@@ -66,7 +66,6 @@ def load_example_fasta_dataset(
     *,
     cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
-    quiet: bool = True,
 ) -> list[Path]:
     """Load pygenomeviz example fasta dataset
 
@@ -99,10 +98,10 @@ def load_example_fasta_dataset(
     fasta_files : list[Path]
         Fasta files
     """
-    logger = get_logger(__name__, quiet=quiet)
+    logger = logging.getLogger(__name__)
 
     # Download genbank dataset
-    gbk_files = load_example_genbank_dataset(name, quiet=quiet)
+    gbk_files = load_example_genbank_dataset(name)
     gbk_list = list(map(Genbank, gbk_files))
 
     # Dataset cache local directory
@@ -133,7 +132,6 @@ def load_example_genbank_dataset(
     *,
     cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
-    quiet: bool = True,
 ) -> list[Path]:
     """Load pygenomeviz example genbank dataset
 
@@ -157,20 +155,17 @@ def load_example_genbank_dataset(
         Output cache directory (Default: `~/.cache/pygenomeviz/`)
     overwrite_cache : bool, optional
         If True, overwrite cached dataset
-    quiet : bool, optional
-        If True, no print log on screen.
 
     Returns
     -------
     gbk_files : list[Path]
         Genbank files
     """
-    logger = get_logger(__name__, quiet=quiet)
+    logger = logging.getLogger(__name__)
 
     # Check specified name dataset exists or not
     if name not in GBK_DATASET.keys():
-        err_msg = f"'{name}' dataset not found."
-        raise ValueError(err_msg)
+        raise ValueError(f"'{name}' dataset not found.")
 
     # Dataset cache local directory
     if cache_dir is None:
@@ -231,8 +226,7 @@ def load_example_gff_file(
     """
     # Check specified filename exists or not
     if filename not in GFF_FILES:
-        err_msg = f"{filename=} not found."
-        raise ValueError(err_msg)
+        raise ValueError(f"{filename=} not found.")
 
     # Cache local directory
     if cache_dir is None:
@@ -289,6 +283,6 @@ def fetch_genbank_by_accid(
         gbk_text = gbk_fetch_data.read()
         with open(gbk_outfile, "w", encoding="utf-8") as f:
             f.write(gbk_text)
-        gbk_fetch_data = StringIO(gbk_text)
+        gbk_fetch_data = StringIO(gbk_text)  # type: ignore
 
     return gbk_fetch_data

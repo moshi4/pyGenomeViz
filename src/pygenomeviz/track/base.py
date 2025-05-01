@@ -63,8 +63,7 @@ class Track:
             Matplotlib axes
         """
         if self._ax is None:
-            err_msg = "Can't access ax property before calling 'plotfig' method."
-            raise ValueError(err_msg)
+            raise ValueError("Can't access ax property before calling 'plotfig' method.")  # fmt: skip  # noqa: E501
         return self._ax
 
     ############################################################

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from pygenomeviz.align import Blast
+from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_blast_not_installed
 
 
@@ -16,6 +17,12 @@ def test_blast_get_tool_name():
 def test_blast_get_binary_names():
     """Test `get_binary_names()`"""
     assert Blast.get_binary_names() == ["makeblastdb", "blastn", "tblastx"]
+
+
+@skipif_blast_not_installed
+def test_blast_get_version():
+    """Test `get_version()`"""
+    assert Blast.get_version() != UNKNOWN_VERSION
 
 
 @skipif_blast_not_installed

@@ -706,9 +706,7 @@ class GenomeViz:
                 target_link_track = link_track
 
         if target_link_track is None:
-            err_msg = f"Failed to get link track.\n{target1=}\n{target2=})\n"
-            err_msg += "Target feature tracks must be adjacent feature tracks!!"
-            raise LinkTrackNotFoundError(err_msg)
+            raise LinkTrackNotFoundError(f"Failed to get link track.\n{target1=}\n{target2=})\nTarget feature tracks must be adjacent feature tracks!!")  # fmt: skip  # noqa: E501
 
         return target_link_track
 

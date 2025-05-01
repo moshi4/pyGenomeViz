@@ -107,11 +107,9 @@ class LinkTrack(Track):
         """
         # Check link position is within segment range
         if not upper_seg.is_within_range((upper_start, upper_end)):
-            err_msg = f"{upper_start=}, {upper_end=} is invalid ({upper_seg})"
-            raise LinkRangeError(err_msg)
+            raise LinkRangeError(f"{upper_start=}, {upper_end=} is invalid ({upper_seg})")  # fmt: skip  # noqa: E501
         if not lower_seg.is_within_range((lower_start, lower_end)):
-            err_msg = f"{lower_start=}, {lower_end=} is invalid ({lower_seg})"
-            raise LinkRangeError(err_msg)
+            raise LinkRangeError(f"{lower_start=}, {lower_end=} is invalid ({lower_seg})")  # fmt: skip  # noqa: E501
 
         link_record = LinkRecord(
             track1=self.upper_feature_track,

@@ -71,5 +71,11 @@ def test_parse_fasta_zip_file(fasta_zip_file: Path):
 
 def test_parse_invalid_file_failed(gff_file: Path):
     """Test parse invalid file failed"""
+    import warnings
+
+    from Bio import BiopythonDeprecationWarning
+
+    warnings.simplefilter("ignore", BiopythonDeprecationWarning)
+
     with pytest.raises(ValueError):
         Fasta(gff_file)

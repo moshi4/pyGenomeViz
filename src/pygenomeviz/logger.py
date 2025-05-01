@@ -5,56 +5,64 @@ import sys
 from pathlib import Path
 
 
-def get_logger(
-    name: str | None = None,
-    log_file: str | Path | None = None,
+def init_null_logger():
+    """Initialize package root logger with NullHandler
+
+    Configuring package root null logger for a library
+    https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library
+    """
+    pkg_root_name = __name__.split(".")[0]
+    logger = logging.getLogger(pkg_root_name)
+    logger.addHandler(logging.NullHandler())
+
+
+def init_logger(
+    *,
     quiet: bool = False,
-) -> logging.Logger:
-    """Get logger
+    verbose: bool = False,
+    log_file: str | Path | None = None,
+):
+    """Initialize package root logger with StreamHandler(& FileHandler)
+
+    Configuring package root default logger for a CLI tool
 
     Parameters
     ----------
-    name : str | None, optional
-        Logger name
-    log_file : str | Path | None, optional
-        Log file path for log file stream
     quiet : bool, optional
-        If True, don't display log message less than WARNING level (DEBUG, INFO).
-
-    Returns
-    -------
-    logger : logging.Logger
-        Logger
+        If True, no print info log on screen
+    verbose: bool, optional
+        If True & quiet=False, print debug log on screen
+    log_file : str | Path | None, optional
+        Log file
     """
-    logger = logging.getLogger(name)
+    pkg_root_name = __name__.split(".")[0]
+    logger = logging.getLogger(pkg_root_name)
 
-    # If logger already exists, only apply quiet
-    if logger.hasHandlers():
-        for handler in logger.handlers:
-            if isinstance(handler, logging.StreamHandler):
-                log_level = logging.WARNING if quiet else logging.INFO
-                handler.setLevel(log_level)
-        return logger
+    # Remove existing handler to avoid duplicate logging
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+        handler.close()
 
     logger.setLevel(logging.DEBUG)
-
-    # Setup log formatter
-    format = "$asctime | $levelname | $message"
-    datefmt = "%Y-%m-%d %H:%M:%S"
-    formatter = logging.Formatter(fmt=format, datefmt=datefmt, style="$")
-
-    # Setup stream handler
+    log_formatter = logging.Formatter(
+        fmt="$asctime | $levelname | $message",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        style="$",
+    )
+    # Add stream handler for terminal stderr
     stream_handler = logging.StreamHandler(sys.stderr)
-    stream_handler.setFormatter(formatter)
-    log_level = logging.WARNING if quiet else logging.INFO
+    stream_handler.setFormatter(log_formatter)
+    if quiet:
+        log_level = logging.WARNING
+    else:
+        log_level = logging.DEBUG if verbose else logging.INFO
     stream_handler.setLevel(log_level)
     logger.addHandler(stream_handler)
 
     if log_file:
-        # Setup log file handler
-        file_handler = logging.FileHandler(log_file, mode="w")
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.DEBUG)
+        # Add file handler for log file
+        file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
+        file_handler.setFormatter(log_formatter)
+        log_level = logging.DEBUG if verbose else logging.INFO
+        file_handler.setLevel(log_level)
         logger.addHandler(file_handler)
-
-    return logger

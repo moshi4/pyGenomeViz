@@ -11,6 +11,8 @@ from pygenomeviz.align import AlignCoord
 from pygenomeviz.align.tool import AlignToolBase
 from pygenomeviz.parser import Genbank
 
+logger = logging.getLogger(__name__)
+
 
 class MMseqs(AlignToolBase):
     """MMseqs RBH Search Class"""
@@ -23,8 +25,6 @@ class MMseqs(AlignToolBase):
         evalue: float = 1e-3,
         threads: int | None = None,
         cmd_opts: str | None = None,
-        logger: logging.Logger | None = None,
-        quiet: bool = True,
     ):
         """
         Parameters
@@ -39,12 +39,8 @@ class MMseqs(AlignToolBase):
             Threads parameter for MMseqs run
         cmd_opts : str | None, optional
             `mmseqs easy-rbh` additional command options
-        logger : logging.Logger | None, optional
-            Logger object. If None, logger instance newly created.
-        quiet : bool, optional
-            If True, don't display log message
         """
-        super().__init__(logger, quiet)
+        super().__init__()
 
         self._seqs = self._parse_input_gbk_seqs(seqs)
         self._outdir = None if outdir is None else Path(outdir)
@@ -62,6 +58,14 @@ class MMseqs(AlignToolBase):
         """Binary names"""
         return ["mmseqs"]
 
+    @classmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        return cls._get_version(
+            cmd="mmseqs --help",
+            pattern=r"MMseqs2 Version: (\S+)",
+        )
+
     def run(self) -> list[AlignCoord]:
         """Run genome alignment"""
         with TemporaryDirectory() as tmpdir:
@@ -70,27 +74,24 @@ class MMseqs(AlignToolBase):
             os.makedirs(outdir, exist_ok=True)
             cds_files: list[Path] = self._write_cds_files(outdir)
 
-            self._logger.info(f"{'='*10} Start MMseqs RBH Search {'='*10}")
+            logger.info(f"{'=' * 10} Start MMseqs RBH Search {'=' * 10}")
             align_coords = []
             for idx in range(len(cds_files) - 1):
                 qfile, rfile = cds_files[idx], cds_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                log_msg = f"{idx+1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'"
-                self._logger.info(log_msg)
+                logger.info(f"{idx + 1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'")  # fmt: skip  # noqa: E501
                 if qfile.stat().st_size == 0:
-                    warn_msg = "No query CDS found. Skip MMseqs RBH search."
-                    self._logger.warning(warn_msg)
+                    logger.warning("No query CDS found. Skip MMseqs RBH search.")  # fmt: skip  # noqa: E501
                 elif rfile.stat().st_size == 0:
-                    warn_msg = "No reference CDS found. Skip MMseqs RBH search."
-                    self._logger.warning(warn_msg)
+                    logger.warning("No reference CDS found. Skip MMseqs RBH search.")  # fmt: skip  # noqa: E501
                 else:
-                    rbh_file = outdir / f"{idx+1:02d}_{qname}_vs_{rname}.tsv"
+                    rbh_file = outdir / f"{idx + 1:02d}_{qname}_vs_{rname}.tsv"
                     cmd = f"mmseqs easy-rbh '{qfile}' '{rfile}' '{rbh_file}' {outdir} --threads {self._threads} -e {self._evalue} -v 0"  # noqa: E501
                     if self._cmd_opts:
                         cmd = f"{cmd} {self._cmd_opts}"
-                    self.run_cmd(cmd, self._logger)
+                    self.run_cmd(cmd)
                     align_coords.extend(self._parse_coords_file(rbh_file, qname, rname))
-            self._logger.info(f"{'='*10} Finish MMseqs RBH Search {'='*10}")
+            logger.info(f"{'=' * 10} Finish MMseqs RBH Search {'=' * 10}")
 
         return align_coords
 
@@ -100,7 +101,7 @@ class MMseqs(AlignToolBase):
         cds_files: list[Path] = []
         for gbk in self._seqs:
             cds_file = outdir / f"{gbk.name}.faa"
-            self._logger.info(f"Convert Genbank object to CDS fasta file '{cds_file}'")
+            logger.info(f"Convert Genbank object to CDS fasta file '{cds_file}'")
             gbk.write_cds_fasta(cds_file)
             cds_files.append(cds_file)
         return cds_files

@@ -2,22 +2,22 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
-import signal
-import sys
-import time
 from collections import defaultdict
 from pathlib import Path
 from typing import Sequence
 
 from pygenomeviz import GenomeViz
 from pygenomeviz.align import AlignCoord, ProgressiveMauve
-from pygenomeviz.logger import get_logger
+from pygenomeviz.logger import init_logger
 from pygenomeviz.scripts import (
     ALIGN_COORDS_FILENAME,
     LOG_FILENAME,
     CustomHelpFormatter,
+    exit_handler,
     log_basic_env_info,
+    logging_timeit,
     setup_argparser,
     validate_args,
 )
@@ -27,20 +27,14 @@ from pygenomeviz.utils import ColorCycler
 CLI_NAME = "pgv-pmauve"
 
 
+@exit_handler
 def main():
     """Main function called from CLI"""
     args = get_args()
-    args_dict = args.__dict__
-    try:
-        run(**args_dict, log_params=args_dict)
-    except KeyboardInterrupt:
-        get_logger(__name__).error("Keyboard Interrupt")
-        sys.exit(-signal.SIGINT)
-    except Exception as e:
-        get_logger(__name__).error(e)
-        sys.exit(getattr(e, "errno", 1))
+    run(**args.__dict__)
 
 
+@logging_timeit
 def run(
     # General options
     seqs: Sequence[str | Path],
@@ -65,11 +59,9 @@ def run(
     refid: int,
     block_plotstyle: PlotStyle,
     block_cmap: str,
-    # Log parameters
-    log_params: dict | None = None,
 ):
     """Run genome visualization workflow"""
-    start_time = time.time()
+    log_params = locals()
 
     # Make output directory
     outdir = Path(outdir)
@@ -77,8 +69,9 @@ def run(
 
     # Set logger
     log_file = outdir / LOG_FILENAME
-    logger = get_logger(__name__, log_file, quiet)
-    log_basic_env_info(logger, CLI_NAME, log_params)
+    init_logger(quiet=quiet, log_file=log_file)
+    logger = logging.getLogger(__name__)
+    log_basic_env_info(CLI_NAME, log_params)
 
     # Run progressiveMauve alignment
     align_coords_file = outdir / ALIGN_COORDS_FILENAME
@@ -86,8 +79,6 @@ def run(
         seqs,
         outdir=outdir / "tmp" if debug else None,
         refid=refid,
-        logger=logger,
-        quiet=quiet,
     )
     if reuse and align_coords_file.exists():
         logger.info(f"Reuse alignment result in '{align_coords_file}'")
@@ -150,9 +141,6 @@ def run(
         else:
             gv.savefig(output_file, dpi=dpi)
         logger.info(f"Output result image file '{output_file}'")
-
-    elapsed_time = time.time() - start_time
-    logger.info(f"Done (elapsed time: {elapsed_time:.2f}[s])")
 
 
 def get_args() -> argparse.Namespace:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import shlex
 import shutil
 import subprocess as sp
@@ -10,24 +11,17 @@ from pathlib import Path
 from typing import Sequence
 
 from pygenomeviz.align import AlignCoord
-from pygenomeviz.logger import get_logger
+from pygenomeviz.const import UNKNOWN_VERSION
 from pygenomeviz.parser import Fasta, Genbank
+
+logger = logging.getLogger(__name__)
 
 
 class AlignToolBase(ABC):
     """Alignment Tool Abstract Base Class"""
 
-    def __init__(self, logger: logging.Logger | None, quiet: bool = False):
-        """
-        Parameters
-        ----------
-        logger : logging.Logger | None
-            Logger object. If None, logger instance newly created.
-        quiet : bool, optional
-            If True, don't display log message.
-        """
-        self._logger = logger if logger else get_logger(__name__, quiet=quiet)
-        self.check_installation(logger=self._logger)
+    def __init__(self):
+        self.check_installation()
 
     @property
     def max_threads(self) -> int:
@@ -47,6 +41,12 @@ class AlignToolBase(ABC):
         """Binary names"""
         raise NotImplementedError
 
+    @classmethod
+    @abstractmethod
+    def get_version(cls) -> str:
+        """Tool version"""
+        raise NotImplementedError
+
     @abstractmethod
     def run(self) -> list[AlignCoord]:
         """Run genome alignment"""
@@ -56,7 +56,6 @@ class AlignToolBase(ABC):
     def check_installation(
         cls,
         exit_on_false: bool = True,
-        logger: logging.Logger | None = None,
     ) -> bool:
         """Check required binaries installation
 
@@ -64,8 +63,6 @@ class AlignToolBase(ABC):
         ----------
         exit_on_false : bool, optional
             If True and check result is False, raise RuntimeError.
-        logger : logging.Logger | None, optional
-            Logger object. If None, logger instance newly created.
 
         Returns
         -------
@@ -79,7 +76,6 @@ class AlignToolBase(ABC):
 
         if not is_installed and exit_on_false:
             tool_name = cls.get_tool_name()
-            logger = logger if logger else get_logger(__name__)
             logger.error(f"'{tool_name}' is not available in this environment.")
             logger.error(f"Please check '{tool_name}' installation.")
             raise RuntimeError(f"Failed to run '{tool_name}' aligner!!")
@@ -89,7 +85,6 @@ class AlignToolBase(ABC):
     def run_cmd(
         self,
         cmd: str,
-        logger: logging.Logger,
         stdout_file: str | Path | None = None,
     ) -> None:
         """Run command
@@ -98,8 +93,6 @@ class AlignToolBase(ABC):
         ----------
         cmd : str
             Command to run
-        logger : logging.Logger
-            Logger object
         stdout_file : str | Path | None, optional
             Write stdout result if file is set
         """
@@ -128,6 +121,31 @@ class AlignToolBase(ABC):
                 for line in stderr_lines:
                     logger.error(f"> {line}")
             raise RuntimeError(f"Failed to run '{self.get_tool_name()}' aligner!!")
+
+    @classmethod
+    def _get_version(cls, cmd: str, pattern: str) -> str:
+        """Get tool version by cmd & regex pattern
+
+        Parameters
+        ----------
+        cmd : str
+            Command to get version info
+        pattern : str
+            Regex pattern for search version
+
+        Returns
+        -------
+        version : str
+            Tool version (e.g. `v1.2.3`)
+        """
+        try:
+            cmd_args = shlex.split(cmd)
+            cmd_res = sp.run(cmd_args, capture_output=True, text=True)
+            output = cmd_res.stderr if cmd_res.stdout == "" else cmd_res.stdout
+            version = re.findall(pattern, output, re.MULTILINE)[0]
+            return version
+        except Exception:
+            return UNKNOWN_VERSION
 
     def _parse_input_gbk_seqs(
         self, seqs: Sequence[str | Path | Genbank]
@@ -191,8 +209,35 @@ class AlignToolBase(ABC):
                     parse_seqs.append(Fasta(seq))
                 else:
                     valid_suffixes = gbk_suffixes + fasta_suffixes
-                    err_msg = f"'{seq}' is invalid file suffix ({valid_suffixes=})"
-                    raise ValueError(err_msg)
+                    raise ValueError(f"'{seq}' is invalid file suffix ({valid_suffixes=})")  # fmt: skip  # noqa: E501
             else:
                 parse_seqs.append(seq)
         return parse_seqs
+
+    def _write_genome_files(
+        self,
+        seqs: Sequence[Fasta | Genbank],
+        outdir: str | Path,
+    ) -> list[Path]:
+        """Write genome fasta files to output directory
+
+        Parameters
+        ----------
+        seqs : Sequence[Fasta | Genbank]
+            List of fasta or genbank
+        outdir : str | Path
+            Target output directory
+
+        Returns
+        -------
+        genome_files : list[Path]
+            Genome fasta files
+        """
+        genome_files: list[Path] = []
+        for seq in seqs:
+            genome_file = Path(outdir) / f"{seq.name}.fna"
+            cls_name = seq.__class__.__name__
+            logger.info(f"Convert {cls_name} object to genome fasta file '{genome_file}'")  # fmt: skip  # noqa: E501
+            seq.write_genome_fasta(genome_file)
+            genome_files.append(genome_file)
+        return genome_files

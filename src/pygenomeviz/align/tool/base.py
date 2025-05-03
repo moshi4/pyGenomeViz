@@ -98,24 +98,23 @@ class AlignToolBase(ABC):
         """
         logger.info(f"$ {cmd}")
         cmd_args = shlex.split(cmd)
-        cmd_res = sp.run(cmd_args, capture_output=True, text=True)
-        return_code = cmd_res.returncode
-
-        if return_code == 0:
+        try:
+            cmd_res = sp.run(cmd_args, capture_output=True, text=True, check=True)
             # Write stdout result if stdout_file is set
             if stdout_file:
                 logger.info(f"> Save cmd stdout results to '{stdout_file}'")
                 with open(stdout_file, "w", encoding="utf-8") as f:
                     f.write(cmd_res.stdout)
-        else:
-            logger.error(f"Failed to run command below ({return_code=})")
+        except sp.CalledProcessError as e:
+            returncode, stdout, stderr = e.returncode, str(e.stdout), str(e.stderr)
+            logger.error(f"Failed to run command below ({returncode=})")
             logger.error(f"$ {cmd}")
-            stdout_lines = cmd_res.stdout.splitlines()
+            stdout_lines = stdout.splitlines()
             if len(stdout_lines) > 0:
                 logger.error("STDOUT:")
                 for line in stdout_lines:
                     logger.error(f"> {line}")
-            stderr_lines = cmd_res.stderr.splitlines()
+            stderr_lines = stderr.splitlines()
             if len(stderr_lines) > 0:
                 logger.error("STDERR:")
                 for line in stderr_lines:

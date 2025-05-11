@@ -5,11 +5,10 @@ import os
 from pathlib import Path
 
 from pygenomeviz import GenomeViz
-from pygenomeviz.align import AlignCoord, AlignToolBase, Blast, MMseqs, MUMmer
+from pygenomeviz.align import AlignCoord, Blast, MMseqs, MUMmer
 from pygenomeviz.exception import SegmentNotFoundError
 from pygenomeviz.gui import config, utils
 from pygenomeviz.parser import Genbank
-from pygenomeviz.typing import AlnMethod
 from pygenomeviz.utils import is_pseudo_feature
 
 
@@ -103,14 +102,18 @@ def plot_by_gui_cfg(
     if aln_coords_file.exists():
         align_coords = AlignCoord.read(aln_coords_file)
     else:
-        aln_method2aligner: dict[AlnMethod, AlignToolBase] = {
-            "MUMmer (nucleotide)": MUMmer(gbk_list, seqtype="nucleotide"),
-            "MUMmer (protein)": MUMmer(gbk_list, seqtype="protein"),
-            "MMseqs RBH": MMseqs(gbk_list),
-            "BLAST (nucleotide)": Blast(gbk_list, seqtype="nucleotide"),
-            "BLAST (protein)": Blast(gbk_list, seqtype="protein"),
-        }
-        aligner = aln_method2aligner[cfg.aln.method]
+        if cfg.aln.method == "MUMmer (nucleotide)":
+            aligner = MUMmer(gbk_list, seqtype="nucleotide")
+        elif cfg.aln.method == "MUMmer (protein)":
+            aligner = MUMmer(gbk_list, seqtype="protein")
+        elif cfg.aln.method == "MMseqs RBH":
+            aligner = MMseqs(gbk_list)
+        elif cfg.aln.method == "BLAST (nucleotide)":
+            aligner = Blast(gbk_list, seqtype="nucleotide")
+        elif cfg.aln.method == "BLAST (protein)":
+            aligner = Blast(gbk_list, seqtype="protein")
+        else:
+            raise ValueError(f"{cfg.aln.method=} is invalid alignment method.")
         align_coords = aligner.run()
         AlignCoord.write(align_coords, aln_coords_file)
     align_coords = AlignCoord.filter(

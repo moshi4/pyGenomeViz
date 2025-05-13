@@ -52,4 +52,4 @@ jobs:
         with:
           pytest-coverage-path: pytest-coverage.txt
           junitxml-path: pytest.xml
-        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' }}
+        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' && !env.ACT }}

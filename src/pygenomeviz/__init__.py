@@ -3,7 +3,7 @@ import matplotlib as mpl
 from pygenomeviz import logger as _logger
 from pygenomeviz.genomeviz import GenomeViz
 
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 
 __all__ = [
     "GenomeViz",

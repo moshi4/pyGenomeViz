@@ -610,7 +610,7 @@ class GenomeViz:
         # Load SVG contents
         fig = self.plotfig(fast_render=False) if figure is None else figure
         svg_fig_bytes = io.BytesIO()
-        fig.savefig(fname=svg_fig_bytes, format="svg")
+        fig.savefig(svg_fig_bytes, format="svg", pad_inches=0.5)
         svg_fig_bytes.seek(0)
         svg_fig_contents = svg_fig_bytes.read().decode("utf-8")
 

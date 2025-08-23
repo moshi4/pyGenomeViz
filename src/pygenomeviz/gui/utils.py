@@ -139,7 +139,7 @@ def get_fig_bytes(gv: GenomeViz, fig: Figure, format: str) -> io.BytesIO:
     """Get figure bytes"""
     fig_bytes = io.BytesIO()
     if format in ("png", "svg"):
-        fig.savefig(fig_bytes, format=format)
+        fig.savefig(fig_bytes, format=format, pad_inches=0.5)
     elif format == "html":
         gv.savefig_html(fig_bytes)
     else:

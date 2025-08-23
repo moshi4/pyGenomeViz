@@ -90,8 +90,6 @@ def load_example_fasta_dataset(
         Output cache directory (Default: `~/.cache/pygenomeviz/`)
     overwrite_cache : bool, optional
         If True, overwrite cached dataset
-    quiet : bool, optional
-        If True, no print log on screen.
 
     Returns
     -------

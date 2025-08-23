@@ -21,7 +21,7 @@ requires-python = ">=3.10"
 dependencies = ["matplotlib>=3.6.3", "biopython>=1.80", "numpy>=1.21"]
 
 [project.optional-dependencies]
-gui = ["streamlit>=1.45.0"]
+gui = ["streamlit>=1.48.0"]
 
 [project.urls]
 homepage = "https://moshi4.github.io/pyGenomeViz/"
@@ -38,15 +38,17 @@ pgv-gui = "pygenomeviz.scripts.gui:main"
 [tool.hatch.version]
 path = "src/pygenomeviz/__init__.py"
 
-[tool.rye]
-managed = true
-dev-dependencies = [
-    "ruff>=0.4.0",
-    "pre-commit>=3.5.0",
-    "pytest>=8.0.0",
-    "pytest-cov>=4.0.0",
-    "ipykernel>=6.13.0",
-    # docs
+[dependency-groups]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    { include-group = "jupyter" },
+    { include-group = "docs" },
+]
+test = ["pytest>=8.0.0", "pytest-cov>=4.0.0"]
+lint = ["ruff>=0.4.0", "pre-commit>=3.5.0"]
+jupyter = ["ipykernel>=6.13.0"]
+docs = [
     "mkdocs>=1.2",
     "mkdocstrings[python]>=0.19.0",
     "mkdocs-jupyter>=0.21.0",
@@ -88,5 +90,5 @@ ignore = [
 convention = "numpy"
 
 [build-system]
-requires = ["hatchling==1.26.3"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"

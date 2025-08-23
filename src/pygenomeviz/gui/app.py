@@ -383,7 +383,7 @@ if len(gbk_list) == 0:
     st.stop()
 
 fig_container = st.container()
-download_container = st.container()
+download_container = st.container(horizontal=True)
 genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
@@ -450,25 +450,22 @@ fig = gv.plotfig()
 fig_container.pyplot(fig)
 
 # Setup download buttons
-png_btn, svg_btn, html_btn, _, aln_btn = download_container.columns([1, 1, 1.2, 1.5, 2])
-
-if align_coords:
-    comparison_result_data = io.BytesIO()
-    AlignCoord.write(align_coords, comparison_result_data)
-    aln_btn.download_button(
-        label="Comparison Result",
-        data=comparison_result_data,
-        file_name="pgv_comparison_result.tsv",
+for format in ("png", "svg", "html"):
+    download_container.download_button(
+        label=f"{format.upper()}",
+        data=utils.get_fig_bytes(gv, fig, format),
+        file_name=f"pgv_result.{format}",
         on_click="ignore",
         icon=":material/download:",
     )
 
-format2btn = dict(png=png_btn, svg=svg_btn, html=html_btn)
-for format, btn in format2btn.items():
-    btn.download_button(
-        label=f"{format.upper()}",
-        data=utils.get_fig_bytes(gv, fig, format),
-        file_name=f"pgv_result.{format}",
+if align_coords:
+    comparison_result_data = io.BytesIO()
+    AlignCoord.write(align_coords, comparison_result_data)
+    download_container.download_button(
+        label="Comparison Result",
+        data=comparison_result_data,
+        file_name="pgv_comparison_result.tsv",
         on_click="ignore",
         icon=":material/download:",
     )

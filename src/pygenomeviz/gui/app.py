@@ -25,11 +25,9 @@ DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
 DEFAULT_PSEUDO_COLOR = to_hex("lightgrey")
 
 # Streamlit page configuration
-if "layout" not in st.session_state:
-    st.session_state.layout = "centered"
 st.set_page_config(
     page_title="pyGenomeViz WebApp",
-    layout=st.session_state.layout,
+    layout="centered",
     initial_sidebar_state="expanded",
     menu_items={"Report a bug": const.GITHUB_ISSUES_URL},
 )
@@ -362,19 +360,8 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
 
 st.header("pyGenomeViz Streamlit Web Application")
 
-
-def layout_checkbox_on_change():
-    """Layout checkbox callback"""
-    if st.session_state.layout == "wide":
-        st.session_state.layout = "centered"
-    else:
-        st.session_state.layout = "wide"
-
-
-st.checkbox(
-    label="Wide mode",
-    on_change=layout_checkbox_on_change,
-)
+is_wide = st.checkbox(label="Wide mode")
+st.set_page_config(layout="wide" if is_wide else "centered")
 
 # If no genbank file exists, stop execution
 if len(gbk_list) == 0:

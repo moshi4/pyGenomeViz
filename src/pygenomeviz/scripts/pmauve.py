@@ -3,10 +3,9 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from pygenomeviz import GenomeViz
 from pygenomeviz.align import AlignCoord, ProgressiveMauve
@@ -21,21 +20,25 @@ from pygenomeviz.scripts import (
     setup_argparser,
     validate_args,
 )
-from pygenomeviz.typing import PlotStyle, TrackAlignType
 from pygenomeviz.utils import ColorCycler
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from pygenomeviz.typing import PlotStyle, TrackAlignType
 
 CLI_NAME = "pgv-pmauve"
 
 
 @exit_handler
-def main():
+def main() -> None:
     """Main function called from CLI"""
     args = get_args()
     run(**args.__dict__)
 
 
 @logging_timeit
-def run(
+def run(  # noqa: PLR0912
     # General options
     seqs: Sequence[str | Path],
     outdir: str | Path,
@@ -59,13 +62,13 @@ def run(
     refid: int,
     block_plotstyle: PlotStyle,
     block_cmap: str,
-):
+) -> None:
     """Run genome visualization workflow"""
     log_params = locals()
 
     # Make output directory
     outdir = Path(outdir)
-    os.makedirs(outdir, exist_ok=True)
+    outdir.mkdir(parents=True, exist_ok=True)
 
     # Set logger
     log_file = outdir / LOG_FILENAME
@@ -119,7 +122,7 @@ def run(
         # Add synteny blocks
         blocks = name2blocks[name]
         colors = ColorCycler.get_color_list(len(blocks))
-        for block, color in zip(blocks, colors):
+        for block, color in zip(blocks, colors, strict=False):
             track.add_feature(*block, plotstyle=block_plotstyle, fc=color)
 
     # Plot links

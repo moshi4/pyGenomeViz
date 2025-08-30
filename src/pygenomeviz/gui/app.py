@@ -4,6 +4,7 @@ import io
 import textwrap
 from collections import defaultdict
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import streamlit as st
 from matplotlib.colors import to_hex
@@ -13,8 +14,10 @@ import pygenomeviz
 from pygenomeviz import const
 from pygenomeviz.align import AlignCoord, Blast, MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
-from pygenomeviz.typing import AlnMethod
 from pygenomeviz.utils import load_example_genbank_dataset
+
+if TYPE_CHECKING:
+    from pygenomeviz.typing import AlnMethod
 
 # Constant values
 DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
@@ -179,7 +182,7 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
         tab_container = st.container(border=True)
         tab_container.caption("Plotstyle & Color Options Tab")
         for feature_type, tab in zip(
-            select_feature_types, tab_container.tabs(select_feature_types)
+            select_feature_types, tab_container.tabs(select_feature_types), strict=True
         ):
             with tab:
                 cols = tab.columns([3, 1])
@@ -250,9 +253,9 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
     )
     label_filter_words = []
     for word in feature_label_filter_words.split(","):
-        word = word.strip()
-        if word != "":
-            label_filter_words.append(word)
+        strip_word = word.strip()
+        if strip_word != "":
+            label_filter_words.append(strip_word)
 
     feat_cfg = config.FeatureConfig(
         types=select_feature_types,
@@ -321,7 +324,7 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
         options=["Normal", "Curve"],
         index=0,
     )
-    link_curve = True if link_style == "Curve" else False
+    link_curve = link_style == "Curve"
     colorbar_height = link_cols[1].number_input(
         label="Colorbar Height",
         value=0.3,

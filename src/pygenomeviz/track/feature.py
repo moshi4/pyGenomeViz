@@ -3,21 +3,23 @@ from __future__ import annotations
 import textwrap
 from collections.abc import Sequence
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Mapping, overload
-
-import numpy as np
-from Bio.SeqFeature import SeqFeature
-from matplotlib.patches import Patch
+from typing import TYPE_CHECKING, Any, overload
 
 from pygenomeviz.exception import SegmentNotFoundError, SubTrackNotFoundError
 from pygenomeviz.patches import PLOTSTYLE2PATCH, Intron
 from pygenomeviz.segment import FeatureSegment
 from pygenomeviz.track import Track
-from pygenomeviz.typing import HPos, PlotStyle, TrackAlignType, VPos
 from pygenomeviz.utils.plot import plot_patches
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping
+
+    import numpy as np
+    from Bio.SeqFeature import SeqFeature
+    from matplotlib.patches import Patch
     from numpy.typing import NDArray
+
+    from pygenomeviz.typing import HPos, PlotStyle, TrackAlignType, VPos
 
 
 class FeatureTrack(Track):
@@ -36,7 +38,7 @@ class FeatureTrack(Track):
         align_label: bool = True,
         label_kws: dict[str, Any] | None = None,
         line_kws: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -77,9 +79,8 @@ class FeatureTrack(Track):
             segments.append(segment)
 
         # Check space list length
-        if isinstance(space, (list, tuple)):
-            if len(space) != len(seg_name2range) - 1:
-                raise ValueError(f"{len(space)=} is invalid!!")
+        if isinstance(space, Sequence) and len(space) != len(seg_name2range) - 1:
+            raise ValueError(f"{len(space)=} is invalid!!")
 
         self._segments = segments
         self._space = space
@@ -223,9 +224,8 @@ class FeatureTrack(Track):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # Check list sep length
-        if isinstance(sep, (list, tuple)):
-            if len(sep) != len(self.spaces):
-                raise ValueError(f"{len(sep)=} is invalid!!")
+        if isinstance(sep, (list, tuple)) and len(sep) != len(self.spaces):
+            raise ValueError(f"{len(sep)=} is invalid!!")
 
         # Convert bool sep to list sep
         if isinstance(sep, bool):
@@ -854,7 +854,7 @@ class FeatureTrack(Track):
 
         return exon_locs, intron_locs
 
-    def __str__(self):
+    def __str__(self) -> str:
         track_segments = {seg.name: (seg.start, seg.end) for seg in self.segments}
         return textwrap.dedent(
             f"""
@@ -863,7 +863,7 @@ class FeatureTrack(Track):
             """
         )[1:-1]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
@@ -876,7 +876,7 @@ class FeatureSubTrack(Track):
         *,
         ratio: float,
         feature_track: FeatureTrack,
-    ):
+    ) -> None:
         """
         Parameters
         ----------

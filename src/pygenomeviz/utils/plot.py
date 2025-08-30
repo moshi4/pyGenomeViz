@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
-from matplotlib.axes import Axes
 from matplotlib.collections import PatchCollection
-from matplotlib.patches import Patch
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.patches import Patch
 
 
 def plot_patches(
@@ -30,9 +33,9 @@ def plot_patches(
                 ax.add_patch(patch)
             else:
                 zorder2patches[float(patch.get_zorder())].append(patch)
-        for zorder, patches in zorder2patches.items():
+        for zorder, patch_group in zorder2patches.items():
             patch_col = PatchCollection(
-                patches, match_original=True, zorder=zorder, clip_on=False
+                patch_group, match_original=True, zorder=zorder, clip_on=False
             )
             ax.add_collection(patch_col)  # type: ignore
     else:

@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import logging
-import os
 from io import StringIO, TextIOWrapper
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.request import urlretrieve
 
 from Bio import Entrez
 
 from pygenomeviz.parser import Genbank
-from pygenomeviz.typing import GenbankDatasetName, GffExampleFileName
+
+if TYPE_CHECKING:
+    from pygenomeviz.typing import GenbankDatasetName, GffExampleFileName
 
 GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pygenomeviz-data-v1/main/"
 
@@ -107,7 +109,7 @@ def load_example_fasta_dataset(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "fasta" / name
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
 
@@ -162,7 +164,7 @@ def load_example_genbank_dataset(
     logger = logging.getLogger(__name__)
 
     # Check specified name dataset exists or not
-    if name not in GBK_DATASET.keys():
+    if name not in GBK_DATASET:
         raise ValueError(f"'{name}' dataset not found.")
 
     # Dataset cache local directory
@@ -170,7 +172,7 @@ def load_example_genbank_dataset(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "genbank" / name
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
 
@@ -231,7 +233,7 @@ def load_example_gff_file(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "gff"
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
 

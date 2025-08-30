@@ -9,7 +9,7 @@ import sys
 import time
 from functools import partial, wraps
 from pathlib import Path
-from typing import Callable, Type
+from typing import TYPE_CHECKING, Any
 
 import Bio
 import matplotlib
@@ -17,12 +17,16 @@ from matplotlib.colors import is_color_like
 
 import pygenomeviz
 from pygenomeviz.align import AlignToolBase, Blast, MMseqs, MUMmer, ProgressiveMauve
-from pygenomeviz.typing import AlnCliName
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from pygenomeviz.typing import AlnCliName
 
 LOG_FILENAME = "pgv-cli.log"
 ALIGN_COORDS_FILENAME = "align_coords.tsv"
 
-CLI_NAME2TOOL: dict[AlnCliName, Type[AlignToolBase]] = {
+CLI_NAME2TOOL: dict[AlnCliName, type[AlignToolBase]] = {
     "pgv-blast": Blast,
     "pgv-mummer": MUMmer,
     "pgv-mmseqs": MMseqs,
@@ -31,10 +35,16 @@ CLI_NAME2TOOL: dict[AlnCliName, Type[AlignToolBase]] = {
 
 
 class CustomHelpFormatter(argparse.RawTextHelpFormatter):
-    def __init__(self, prog, indent_increment=2, max_help_position=40, width=None):
+    def __init__(
+        self,
+        prog: str,
+        indent_increment: int = 2,
+        max_help_position: int = 40,
+        width: int | None = None,
+    ) -> None:
         super().__init__(prog, indent_increment, max_help_position, width)
 
-    def _format_args(self, action, default_metavar):
+    def _format_args(self, action: argparse.Action, default_metavar: str) -> str:  # noqa: ARG002
         return ""
 
 
@@ -63,7 +73,7 @@ def log_basic_env_info(
     logger.info(f"Check Dependencies: biopython v{Bio.__version__}")
     if log_params:
         for k, v in log_params.items():
-            logger.info(f"Parameters: {k}={repr(v)}")
+            logger.info(f"Parameters: {k}={v!r}")
 
 
 def setup_argparser(
@@ -450,18 +460,15 @@ def validate_args(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
         Command parser
     """
     # seqs (target = all)
-    if hasattr(args, "seqs"):
-        if len(args.seqs) < 2:
-            parser.error("Input must be set at least two files.")
+    if len(args.seqs) < 2:
+        parser.error("Input must be set at least two files.")
 
     # normal_link_color (target = all)
-    if hasattr(args, "normal_link_color"):
-        if not is_color_like(args.normal_link_color):
-            parser.error(f"{args.normal_link_color=} is invalid color name or code.")
+    if not is_color_like(args.normal_link_color):
+        parser.error(f"{args.normal_link_color=} is invalid color name or code.")
     # inverted_link_color (target = all)
-    if hasattr(args, "inverted_link_color"):
-        if not is_color_like(args.inverted_link_color):
-            parser.error(f"{args.inverted_link_color=} is invalid color name or code.")
+    if not is_color_like(args.inverted_link_color):
+        parser.error(f"{args.inverted_link_color=} is invalid color name or code.")
 
     # feature_type2color (target = blast, mummer, mmseqs)
     if hasattr(args, "feature_type2color"):
@@ -477,9 +484,8 @@ def validate_args(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
         args.feature_type2color = feature_type2color
 
     # pseudo_color (target = blast, mummer, mmseqs)
-    if hasattr(args, "pseudo_color"):
-        if not is_color_like(args.pseudo_color):
-            parser.error(f"{args.pseudo_color=} is invalid color name or code.")
+    if hasattr(args, "pseudo_color") and not is_color_like(args.pseudo_color):
+        parser.error(f"{args.pseudo_color=} is invalid color name or code.")
 
     # refid (target = pmauve)
     if hasattr(args, "refid"):
@@ -500,7 +506,7 @@ def logging_timeit(
     *,
     show_func_name: bool = False,
     debug: bool = False,
-):
+) -> Callable:
     """Elapsed time logging decorator
 
     e.g. `Done (elapsed time: 82.3[s]) [module.function]`
@@ -518,7 +524,7 @@ def logging_timeit(
         return partial(logging_timeit, show_func_name=show_func_name, debug=debug)
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> Callable[..., Any]:
         start_time = time.time()
         result = func(*args, **kwargs)
         elapsed_time = time.time() - start_time
@@ -533,14 +539,14 @@ def logging_timeit(
     return wrapper
 
 
-def exit_handler(func):
+def exit_handler(func: Callable) -> Callable:
     """Exit handling decorator on exception
 
     The main purpose is logging on keyboard interrupt exception
     """
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> Callable[..., Any]:
         logger = logging.getLogger(__name__)
         try:
             return func(*args, **kwargs)

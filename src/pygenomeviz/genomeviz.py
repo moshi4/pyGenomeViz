@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import io
 from copy import deepcopy
-from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
-from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
@@ -21,9 +18,17 @@ from pygenomeviz.exception import (
     LinkTrackNotFoundError,
 )
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, Track
-from pygenomeviz.typing import Segments, Theme, TrackAlignType, Unit
 from pygenomeviz.utils.helper import interpolate_color, size_label_formatter
 from pygenomeviz.viewer import setup_viewer_html
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from pathlib import Path
+
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+
+    from pygenomeviz.typing import Segments, Theme, TrackAlignType, Unit
 
 
 class GenomeViz:
@@ -45,7 +50,7 @@ class GenomeViz:
         link_track_ratio: float = 1.0,
         theme: Theme = "light",
         show_axis: bool = False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -342,7 +347,7 @@ class GenomeViz:
             If None, scale bar size & label are automatically set.
         """
 
-        def plot_scale_bar(lowest_track_ax: Axes):
+        def plot_scale_bar(lowest_track_ax: Axes) -> None:
             if scale_size_label is None:
                 scale_size = lowest_track_ax.get_xticks()[1]
                 scale_label = size_label_formatter(scale_size)
@@ -660,9 +665,13 @@ class GenomeViz:
         # Convert segments to dict type
         if isinstance(segments, int):
             segments = [segments]
-        if isinstance(segments, tuple) and len(segments) == 2:
-            if isinstance(segments[0], int) and isinstance(segments[1], int):
-                segments = [segments]  # type: ignore
+        if (
+            isinstance(segments, tuple)
+            and len(segments) == 2
+            and isinstance(segments[0], int)
+            and isinstance(segments[1], int)
+        ):
+            segments = [segments]  # type: ignore
         if isinstance(segments, (list, tuple)):
             segments = {f"seg{idx}": seg for idx, seg in enumerate(segments, 1)}  # type: ignore
 
@@ -741,13 +750,13 @@ class GenomeViz:
         <https://github.com/matplotlib/matplotlib/issues/26716>
         """
         try:
-            from IPython import get_ipython  # type: ignore
+            from IPython import get_ipython  # noqa: PLC0415
 
             get_ipython().run_line_magic("matplotlib", "inline")
         except Exception:
             pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         ret_val = ""
         for feature_track in self.feature_tracks:
             ret_val += f"{feature_track}\n"

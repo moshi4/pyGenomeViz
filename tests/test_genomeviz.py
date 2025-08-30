@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
@@ -8,8 +8,11 @@ from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 from pygenomeviz import GenomeViz
 from pygenomeviz.parser import Genbank, Gff
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def test_plot_features_with_all_plotstyle(tmp_path: Path):
+
+def test_plot_features_with_all_plotstyle(tmp_path: Path) -> None:
     """Test plot features with all plotstyle"""
     gv = GenomeViz()
     gv.set_scale_bar()
@@ -28,7 +31,7 @@ def test_plot_features_with_all_plotstyle(tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_exon_features_plot(tmp_path: Path):
+def test_exon_features_plot(tmp_path: Path) -> None:
     """Test exon features plot"""
     gv = GenomeViz()
     track = gv.add_feature_track("track1", 1000)
@@ -50,7 +53,7 @@ def test_exon_features_plot(tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_manual_features_links_plot(tmp_path: Path):
+def test_manual_features_links_plot(tmp_path: Path) -> None:
     """Test manual features & links plot"""
     genome_list = [
         dict(
@@ -93,7 +96,7 @@ def test_manual_features_links_plot(tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_genbank_plot(gbk_file: Path, tmp_path: Path):
+def test_genbank_plot(gbk_file: Path, tmp_path: Path) -> None:
     """Test genbank features plot"""
     gbk = Genbank(gbk_file)
 
@@ -107,7 +110,7 @@ def test_genbank_plot(gbk_file: Path, tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_gff_plot(gff_file: Path, tmp_path: Path):
+def test_gff_plot(gff_file: Path, tmp_path: Path) -> None:
     """Test gff features plot"""
     gff = Gff(gff_file)
 
@@ -121,7 +124,7 @@ def test_gff_plot(gff_file: Path, tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_savefig_html_failed(gbk_file: Path, tmp_path: Path):
+def test_savefig_html_failed(gbk_file: Path, tmp_path: Path) -> None:
     """Test `gv.savefig_html()` failed when fast_render=True"""
     gbk = Genbank(gbk_file)
 

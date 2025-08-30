@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 import matplotlib.pyplot as plt
 import numpy as np
-from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 
-from pygenomeviz.typing import Unit
+if TYPE_CHECKING:
+    from Bio.SeqFeature import SeqFeature
+
+    from pygenomeviz.typing import Unit
 
 
 class ColorCycler:
@@ -102,7 +104,7 @@ def is_pseudo_feature(feature: SeqFeature) -> bool:
         pseudo check result
     """
     quals = feature.qualifiers
-    return True if "pseudo" in quals or "pseudogene" in quals else False
+    return bool("pseudo" in quals or "pseudogene" in quals)
 
 
 def extract_features_within_range(
@@ -234,20 +236,18 @@ def size_label_formatter(
         size = [size]
 
     # Get target unit & unit size
-    # unit2unit_size: dict[Unit, int] = dict(Gb=10**9, Mb=10**6, Kb=10**3, bp=1)
-    unit2unit_size: dict[Unit, int] = {"Gb": 10**9, "Mb": 10**6, "Kb": 10**3, "bp": 1}
+    unit2size: dict[Unit, int] = {"Gb": 10**9, "Mb": 10**6, "Kb": 10**3, "bp": 1}
     if unit is None:
         max_size = max(size)
         target_unit, target_unit_size = "", 0
-        for unit, unit_size in unit2unit_size.items():
-            if max_size >= unit_size:
-                target_unit, target_unit_size = unit, unit_size
+        for unit_key, size_value in unit2size.items():
+            if max_size >= size_value:
+                target_unit, target_unit_size = unit_key, size_value
                 break
+    elif unit not in unit2size:
+        raise ValueError(f"{unit=} is invalid (Gb, Mb, Kb, bp)")
     else:
-        if unit not in unit2unit_size:
-            raise ValueError(f"{unit=} is invalid (Gb, Mb, Kb, bp)")
-        else:
-            target_unit, target_unit_size = unit, unit2unit_size[unit]
+        target_unit, target_unit_size = unit, unit2size[unit]
 
     # Format size
     format_size: list[str] = []

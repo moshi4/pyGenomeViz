@@ -6,19 +6,21 @@ from pygenomeviz.exception import FeatureRangeError
 from pygenomeviz.track import FeatureTrack
 
 
-def test_feature_track_properties():
+def test_feature_track_properties() -> None:
     """Test FeatureTrack properties"""
     track_name = "feature_track"
     seg_name2range = dict(track1=(0, 100), track2=(200, 1000), track3=(2000, 2500))
     track = FeatureTrack(track_name, seg_name2range)
 
     assert track.name == track_name
-    for seg, (seg_name, range) in zip(track.segments, seg_name2range.items()):
+    for seg, (seg_name, range) in zip(
+        track.segments, seg_name2range.items(), strict=False
+    ):
         assert seg.name == seg_name
         assert (seg.start, seg.end) == range
 
 
-def test_add_outside_range_feature():
+def test_add_outside_range_feature() -> None:
     """Test add outside range feature"""
     track = FeatureTrack("test", dict(a=(0, 1000), b=(1000, 2000)))
     # Success

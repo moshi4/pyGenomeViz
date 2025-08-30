@@ -5,7 +5,7 @@ from Bio.SeqFeature import SeqFeature, SimpleLocation
 from pygenomeviz.utils import is_pseudo_feature, to_stack_features
 
 
-def test_is_pseudo_feature():
+def test_is_pseudo_feature() -> None:
     """Test `is_pseudo_feature()`"""
     no_pseudo_feature = SeqFeature(SimpleLocation(0, 100))
     assert is_pseudo_feature(no_pseudo_feature) is False
@@ -13,7 +13,7 @@ def test_is_pseudo_feature():
     assert is_pseudo_feature(pseudo_feature) is True
 
 
-def test_to_stack_features():
+def test_to_stack_features() -> None:
     """Test `to_stack_features()`"""
     locs = [(10, 20), (15, 25), (18, 30), (30, 50), (70, 100), (80, 85), (90, 100)]
     features = [SeqFeature(SimpleLocation(loc[0], loc[1])) for loc in locs]

@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import subprocess as sp
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.marker import skipif_mummer_not_installed
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from pygenomeviz.typing import SeqType
 
 CLI_NAME = "pgv-mummer"
 
@@ -21,12 +26,12 @@ CLI_NAME = "pgv-mummer"
 def test_mummer_cli(
     gbk_dataset_files: list[Path],
     tmp_path: Path,
-    seqtype,
-):
+    seqtype: SeqType,
+) -> None:
     """Run mummer cli"""
     seqs = " ".join([str(file) for file in gbk_dataset_files])
     cmd = f"{CLI_NAME} {seqs} -o {tmp_path} --formats png --seqtype {seqtype}"
-    cmd_res = sp.run(cmd, shell=True)
+    cmd_res = sp.run(cmd, check=False, shell=True)
 
     assert cmd_res.returncode == 0
 

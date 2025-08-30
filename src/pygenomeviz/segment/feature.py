@@ -2,18 +2,20 @@ from __future__ import annotations
 
 import uuid
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, overload
+from typing import TYPE_CHECKING, Any, overload
 
 import numpy as np
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 
 from pygenomeviz.exception import FeatureRangeError
-from pygenomeviz.typing import HPos, PlotStyle, VPos
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from numpy.typing import NDArray
 
     from pygenomeviz.track import FeatureTrack
+    from pygenomeviz.typing import HPos, PlotStyle, VPos
 
 
 class FeatureSegment:
@@ -25,7 +27,7 @@ class FeatureSegment:
         start: int,
         end: int,
         feature_track: FeatureTrack,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -657,11 +659,11 @@ class FeatureSegment:
             extra=extra_tooltip,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         seg_name = self.name
         seg_size = self.size
         seg_range = f"({self.start} - {self.end})"
         return f"{seg_name=}, {seg_size=}, {seg_range=}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

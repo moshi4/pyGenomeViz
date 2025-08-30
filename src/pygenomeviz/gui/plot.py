@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 import hashlib
-import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pygenomeviz import GenomeViz
 from pygenomeviz.align import AlignCoord, Blast, MMseqs, MUMmer
 from pygenomeviz.exception import SegmentNotFoundError
 from pygenomeviz.gui import config, utils
-from pygenomeviz.parser import Genbank
 from pygenomeviz.utils import is_pseudo_feature
 
+if TYPE_CHECKING:
+    from pygenomeviz.parser import Genbank
 
-def plot_by_gui_cfg(
+
+def plot_by_gui_cfg(  # noqa: PLR0912, PLR0915
     gbk_list: list[Genbank],
     cfg: config.PgvGuiPlotConfig,
 ) -> tuple[GenomeViz, list[AlignCoord]]:
@@ -89,7 +91,7 @@ def plot_by_gui_cfg(
     # Create processig cache directory
     package_name = __name__.split(".")[0]
     gui_cache_dir = Path.home() / ".cache" / package_name / "gui"
-    os.makedirs(gui_cache_dir, exist_ok=True)
+    gui_cache_dir.mkdir(parents=True, exist_ok=True)
     utils.remove_old_files(gui_cache_dir)
 
     # Create md5 hash unique filename to enable cache alignment result

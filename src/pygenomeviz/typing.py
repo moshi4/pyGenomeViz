@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Literal
 
 Range = tuple[int, int]
 Segments = int | Range | Sequence[int | Range] | Mapping[str, int | Range]

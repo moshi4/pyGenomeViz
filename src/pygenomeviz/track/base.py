@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from matplotlib.axes import Axes
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 class Track:
@@ -12,7 +15,7 @@ class Track:
         *,
         ratio: float = 1.0,
         zorder: float = 0.0,
-    ):
+    ) -> None:
         self._name = name
         self._ratio = ratio
         self._zorder = zorder

@@ -3,15 +3,17 @@ from __future__ import annotations
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any
-
-from matplotlib.patches import Patch
+from typing import TYPE_CHECKING, Any
 
 from pygenomeviz.exception import LinkRangeError
 from pygenomeviz.patches import Link
-from pygenomeviz.segment import FeatureSegment
 from pygenomeviz.track import FeatureTrack, Track
 from pygenomeviz.utils.plot import plot_patches
+
+if TYPE_CHECKING:
+    from matplotlib.patches import Patch
+
+    from pygenomeviz.segment import FeatureSegment
 
 
 class LinkTrack(Track):
@@ -24,7 +26,7 @@ class LinkTrack(Track):
         ratio: float = 1.0,
         upper_feature_track: FeatureTrack,
         lower_feature_track: FeatureTrack,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -155,7 +157,7 @@ class LinkRecord:
     curve: bool = False
     patch_kws: dict[str, Any] | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # Generate uuid for patch group id
         self._gid = f"Link-{uuid.uuid4().hex}"
 

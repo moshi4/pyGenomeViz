@@ -9,14 +9,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import streamlit as st
-from Bio.SeqFeature import SeqFeature
-from matplotlib.figure import Figure
 
-from pygenomeviz import GenomeViz
 from pygenomeviz.parser import Genbank
 
 if TYPE_CHECKING:
+    from Bio.SeqFeature import SeqFeature
+    from matplotlib.figure import Figure
     from streamlit.runtime.uploaded_file_manager import UploadedFile
+
+    from pygenomeviz import GenomeViz
 
 
 @st.cache_data(ttl=3600)

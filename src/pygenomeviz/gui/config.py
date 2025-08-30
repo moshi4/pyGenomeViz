@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Callable
+from typing import TYPE_CHECKING
 
-from pygenomeviz.typing import AlnMethod
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from pygenomeviz.typing import AlnMethod
 
 
 @dataclass
@@ -40,7 +43,7 @@ class FeatureConfig:
         """Label filter function (from label_filter_words)"""
 
         def label_filter(label: str) -> str:
-            filter_words = self.label_filter_words + ["hypothetical"]
+            filter_words = [*self.label_filter_words, "hypothetical"]
             for filter_word in filter_words:
                 if filter_word.strip() in label:
                     return ""
@@ -71,7 +74,7 @@ class PgvGuiPlotConfig:
     aln: AlignConfig
     name2seqid2range: dict[str, dict[str, tuple[int, int]]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         def dict_format(d: dict, name: str | None = "") -> str:
             format_str = "{\n"
             if name:

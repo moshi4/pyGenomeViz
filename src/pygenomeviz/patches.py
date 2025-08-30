@@ -53,10 +53,7 @@ class Arrow(FancyArrow):
 
         # x, y
         x = end if strand == -1 else start
-        if bigstyle:
-            y = 0
-        else:
-            y = ylim[0] / 2 if strand == -1 else ylim[1] / 2
+        y = 0 if bigstyle else ylim[0] / 2 if strand == -1 else ylim[1] / 2
         # dx, dy
         length = end - start
         dx, dy = length * strand, 0
@@ -67,8 +64,7 @@ class Arrow(FancyArrow):
         shaft_width = head_width * shaft_ratio
         # head length
         head_length = max_size * 0.015
-        if length < head_length:
-            head_length = length
+        head_length = min(head_length, length)
 
         if not show_head:
             head_length = 0
@@ -194,11 +190,10 @@ class RoundBox(PathPatch):
         xmin, xmax = start, end
         if bigstyle:
             ymin, ymax, ycenter = ylim[0], ylim[1], 0
+        elif strand == -1:
+            ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
         else:
-            if strand == -1:
-                ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
-            else:
-                ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
+            ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
 
         path_data = [
             (Path.MOVETO, (xmin + r_size, ymax)),
@@ -209,7 +204,7 @@ class RoundBox(PathPatch):
             (Path.CURVE3, (xmin - r_size, ycenter)),
             (Path.CURVE3, (xmin + r_size, ymax)),
         ]
-        codes, verts = zip(*path_data)
+        codes, verts = zip(*path_data, strict=False)
         super().__init__(Path(verts, codes), **kwargs)
 
 
@@ -257,11 +252,10 @@ class Intron(PathPatch):
         xcenter = (xmin + xmax) / 2
         if bigstyle:
             ymin, ymax, ycenter = ylim[0], ylim[1], 0
+        elif strand == -1:
+            ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
         else:
-            if strand == -1:
-                ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
-            else:
-                ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
+            ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
         ytop = ymin if strand == -1 else ymax
 
         path_data = [
@@ -269,7 +263,7 @@ class Intron(PathPatch):
             (Path.LINETO, (xcenter, ytop)),
             (Path.LINETO, (xmax, ycenter)),
         ]
-        codes, verts = zip(*path_data)
+        codes, verts = zip(*path_data, strict=False)
         super().__init__(Path(verts, codes), **kwargs)
 
 
@@ -286,7 +280,7 @@ class Link(PathPatch):
         ylim: tuple[float, float] = (-1, 1),
         curve: bool = False,
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -336,7 +330,7 @@ class Link(PathPatch):
                 (Path.LINETO, (start1, ymax)),
                 (Path.LINETO, (start2, ymin)),
             ]
-        codes, verts = zip(*path_data)
+        codes, verts = zip(*path_data, strict=False)
         super().__init__(Path(verts, codes), **kwargs)
 
 

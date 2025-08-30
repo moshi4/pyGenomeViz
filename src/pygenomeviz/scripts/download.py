@@ -3,23 +3,25 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pygenomeviz
 from pygenomeviz.logger import init_logger
 from pygenomeviz.scripts import CustomHelpFormatter, exit_handler, logging_timeit
-from pygenomeviz.typing import GenbankDatasetName
 from pygenomeviz.utils import load_example_genbank_dataset
 from pygenomeviz.utils.download import GBK_DATASET
+
+if TYPE_CHECKING:
+    from pygenomeviz.typing import GenbankDatasetName
 
 CLI_NAME = "pgv-download"
 
 
 @exit_handler
 @logging_timeit
-def main():
+def main() -> None:
     """Main function called from CLI"""
     # Get arguments
     args = get_args()
@@ -36,7 +38,7 @@ def main():
     if cache_only:
         load_example_genbank_dataset(dataset_name)
     else:
-        os.makedirs(outdir, exist_ok=True)
+        outdir.mkdir(parents=True, exist_ok=True)
         gbk_files = load_example_genbank_dataset(dataset_name)
         for gbk_file in gbk_files:
             logger.info(f"Copy '{gbk_file}' to '{outdir}/{gbk_file.name}'")

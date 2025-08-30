@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -22,7 +21,7 @@ from pygenomeviz.exception import (
     LinkTrackNotFoundError,
 )
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, Track
-from pygenomeviz.typing import Theme, TrackAlignType, Unit
+from pygenomeviz.typing import Segments, Theme, TrackAlignType, Unit
 from pygenomeviz.utils.helper import interpolate_color, size_label_formatter
 from pygenomeviz.viewer import setup_viewer_html
 
@@ -130,10 +129,7 @@ class GenomeViz:
     def add_feature_track(
         self,
         name: str,
-        segments: int
-        | tuple[int, int]
-        | Sequence[int | tuple[int, int]]
-        | Mapping[str, int | tuple[int, int]],
+        segments: Segments,
         *,
         space: float | list[float] = 0.02,
         offset: int | TrackAlignType | None = None,
@@ -152,7 +148,7 @@ class GenomeViz:
         ----------
         name : str
             Track name
-        segments : int | tuple[int, int] | Sequence[int | tuple[int, int]] | Mapping[str, int | tuple[int, int]]
+        segments : Segments
             Track segments definition. Segment sizes or ranges can be specified.
         space : float | list[float], optional
             Space ratio between segments.
@@ -658,10 +654,7 @@ class GenomeViz:
 
     def _to_seg_name2range(
         self,
-        segments: int
-        | tuple[int, int]
-        | Sequence[int | tuple[int, int]]
-        | Mapping[str, int | tuple[int, int]],
+        segments: Segments,
     ) -> dict[str, tuple[int, int]]:
         """Convert segments type to `segment name` & `range` dict"""
         # Convert segments to dict type

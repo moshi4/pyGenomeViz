@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, Mapping, Sequence
+
+Range = tuple[int, int]
+Segments = int | Range | Sequence[int | Range] | Mapping[str, int | Range]
 
 TrackAlignType = Literal["left", "center", "right"]
 PlotStyle = Literal["bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox"]

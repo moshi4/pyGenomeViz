@@ -7,6 +7,7 @@ from pathlib import Path
 
 import streamlit as st
 from matplotlib.colors import to_hex
+from streamlit.logger import get_logger
 
 import pygenomeviz
 from pygenomeviz import const
@@ -442,10 +443,8 @@ with genome_info_container.form(key="form"):
             name2seqid2range[gbk.name] = seqid2range
 
 # Plot figure
-gv, align_coords = plot.plot_by_gui_cfg(
-    gbk_list,
-    config.PgvGuiPlotConfig(fig_cfg, feat_cfg, aln_cfg, name2seqid2range),
-)
+plot_cfg = config.PgvGuiPlotConfig(fig_cfg, feat_cfg, aln_cfg, name2seqid2range)
+gv, align_coords = plot.plot_by_gui_cfg(gbk_list, plot_cfg)
 fig = gv.plotfig()
 fig_container.pyplot(fig)
 
@@ -469,3 +468,6 @@ if align_coords:
         on_click="ignore",
         icon=":material/download:",
     )
+
+st_logger = get_logger(__name__)
+st_logger.info(f"Plot figure with following options\n{plot_cfg}")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Callable
 
 from pygenomeviz.typing import AlnMethod
@@ -70,3 +70,22 @@ class PgvGuiPlotConfig:
     feat: FeatureConfig
     aln: AlignConfig
     name2seqid2range: dict[str, dict[str, tuple[int, int]]]
+
+    def __str__(self):
+        def dict_format(d: dict, name: str | None = "") -> str:
+            format_str = "{\n"
+            if name:
+                format_str = f"{name} = {format_str}"
+            for k, v in d.items():
+                format_str += f"    {k}: {v},\n"
+            format_str += "}"
+            return format_str
+
+        return "\n".join(
+            [
+                dict_format(asdict(self.fig), "Figure Appearence Options"),
+                dict_format(asdict(self.feat), "Plot Feature Options"),
+                dict_format(asdict(self.aln), "Plot Link Options"),
+                dict_format(self.name2seqid2range, "Genome Min-Max Range"),
+            ]
+        )

@@ -250,8 +250,8 @@ def fetch_genbank_by_accid(
     accid: str,
     gbk_outfile: str | Path | None = None,
     email: str | None = None,
-) -> TextIOWrapper:
-    """Fetch genbank text by 'Accession ID'
+) -> StringIO:
+    """Fetch genbank text by `Accession ID`
 
     Parameters
     ----------
@@ -264,13 +264,13 @@ def fetch_genbank_by_accid(
 
     Returns
     -------
-    TextIOWrapper
+    gbk_str_io : StringIO
         Genbank data
 
     Examples
     --------
-    >>> gbk_text = fetch_genbank_by_accid("NC_013600")
-    >>> gbk = Genbank(gbk_text)
+    >>> gbk_fetch_data = fetch_genbank_by_accid("NC_002483")
+    >>> gbk = Genbank(gbk_fetch_data)
     """
     Entrez.email = "" if email is None else email
     gbk_fetch_data: TextIOWrapper = Entrez.efetch(
@@ -279,10 +279,9 @@ def fetch_genbank_by_accid(
         rettype="gbwithparts",
         retmode="text",
     )
+    gbk_text = gbk_fetch_data.read()
     if gbk_outfile is not None:
-        gbk_text = gbk_fetch_data.read()
         with open(gbk_outfile, "w", encoding="utf-8") as f:
             f.write(gbk_text)
-        gbk_fetch_data = StringIO(gbk_text)  # type: ignore
 
-    return gbk_fetch_data
+    return StringIO(gbk_text)

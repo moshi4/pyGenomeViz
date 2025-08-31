@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from matplotlib.patches import Patch
     from numpy.typing import NDArray
 
+    from pygenomeviz import GenomeViz
     from pygenomeviz.typing import HPos, PlotStyle, TrackAlignType, VPos
 
 
@@ -30,6 +31,7 @@ class FeatureTrack(Track):
         name: str,
         seg_name2range: Mapping[str, tuple[int, int]],
         *,
+        gv: GenomeViz,
         ratio: float = 1.0,
         space: float | list[float] = 0.01,
         offset: int | TrackAlignType = "left",
@@ -46,6 +48,8 @@ class FeatureTrack(Track):
             Track name
         seg_name2range : Mapping[str, tuple[int, int]]
             Segment name & range dict
+        gv : GenomeViz
+            Parent GenomeViz instance
         ratio : float, optional
             Track size ratio
         space : float | list[float], optional
@@ -83,8 +87,9 @@ class FeatureTrack(Track):
             raise ValueError(f"{len(space)=} is invalid!!")
 
         self._segments = segments
+        self._gv = gv
         self._space = space
-        self._offset = offset
+        self._offset: int | TrackAlignType = offset
         self._labelsize = labelsize
         self._labelmargin = labelmargin
         self._align_label = align_label
@@ -95,11 +100,14 @@ class FeatureTrack(Track):
         self._label: str | None = None
         self._segment_sep_text_kws_list: Sequence[dict[str, Any] | None] = []
 
-        self._max_track_total_seg_size: int | None = None
-
     ############################################################
     # Property
     ############################################################
+
+    @property
+    def gv(self) -> GenomeViz:
+        """Parent GenomeViz"""
+        return self._gv
 
     @property
     def label(self) -> str:
@@ -107,18 +115,20 @@ class FeatureTrack(Track):
         return self.name if self._label is None else self._label
 
     @property
+    def raw_offset(self) -> int | TrackAlignType:
+        """Raw offset value"""
+        return self._offset
+
+    @property
     def offset(self) -> int:
         """Track offset"""
-        offset = self._offset
+        offset = self.raw_offset
         if isinstance(offset, str):
-            if offset == "left":
-                return 0
-            elif offset == "center":
-                return int((max(self.xlim) - self.plot_size) / 2)
-            elif offset == "right":
-                return max(self.xlim) - self.plot_size
-            else:
-                raise ValueError(f"{offset=} is invalid!!")
+            return dict(
+                left=0,
+                center=int((max(self.xlim) - self.plot_size) / 2),
+                right=max(self.xlim) - self.plot_size,
+            )[offset]
         else:
             if not offset >= 0:
                 raise ValueError(f"offset must be greater than 0 ({offset=}).")
@@ -135,7 +145,7 @@ class FeatureTrack(Track):
         return self._subtracks
 
     @property
-    def total_seg_size(self) -> int:
+    def size(self) -> int:
         """Total segment size"""
         return sum([seg.size for seg in self.segments])
 
@@ -146,46 +156,25 @@ class FeatureTrack(Track):
         if isinstance(self._space, (list, tuple)):
             for space in self._space:
                 if 0 <= space < 1:
-                    spaces.append(int(self.max_track_total_seg_size * space))
+                    spaces.append(int(self.gv.max_track_size * space))
                 else:
                     spaces.append(int(space))
         else:
             for _ in range(len(self.segments) - 1):
                 if 0 <= self._space < 1:
-                    spaces.append(int(self.max_track_total_seg_size * self._space))
+                    spaces.append(int(self.gv.max_track_size * self._space))
                 else:
                     spaces.append(int(self._space))
         return spaces
 
     @property
-    def max_track_total_seg_size(self) -> int:
-        """Max track total segment size (Use space calculation)"""
-        if self._max_track_total_seg_size is None:
-            raise ValueError("'max_track_total_seg_size' is not defined!!")
-        else:
-            return self._max_track_total_seg_size
-
-    @property
     def plot_size(self) -> int:
-        """Plot x size (`total_seg_size` + `sum(spaces)`)"""
-        return self.total_seg_size + sum(self.spaces)
+        """Plot size (`track size` + `sum(spaces)`)"""
+        return self.size + sum(self.spaces)
 
     ############################################################
     # Public Method
     ############################################################
-
-    def set_max_track_total_seg_size(self, max_track_total_seg_size: int) -> None:
-        """Set max track total segment size
-
-        This method is expected to be called within the GenomeViz instance
-        to update track status. General users should not use this method.
-
-        Parameters
-        ----------
-        max_track_total_seg_size : int
-            Max track total segment size
-        """
-        self._max_track_total_seg_size = max_track_total_seg_size
 
     def set_label(self, label: str) -> None:
         """Set track label (By default, `track.label` = `track.name`)

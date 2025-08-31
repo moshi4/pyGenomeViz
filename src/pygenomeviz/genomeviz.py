@@ -107,6 +107,13 @@ class GenomeViz:
         """Link tracks"""
         return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
 
+    @property
+    def max_track_size(self) -> int:
+        """Max track size (total segment size)"""
+        if len(self.feature_tracks) == 0:
+            raise ValueError("No feature track found!!")
+        return max([t.size for t in self.feature_tracks])
+
     ############################################################
     # Public Method
     ############################################################
@@ -193,6 +200,7 @@ class GenomeViz:
         feature_track = FeatureTrack(
             name,
             self._to_seg_name2range(segments),
+            gv=self,
             ratio=self._feature_track_ratio,
             space=space,
             offset=self._track_align_type if offset is None else offset,
@@ -217,7 +225,8 @@ class GenomeViz:
             self._tracks.append(link_track)
 
         self._tracks.append(feature_track)
-        self._update_track_status()
+
+        self._update_track_xlim()
 
         return feature_track
 
@@ -640,22 +649,17 @@ class GenomeViz:
     # Private Method
     ############################################################
 
-    def _update_track_status(self) -> None:
-        """Update track status
+    def _update_track_xlim(self) -> None:
+        """Update track xlim
 
-        This method is called at the end of `add_feature_track()`
+        This method is called at the end of `add_feature_track()` every time
         """
-        # Set `max_track_total_seg_size` & `xlim` for each feature track
-        max_track_total_seg_size = max([t.total_seg_size for t in self.feature_tracks])
+        xlim_size = 0
         for t in self.feature_tracks:
-            t.set_max_track_total_seg_size(max_track_total_seg_size)
-
-        plot_size_list = []
-        for t in self.feature_tracks:
-            offset = t._offset if isinstance(t._offset, int) else 0
-            plot_size_list.append(t.plot_size + offset)
+            offset = t.raw_offset if isinstance(t.raw_offset, int) else 0
+            xlim_size = max(xlim_size, t.plot_size + offset)
         for t in self.get_tracks(subtrack=True):
-            t.set_xlim((0, max(plot_size_list)))
+            t.set_xlim((0, xlim_size))
 
     def _to_seg_name2range(
         self,

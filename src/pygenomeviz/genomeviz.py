@@ -10,8 +10,10 @@ from matplotlib.colorbar import Colorbar
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
 from matplotlib.font_manager import FontProperties
 from matplotlib.gridspec import GridSpec
+from matplotlib.text import Annotation, Text
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
+from pygenomeviz import config
 from pygenomeviz.exception import (
     FeatureTrackNotFoundError,
     LinkRangeError,
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
 
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
+    from matplotlib.transforms import Bbox
 
     from pygenomeviz.typing import Segments, Theme, TrackAlignType, Unit
 
@@ -564,6 +567,9 @@ class GenomeViz:
 
         self._setup_jupyter_inline()
 
+        if config.ann_adjust.enabled:
+            self._adjust_annotation()
+
         return fig
 
     def savefig(
@@ -715,6 +721,30 @@ class GenomeViz:
             raise LinkTrackNotFoundError(f"Failed to get link track.\n{target1=}\n{target2=})\nTarget feature tracks must be adjacent feature tracks!!")  # fmt: skip  # noqa: E501
 
         return target_link_track
+
+    def _adjust_annotation(self) -> None:
+        """Adjust annotation position to avoid overlap"""
+
+        def get_ann_window_extent(ann: Annotation) -> Bbox:
+            return Text.get_window_extent(ann).expanded(*config.ann_adjust.expand)
+
+        self.feature_tracks[0].ax.figure.draw_without_rendering()  # type: ignore
+        for track in self.feature_tracks:
+            # Apply annotation position adjustment per track
+            ann_list = [t for t in track.ax.texts if isinstance(t, Annotation)]
+            if len(ann_list) > config.ann_adjust.limit:
+                continue
+            for idx, ann in enumerate(ann_list[1:], 1):
+                ann_bbox = get_ann_window_extent(ann)
+                adj_ann_list = ann_list[:idx]
+                adj_ann_bboxes = [get_ann_window_extent(ann) for ann in adj_ann_list]
+                # Iteratively adjust annotation position
+                while ann_bbox.count_overlaps(adj_ann_bboxes) > 0:
+                    x, y = ann.xyann
+                    ann.xyann = (x, y + config.ann_adjust.dy)
+                    ann_bbox = get_ann_window_extent(ann)
+                    # Update zorder to avoid annotation line above text bbox
+                    ann.set_zorder(ann.zorder - 1e-6)
 
     def _get_gid2feature_dict(self) -> dict[str, dict[str, Any]]:
         """Get group ID & feature dict

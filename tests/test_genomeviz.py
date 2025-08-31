@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING
 import pytest
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 
-from pygenomeviz import GenomeViz
+from pygenomeviz import GenomeViz, config
 from pygenomeviz.parser import Genbank, Gff
+from pygenomeviz.utils import ColorCycler
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -120,6 +121,29 @@ def test_gff_plot(gff_file: Path, tmp_path: Path) -> None:
     features = gff.extract_features()
     track.add_features(features)
 
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_plot_with_annotation(gbk_file: Path, tmp_path: Path) -> None:
+    """Test plot features with annotation"""
+    config.ann_adjust.enabled = True
+    config.ann_adjust.expand = (1.3, 2.0)
+    ColorCycler.set_cmap("Set3")
+
+    gbk = Genbank(gbk_file)
+    gv = GenomeViz(fig_track_height=0.5)
+    track = gv.add_feature_track(gbk.name, segments=(70000, 90000))
+    for feature in gbk.extract_features("CDS", target_range=track.get_segment().range):
+        color = ColorCycler()
+        track.add_features(
+            feature,
+            plotstyle="bigarrow",
+            color=color,
+            label_type="product",
+            annotation=True,
+            text_kws=dict(bbox=dict(boxstyle="round, pad=0.2", fc=color)),
+        )
     gv.savefig(tmp_path / "result.png")
     gv.savefig_html(tmp_path / "result.html")
 

@@ -370,6 +370,7 @@ class FeatureSegment:
         plotstyle: PlotStyle = "arrow",
         arrow_shaft_ratio: float = 0.5,
         extra_tooltip: dict[str, str] | None = None,
+        annotation: bool = False,
         label: str = "",
         text_kws: dict[str, Any] | None = None,
         **kwargs,
@@ -390,10 +391,12 @@ class FeatureSegment:
             Arrow shaft size ratio
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict for html figure
+        annotation : bool, optional
+            If True, add annotation instead of text
         label : str, optional
             Feature label text
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(size=12, color="red", ...)`)
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
@@ -413,7 +416,10 @@ class FeatureSegment:
 
         # Plot text
         label_pos = (start + end) / 2
-        self.add_text(label_pos, label, **text_kws)
+        if annotation:
+            self.add_annotation(label_pos, label, **text_kws)
+        else:
+            self.add_text(label_pos, label, **text_kws)
 
     def add_features(
         self,
@@ -423,6 +429,7 @@ class FeatureSegment:
         arrow_shaft_ratio: float = 0.5,
         label_type: str | None = None,
         label_handler: Callable[[str], str] | None = None,
+        annotation: bool = False,
         extra_tooltip: dict[str, str] | None = None,
         ignore_outside_range: bool = False,
         text_kws: dict[str, Any] | None = None,
@@ -443,13 +450,15 @@ class FeatureSegment:
         label_handler : Callable[[str], str] | None, optional
             Label handler function to customize label display.
             If None, set label handler to exclude labels containing `hypothetical`.
+        annotation : bool, optional
+            If True, add annotation instead of text
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict for html figure
         ignore_outside_range : bool, optional
             If True and the feature position is outside the range of the track segment,
             ignore it without raising an error.
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(color="red", ...)`)
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
@@ -493,7 +502,10 @@ class FeatureSegment:
             label = label_handler(label)
             start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
             label_pos = (start + end) / 2
-            self.add_text(label_pos, label, **text_kws)
+            if annotation:
+                self.add_annotation(label_pos, label, **text_kws)
+            else:
+                self.add_text(label_pos, label, **text_kws)
 
     def add_exon_feature(
         self,
@@ -503,6 +515,7 @@ class FeatureSegment:
         plotstyle: PlotStyle = "arrow",
         arrow_shaft_ratio: float = 0.5,
         label: str = "",
+        annotation: bool = False,
         patch_kws: dict[str, Any] | None = None,
         intron_patch_kws: dict[str, Any] | None = None,
         text_kws: dict[str, Any] | None = None,
@@ -521,6 +534,8 @@ class FeatureSegment:
             Arrow shaft size ratio
         label : str, optional
             Feature label
+        annotation : bool, optional
+            If True, add annotation instead of text
         patch_kws : dict[str, Any] | None, optional
             Exon patch properties (e.g. `dict(fc="red", lw=0.5, hatch="//", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -528,7 +543,7 @@ class FeatureSegment:
             Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(size=12, color="red", ...)`)
         """
         text_kws = {} if text_kws is None else deepcopy(text_kws)
@@ -551,7 +566,10 @@ class FeatureSegment:
         # Plot text
         start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
         label_pos = (start + end) / 2
-        self.add_text(label_pos, label, **text_kws)
+        if annotation:
+            self.add_annotation(label_pos, label, **text_kws)
+        else:
+            self.add_text(label_pos, label, **text_kws)
 
     def add_exon_features(
         self,
@@ -561,6 +579,7 @@ class FeatureSegment:
         arrow_shaft_ratio: float = 0.5,
         label_type: str | None = None,
         label_handler: Callable[[str], str] | None = None,
+        annotation: bool = False,
         extra_tooltip: dict[str, str] | None = None,
         ignore_outside_range: bool = False,
         patch_kws: dict[str, Any] | None = None,
@@ -582,6 +601,8 @@ class FeatureSegment:
         label_handler : Callable[[str], str] | None, optional
             Label handler function to customize label display.
             If None, set label handler to exclude labels containing `hypothetical`.
+        annotation : bool, optional
+            If True, add annotation instead of text
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict for html figure
         ignore_outside_range : bool, optional
@@ -594,7 +615,7 @@ class FeatureSegment:
             Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(size=12, color="red", ...)`)
         """
         patch_kws = {} if patch_kws is None else deepcopy(patch_kws)
@@ -638,7 +659,10 @@ class FeatureSegment:
             label = label_handler(label)
             start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
             label_pos = (start + end) / 2
-            self.add_text(label_pos, label, **text_kws)
+            if annotation:
+                self.add_annotation(label_pos, label, **text_kws)
+            else:
+                self.add_text(label_pos, label, **text_kws)
 
     ############################################################
     # Private Method

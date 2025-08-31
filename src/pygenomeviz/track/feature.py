@@ -367,6 +367,48 @@ class FeatureTrack(Track):
             **kwargs,
         )
 
+    def add_annotation(
+        self,
+        x: float,
+        text: str,
+        *,
+        target_seg: str | None = None,
+        size: float = 12,
+        ymargin: float = 0.5,
+        line_kws: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> None:
+        """Add annotation to track segment
+
+        Parameters
+        ----------
+        x : float
+            Text x coordinate
+        text : str
+            Text content
+        target_seg : str | None, optional
+            Target segment name. If None, first segment is selected.
+        size : float, optional
+            Text size
+        ymargin : float, optional
+            Y margin
+        line_kws : dict[str, Any] | None, optional
+            FancyArrowPatch properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
+        **kwargs : dict, optional
+            Text properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.annotate.html>
+        """
+        segment = self.get_segment(target_seg)
+        segment.add_annotation(
+            x,
+            text,
+            size=size,
+            ymargin=ymargin,
+            line_kws=line_kws,
+            **kwargs,
+        )
+
     def add_sublabel(
         self,
         text: str | None = None,
@@ -811,6 +853,8 @@ class FeatureTrack(Track):
         for seg in self.segments:
             for text_kws in seg.transform_text_kws_list:
                 self.ax.text(**text_kws)
+            for ann_kws in seg.transform_ann_kws_list:
+                self.ax.annotate(**ann_kws)
 
     def _extract_exon_intron_locs(
         self,

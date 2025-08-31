@@ -48,6 +48,7 @@ class FeatureSegment:
         self._features: list[SeqFeature] = []
         self._exon_features: list[SeqFeature] = []
         self._text_kws_list: list[dict[str, Any]] = []
+        self._ann_kws_list: list[dict[str, Any]] = []
         self._gid2feature_dict: dict[str, dict[str, Any]] = {}
 
     ############################################################
@@ -131,6 +132,19 @@ class FeatureSegment:
             plot_text_kws["x"] = self.transform_coord(plot_text_kws["x"])
             plot_text_kws_list.append(plot_text_kws)
         return plot_text_kws_list
+
+    @property
+    def transform_ann_kws_list(self) -> list[dict[str, Any]]:
+        """Coordinate transformed annotation keywords list"""
+        plot_ann_kws_list: list[dict[str, Any]] = []
+        for ann_kws in self._ann_kws_list:
+            plot_ann_kws = deepcopy(ann_kws)
+            x = ann_kws["xy"][0]
+            transform_x = self.transform_coord(x)
+            plot_ann_kws["xy"] = (transform_x, ann_kws["xy"][1])
+            plot_ann_kws["xytext"] = (transform_x, ann_kws["xytext"][1])
+            plot_ann_kws_list.append(plot_ann_kws)
+        return plot_ann_kws_list
 
     ############################################################
     # Public Method
@@ -236,6 +250,62 @@ class FeatureSegment:
             **kwargs,
         )
         self._text_kws_list.append(text_kws)
+
+    def add_annotation(
+        self,
+        x: float,
+        text: str,
+        *,
+        size: float = 12,
+        ymargin: float = 0.5,
+        line_kws: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> None:
+        """Add annotation
+
+        Parameters
+        ----------
+        x : float
+            Text x coordinate
+        text : str
+            Text content
+        size : float, optional
+            Text size
+        ymargin : float, optional
+            Y margin
+        line_kws : dict[str, Any] | None, optional
+            FancyArrowPatch properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
+        **kwargs : dict, optional
+            Text properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.annotate.html>
+        """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+
+        # Ignore if text content is blank or size <= 0
+        if text == "" or size <= 0:
+            return
+
+        # Check x coordinate is valid or not
+        if not self.start <= x <= self.end:
+            raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
+
+        line_kws.setdefault("lw", 0.5)
+        line_kws.update(dict(shrinkA=0, shrinkB=0, patchA=None, patchB=None))
+        line_kws.update(dict(arrowstyle="-", relpos=(0.5, -0.2)))
+
+        kwargs.update(dict(size=size, va="bottom", ha="center", rotation=0))
+        kwargs.pop("vpos", None)  # Remove add_text specific kwargs
+        kwargs.pop("hpos", None)  # Remove add_text specific kwargs
+
+        ann_kws: dict[str, Any] = dict(
+            text=text,
+            xy=(x, 1.0),
+            xytext=(x, 1.0 + ymargin),
+            arrowprops=line_kws,
+            **kwargs,
+        )
+        self._ann_kws_list.append(ann_kws)
 
     def add_sublabel(
         self,

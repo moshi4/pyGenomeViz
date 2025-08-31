@@ -726,7 +726,15 @@ class GenomeViz:
         """Adjust annotation position to avoid overlap"""
 
         def get_ann_window_extent(ann: Annotation) -> Bbox:
-            return Text.get_window_extent(ann).expanded(*config.ann_adjust.expand)
+            text_bbox = Text.get_window_extent(ann)
+            expand = config.ann_adjust.expand
+            # If text bbox has padding, increase expand factor
+            bbox_patch = ann.get_bbox_patch()
+            if bbox_patch:
+                pad = getattr(bbox_patch.get_boxstyle(), "pad", None)
+                if pad:
+                    expand = (expand[0] * (pad + 1.0), expand[1] * (pad + 1.0))
+            return text_bbox.expanded(*expand)
 
         self.feature_tracks[0].ax.figure.draw_without_rendering()  # type: ignore
         for track in self.feature_tracks:

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import uuid
+from collections import defaultdict
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 import numpy as np
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
 
     from pygenomeviz.track import FeatureTrack
     from pygenomeviz.typing import HPos, PlotStyle, VPos
+
+AXES_METHOD = Literal["text", "annotate", "scatter", "plot"]
 
 
 class FeatureSegment:
@@ -47,9 +50,11 @@ class FeatureSegment:
 
         self._features: list[SeqFeature] = []
         self._exon_features: list[SeqFeature] = []
-        self._text_kws_list: list[dict[str, Any]] = []
-        self._ann_kws_list: list[dict[str, Any]] = []
         self._gid2feature_dict: dict[str, dict[str, Any]] = {}
+        self._ax_method2kws_list: dict[
+            AXES_METHOD,
+            list[dict[str, Any]],
+        ] = defaultdict(list)
 
     ############################################################
     # Property
@@ -124,27 +129,18 @@ class FeatureSegment:
         return list(map(self._transform_feature, self._exon_features))
 
     @property
-    def transform_text_kws_list(self) -> list[dict[str, Any]]:
-        """Coordinate transformed text keywords list"""
-        plot_text_kws_list: list[dict[str, Any]] = []
-        for text_kws in self._text_kws_list:
-            plot_text_kws = deepcopy(text_kws)
-            plot_text_kws["x"] = self.transform_coord(plot_text_kws["x"])
-            plot_text_kws_list.append(plot_text_kws)
-        return plot_text_kws_list
-
-    @property
-    def transform_ann_kws_list(self) -> list[dict[str, Any]]:
-        """Coordinate transformed annotation keywords list"""
-        plot_ann_kws_list: list[dict[str, Any]] = []
-        for ann_kws in self._ann_kws_list:
-            plot_ann_kws = deepcopy(ann_kws)
-            x = ann_kws["xy"][0]
-            transform_x = self.transform_coord(x)
-            plot_ann_kws["xy"] = (transform_x, ann_kws["xy"][1])
-            plot_ann_kws["xytext"] = (transform_x, ann_kws["xytext"][1])
-            plot_ann_kws_list.append(plot_ann_kws)
-        return plot_ann_kws_list
+    def transform_ax_method2kws_list(self) -> dict[AXES_METHOD, list[dict[str, Any]]]:
+        """Coordinate transformed axes method & keywords list"""
+        ax_method2kws_list = deepcopy(self._ax_method2kws_list)
+        for ax_method, kws_list in ax_method2kws_list.items():
+            for kws in kws_list:
+                if ax_method == "text":
+                    kws["x"] = self.transform_coord(float(kws["x"]))
+                elif ax_method == "annotate":
+                    transform_x = self.transform_coord(float(kws["xy"][0]))
+                    kws["xy"] = (transform_x, kws["xy"][1])
+                    kws["xytext"] = (transform_x, kws["xytext"][1])
+        return ax_method2kws_list
 
     ############################################################
     # Public Method
@@ -249,7 +245,7 @@ class FeatureSegment:
             rotation_mode="anchor",
             **kwargs,
         )
-        self._text_kws_list.append(text_kws)
+        self._ax_method2kws_list["text"].append(text_kws)
 
     def add_annotation(
         self,
@@ -290,22 +286,24 @@ class FeatureSegment:
         if not self.start <= x <= self.end:
             raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
 
+        # Annotation line properties
         line_kws.setdefault("lw", 0.5)
         line_kws.update(dict(shrinkA=0, shrinkB=0, patchA=None, patchB=None))
-        line_kws.update(dict(arrowstyle="-", relpos=(0.5, -0.2)))
+        line_kws.update(dict(arrowstyle="-", relpos=(0.5, 0.0)))
 
+        # Annotation text properties
         kwargs.update(dict(size=size, va="bottom", ha="center", rotation=0))
         kwargs.pop("vpos", None)  # Remove add_text specific kwargs
         kwargs.pop("hpos", None)  # Remove add_text specific kwargs
 
-        ann_kws: dict[str, Any] = dict(
+        ann_kws = dict(
             text=text,
             xy=(x, 1.0),
             xytext=(x, 1.0 + ymargin),
             arrowprops=line_kws,
             **kwargs,
         )
-        self._ann_kws_list.append(ann_kws)
+        self._ax_method2kws_list["annotate"].append(ann_kws)
 
     def add_sublabel(
         self,

@@ -738,7 +738,7 @@ class FeatureTrack(Track):
         self._plot_segment_sep()
         self._plot_features(fast_render)
         self._plot_exon_features(fast_render)
-        self._plot_texts()
+        self._call_plot_methods()
 
     ############################################################
     # Private Method
@@ -864,13 +864,12 @@ class FeatureTrack(Track):
 
         plot_patches(patches, self.ax, fast_render)
 
-    def _plot_texts(self) -> None:
-        """Plot texts"""
+    def _call_plot_methods(self) -> None:
+        """Call plot axes methods"""
         for seg in self.segments:
-            for text_kws in seg.transform_text_kws_list:
-                self.ax.text(**text_kws)
-            for ann_kws in seg.transform_ann_kws_list:
-                self.ax.annotate(**ann_kws)
+            for ax_method, kws_list in seg.transform_ax_method2kws_list.items():
+                for kws in kws_list:
+                    getattr(self.ax, ax_method)(**kws)
 
     def _extract_exon_intron_locs(
         self,

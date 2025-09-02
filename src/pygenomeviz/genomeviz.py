@@ -725,16 +725,21 @@ class GenomeViz:
     def _adjust_annotation(self) -> None:
         """Adjust annotation position to avoid overlap"""
 
-        def get_ann_window_extent(ann: Annotation) -> Bbox:
+        def get_padded_text_bbox(ann: Annotation) -> Bbox:
             text_bbox = Text.get_window_extent(ann)
-            expand = config.ann_adjust.expand
-            # If text bbox has padding, increase expand factor
+            h_bbox = text_bbox.height
+            # Add padding to bbox for space between annotations
+            # If annotation has bbox patch, add extra padding
+            line_num = ann.get_text().count("\n") + 1
+            bbox_wpad = (h_bbox * config.ann_adjust.wpad) / line_num
+            bbox_hpad = (h_bbox * config.ann_adjust.hpad) / line_num
             bbox_patch = ann.get_bbox_patch()
             if bbox_patch:
-                pad = getattr(bbox_patch.get_boxstyle(), "pad", None)
-                if pad:
-                    expand = (expand[0] * (pad + 1.0), expand[1] * (pad + 1.0))
-            return text_bbox.expanded(*expand)
+                pad_size = getattr(bbox_patch.get_boxstyle(), "pad", None)
+                if pad_size:
+                    bbox_wpad += (h_bbox * pad_size) / line_num
+                    bbox_hpad += (h_bbox * pad_size) / line_num
+            return text_bbox.padded(bbox_wpad, bbox_hpad)
 
         self.feature_tracks[0].ax.figure.draw_without_rendering()  # type: ignore
         for track in self.feature_tracks:
@@ -743,14 +748,13 @@ class GenomeViz:
             if len(ann_list) > config.ann_adjust.limit:
                 continue
             for idx, ann in enumerate(ann_list[1:], 1):
-                ann_bbox = get_ann_window_extent(ann)
-                adj_ann_list = ann_list[:idx]
-                adj_ann_bboxes = [get_ann_window_extent(ann) for ann in adj_ann_list]
+                ann_bbox = get_padded_text_bbox(ann)
+                adj_ann_bboxes = [get_padded_text_bbox(ann) for ann in ann_list[:idx]]
                 # Iteratively adjust annotation position
                 while ann_bbox.count_overlaps(adj_ann_bboxes) > 0:
                     x, y = ann.xyann
                     ann.xyann = (x, y + config.ann_adjust.dy)
-                    ann_bbox = get_ann_window_extent(ann)
+                    ann_bbox = get_padded_text_bbox(ann)
                     # Update zorder to avoid annotation line above text bbox
                     ann.set_zorder(ann.zorder - 1e-6)
 

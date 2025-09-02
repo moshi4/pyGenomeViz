@@ -6,12 +6,14 @@ class _AnnotationAdjustConfig:
 
     enabled: ClassVar[bool] = True
     """Enable annotation position adjustment (default: `True`)"""
-    limit: ClassVar[int] = 500
-    """Limit of track annotation number for position adjustment (default: `500`)"""
-    dy: ClassVar[float] = 0.1
-    """Delta y for iterative position adjustment (default: `0.1`)"""
-    expand: ClassVar[tuple[float, float]] = (1.2, 1.5)
-    """Expand width & height factor of text bbox (default: `(1.2, 1.5)`)"""
+    limit: ClassVar[int] = 200
+    """Limit of track annotation number for position adjustment (default: `200`)"""
+    dy: ClassVar[float] = 0.05
+    """Delta y for iterative position adjustment (default: `0.05`)"""
+    wpad: ClassVar[float] = 0.1
+    """Text bbox width padded size for space between annotations (default: `0.1`)"""
+    hpad: ClassVar[float] = 0.3
+    """Text bbox height padded size for space between annotations (default: `0.3`)"""
 
 
 ann_adjust = _AnnotationAdjustConfig

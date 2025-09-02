@@ -466,13 +466,6 @@ class FeatureSegment:
         """
         text_kws = {} if text_kws is None else deepcopy(text_kws)
 
-        # Set default label handler
-        def default_label_handler(label: str) -> str:
-            return "" if "hypothetical" in label.lower() else label
-
-        if label_handler is None:
-            label_handler = default_label_handler
-
         if isinstance(features, SeqFeature):
             features = [features]
 
@@ -499,7 +492,9 @@ class FeatureSegment:
 
             # Plot feature label
             label = feature.qualifiers.get(label_type, [""])[0]
-            label = label_handler(label)
+            if label_handler:
+                label = label_handler(label)
+            label = "" if "hypothetical" in label.lower() else label
             start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
             label_pos = (start + end) / 2
             if annotation:
@@ -622,13 +617,6 @@ class FeatureSegment:
         intron_patch_kws = {} if intron_patch_kws is None else intron_patch_kws
         text_kws = {} if text_kws is None else deepcopy(text_kws)
 
-        # Set default label handler
-        def default_label_handler(label: str) -> str:
-            return "" if "hypothetical" in label.lower() else label
-
-        if label_handler is None:
-            label_handler = default_label_handler
-
         if isinstance(features, SeqFeature):
             features = [features]
 
@@ -656,7 +644,9 @@ class FeatureSegment:
 
             # Plot feature label
             label = feature.qualifiers.get(label_type, [""])[0]
-            label = label_handler(label)
+            if label_handler:
+                label = label_handler(label)
+            label = "" if "hypothetical" in label.lower() else label
             start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
             label_pos = (start + end) / 2
             if annotation:

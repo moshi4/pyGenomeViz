@@ -128,7 +128,6 @@ def test_gff_plot(gff_file: Path, tmp_path: Path) -> None:
 def test_plot_with_annotation(gbk_file: Path, tmp_path: Path) -> None:
     """Test plot features with annotation"""
     config.ann_adjust.enabled = True
-    config.ann_adjust.expand = (1.3, 2.0)
     ColorCycler.set_cmap("Set3")
 
     gbk = Genbank(gbk_file)

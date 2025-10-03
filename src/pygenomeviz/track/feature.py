@@ -3,7 +3,7 @@ from __future__ import annotations
 import textwrap
 from collections.abc import Sequence
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any
 
 from pygenomeviz.exception import SegmentNotFoundError, SubTrackNotFoundError
 from pygenomeviz.patches import PLOTSTYLE2PATCH, Intron
@@ -12,15 +12,13 @@ from pygenomeviz.track import Track
 from pygenomeviz.utils.plot import plot_patches
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Mapping
 
-    import numpy as np
     from Bio.SeqFeature import SeqFeature
     from matplotlib.patches import Patch
-    from numpy.typing import NDArray
 
     from pygenomeviz import GenomeViz
-    from pygenomeviz.typing import HPos, PlotStyle, TrackAlignType, VPos
+    from pygenomeviz.typing import TrackAlignType
 
 
 class FeatureTrack(Track):
@@ -99,6 +97,20 @@ class FeatureTrack(Track):
 
         self._label: str | None = None
         self._segment_sep_text_kws_list: Sequence[dict[str, Any] | None] = []
+
+        # Set first segment plot method as track plot method
+        # Enhancing usability in cases when track consist of a single segment
+        self.add_text = self.segments[0].add_text
+        self.add_annotation = self.segments[0].add_annotation
+        self.add_sublabel = self.segments[0].add_sublabel
+        self.add_feature = self.segments[0].add_feature
+        self.add_features = self.segments[0].add_features
+        self.add_exon_feature = self.segments[0].add_exon_feature
+        self.add_exon_features = self.segments[0].add_exon_features
+        self.add_lollipop = self.segments[0].add_lollipop
+        self.add_promoter = self.segments[0].add_promoter
+        self.add_highlight = self.segments[0].add_highlight
+        self.transform_coord = self.segments[0].transform_coord
 
     ############################################################
     # Property
@@ -318,406 +330,6 @@ class FeatureTrack(Track):
             if name not in name2segment:
                 raise SegmentNotFoundError(f"{name=} segment not found (track_name='{self.name}').")  # fmt: skip  # noqa: E501
             return name2segment[name]
-
-    def add_text(
-        self,
-        x: float,
-        text: str,
-        *,
-        target_seg: str | None = None,
-        size: float = 15,
-        vpos: VPos = "top",
-        hpos: HPos = "left",
-        ymargin: float = 0.2,
-        rotation: float = 45,
-        **kwargs,
-    ) -> None:
-        """Add text to track segment
-
-        Parameters
-        ----------
-        x : float
-            Text x coordinate
-        text : str
-            Text content
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        size : float, optional
-            Text size
-        vpos : str, optional
-            Vertical position (`top`|`center`|`bottom`)
-        hpos : str, optional
-            Horizontal position (`left`|`center`|`right`)
-        ymargin : float, optional
-            Y margin
-        rotation : float, optional
-            Text rotation
-        **kwargs : dict, optional
-            `segment.add_text()` method keyword arguments (e.g. `color="red", ...`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_text(
-            x,
-            text,
-            size=size,
-            vpos=vpos,
-            hpos=hpos,
-            ymargin=ymargin,
-            rotation=rotation,
-            **kwargs,
-        )
-
-    def add_annotation(
-        self,
-        x: float,
-        text: str,
-        *,
-        target_seg: str | None = None,
-        size: float = 12,
-        ymargin: float = 0.5,
-        line_kws: dict[str, Any] | None = None,
-        **kwargs,
-    ) -> None:
-        """Add annotation to track segment
-
-        Parameters
-        ----------
-        x : float
-            Text x coordinate
-        text : str
-            Text content
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        size : float, optional
-            Text size
-        ymargin : float, optional
-            Y margin
-        line_kws : dict[str, Any] | None, optional
-            FancyArrowPatch properties (e.g. `color="red", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
-        **kwargs : dict, optional
-            Text properties (e.g. `color="red", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.annotate.html>
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_annotation(
-            x,
-            text,
-            size=size,
-            ymargin=ymargin,
-            line_kws=line_kws,
-            **kwargs,
-        )
-
-    def add_sublabel(
-        self,
-        text: str | None = None,
-        *,
-        target_seg: str | None = None,
-        size: float = 12,
-        pos: str = "bottom-left",
-        ymargin: float = 0.2,
-        rotation: float = 0,
-        **kwargs,
-    ) -> None:
-        """Add sublabel to corners of the track segment
-
-        Parameters
-        ----------
-        text : str | None, optional
-            Text content
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        size : float, optional
-            Text size
-        pos : str, optional
-            Label position ([`top`|`bottom`]-[`left`|`center`|`right`])
-        ymargin : float, optional
-            Y margin
-        rotation : float, optional
-            Text rotation
-        **kwargs : dict, optional
-            `segment.add_text()` method keyword arguments (e.g. `color="red", ...`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_sublabel(
-            text,
-            size=size,
-            pos=pos,
-            ymargin=ymargin,
-            rotation=rotation,
-            **kwargs,
-        )
-
-    def add_feature(
-        self,
-        start: int,
-        end: int,
-        strand: int = 1,
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        extra_tooltip: dict[str, str] | None = None,
-        annotation: bool = False,
-        label: str = "",
-        text_kws: dict[str, Any] | None = None,
-        **kwargs,
-    ) -> None:
-        """Add feature
-
-        Parameters
-        ----------
-        start : int
-            Start position
-        end : int
-            End position
-        strand : int, optional
-            Feature strand
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        extra_tooltip : dict[str, str] | None, optional
-            Extra tooltip dict for html figure
-        annotation : bool, optional
-            If True, add annotation instead of text
-        label : str, optional
-            Feature label
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_feature(
-            start,
-            end,
-            strand,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            extra_tooltip=extra_tooltip,
-            annotation=annotation,
-            label=label,
-            text_kws=text_kws,
-            **kwargs,
-        )
-
-    def add_features(
-        self,
-        features: SeqFeature | list[SeqFeature],
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        label_type: str | None = None,
-        label_handler: Callable[[str], str] | None = None,
-        annotation: bool = False,
-        extra_tooltip: dict[str, str] | None = None,
-        ignore_outside_range: bool = False,
-        text_kws: dict[str, Any] | None = None,
-        **kwargs,
-    ) -> None:
-        """Add features (BioPython SeqFeature)
-
-        Parameters
-        ----------
-        features : SeqFeature | list[SeqFeature]
-            BioPython SeqFeature or SeqFeature list
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        label_type : str | None, optional
-            Label type (e.g. `gene`,`protein_id`,`product`,etc...)
-        label_handler : Callable[[str], str] | None, optional
-            Label handler function to customize label display.
-            If None, set label handler to exclude labels containing `hypothetical`.
-        annotation : bool, optional
-            If True, add annotation instead of text
-        extra_tooltip : dict[str, str] | None, optional
-            Extra tooltip dict for html figure
-        ignore_outside_range : bool, optional
-            If True and the feature position is outside the range of the track segment,
-            ignore it without raising an error.
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_features(
-            features,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            label_type=label_type,
-            label_handler=label_handler,
-            annotation=annotation,
-            extra_tooltip=extra_tooltip,
-            ignore_outside_range=ignore_outside_range,
-            text_kws=text_kws,
-            **kwargs,
-        )
-
-    def add_exon_feature(
-        self,
-        locs: list[tuple[int, int]],
-        strand: int = 1,
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        label: str = "",
-        annotation: bool = False,
-        patch_kws: dict[str, Any] | None = None,
-        intron_patch_kws: dict[str, Any] | None = None,
-        text_kws: dict[str, Any] | None = None,
-    ) -> None:
-        """Add exon feature
-
-        Parameters
-        ----------
-        locs : list[tuple[int, int]]
-            Exon locations (e.g. `[(0, 100), (200, 300), (350, 400)]`)
-        strand : int, optional
-            Feature strand
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        label : str, optional
-            Feature label
-        annotation : bool, optional
-            If True, add annotation instead of text
-        patch_kws : dict[str, Any] | None, optional
-            Exon patch properties (e.g. `dict(fc="red", lw=0.5, hatch="//", ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        intron_patch_kws : dict[str, Any] | None, optional
-            Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_exon_feature(
-            locs,
-            strand,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            label=label,
-            annotation=annotation,
-            patch_kws=patch_kws,
-            intron_patch_kws=intron_patch_kws,
-            text_kws=text_kws,
-        )
-
-    def add_exon_features(
-        self,
-        features: SeqFeature | list[SeqFeature],
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        label_type: str | None = None,
-        label_handler: Callable[[str], str] | None = None,
-        annotation: bool = False,
-        extra_tooltip: dict[str, str] | None = None,
-        ignore_outside_range: bool = False,
-        patch_kws: dict[str, Any] | None = None,
-        intron_patch_kws: dict[str, Any] | None = None,
-        text_kws: dict[str, Any] | None = None,
-    ) -> None:
-        """Add exon features
-
-        Parameters
-        ----------
-        features : SeqFeature | list[SeqFeature]
-            BioPython SeqFeature or SeqFeature list
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        label_type : str | None, optional
-            Label type (e.g. `gene`,`protein_id`,`product`, etc...)
-        label_handler : Callable[[str], str] | None, optional
-            Label handler function to customize label display.
-            If None, set label handler to exclude labels containing `hypothetical`.
-        annotation : bool, optional
-            If True, add annotation instead of text
-        extra_tooltip : dict[str, str] | None, optional
-            Extra tooltip dict for html figure
-        ignore_outside_range : bool, optional
-            If True and the feature position is outside the range of the track segment,
-            ignore it without raising an error.
-        patch_kws : dict[str, Any] | None, optional
-            Exon patch properties (e.g. `dict(fc="red", lw=0.5, hatch="//", ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        intron_patch_kws : dict[str, Any] | None, optional
-            Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_exon_features(
-            features,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            label_type=label_type,
-            label_handler=label_handler,
-            annotation=annotation,
-            extra_tooltip=extra_tooltip,
-            ignore_outside_range=ignore_outside_range,
-            patch_kws=patch_kws,
-            intron_patch_kws=intron_patch_kws,
-            text_kws=text_kws,
-        )
-
-    @overload
-    def transform_coord(self, x: int, *, target_seg: str | None = None) -> int: ...
-    @overload
-    def transform_coord(self, x: float, *, target_seg: str | None = None) -> float: ...
-    @overload
-    def transform_coord(
-        self, x: NDArray, *, target_seg: str | None = None
-    ) -> NDArray[np.float64]: ...
-
-    def transform_coord(
-        self,
-        x: int | float | NDArray,
-        *,
-        target_seg: str | None = None,
-    ) -> int | float | NDArray[np.float64]:
-        """Transform segment-level coordinate to track-level coordinate
-
-        Parameters
-        ----------
-        x : int | float | NDArray
-            Segment-level coordinate(s)
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-
-        Returns
-        -------
-        transform_x : int | float| NDArray[np.float64]
-            Track-level coordinate(s)
-        """
-        seg = self.get_segment(target_seg)
-        return seg.transform_coord(x)
 
     def plot_all(self, fast_render: bool = True) -> None:
         """Plot all objects (Expected to be called in `gv.plotfig()`)

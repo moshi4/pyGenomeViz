@@ -71,9 +71,9 @@ def plot_by_gui_cfg(  # noqa: PLR0912, PLR0915
                 fc = cfg.feat.type2color[feature.type]
                 if is_pseudo_feature(feature):
                     fc = cfg.feat.pseudo_color
-                track.add_features(
+                seg = track.get_segment(seqid)
+                seg.add_features(
                     feature,
-                    target_seg=seqid,
                     plotstyle=cfg.feat.type2plotstyle[feature.type],  # type: ignore
                     arrow_shaft_ratio=0.5,
                     label_type=label_type,

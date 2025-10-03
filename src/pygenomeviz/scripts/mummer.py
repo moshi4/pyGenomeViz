@@ -142,9 +142,9 @@ def run(  # noqa: PLR0912
                     fc = feature_type2color[feature.type]
                     if is_pseudo_feature(feature):
                         fc = pseudo_color
-                    track.add_features(
+                    seg = track.get_segment(seqid)
+                    seg.add_features(
                         feature,
-                        target_seg=seqid,
                         plotstyle=feature_plotstyle,
                         label_type=feature_label_type,
                         fc=fc,

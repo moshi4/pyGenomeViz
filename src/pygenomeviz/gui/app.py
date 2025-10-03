@@ -28,6 +28,8 @@ DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
 )
 DEFAULT_PSEUDO_COLOR = to_hex("lightgrey")
 
+ST_CLOUD_MAX_UPLOAD_FILES = 10
+
 # Streamlit page configuration
 st.set_page_config(
     page_title="pyGenomeViz WebApp",
@@ -80,6 +82,13 @@ else:
             gbk_list = []
         else:
             gbk_list = list(map(utils.load_gbk_file, upload_files))
+
+        if utils.is_st_cloud() and len(gbk_list) > ST_CLOUD_MAX_UPLOAD_FILES:
+            gbk_list = gbk_list[0:ST_CLOUD_MAX_UPLOAD_FILES]
+            st.warning(
+                f"Demo app on Streamlit Cloud limits the maximum number of upload files to {ST_CLOUD_MAX_UPLOAD_FILES}.",  # noqa: E501
+            )
+
 
 with st.sidebar.expander(label="Figure Appearance Options", expanded=False):
     fig_cols = st.columns(2)
@@ -372,10 +381,11 @@ if len(gbk_list) == 0:
     if utils.is_st_cloud():
         st.warning(
             textwrap.dedent(
-                """
-                :warning: This application is running on Streamlit Cloud.
-                Due to the limited CPU and Memory constraints of Streamlit Cloud,
-                this demo page limits the maximum uploadable Genbank file size to 1 MB.
+                f"""
+                This application is running on Streamlit Cloud.
+                Due to the limited cpu and memory constraints of Streamlit Cloud,
+                this demo page limits the maximum uploadable Genbank file size to 1 MB and
+                the maximum number of uploadable files to {ST_CLOUD_MAX_UPLOAD_FILES}.
                 Therefore, if you want to visualize your own genome data,
                 it is recommended that you run pyGenomeViz web application in your local environment.
                 See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.

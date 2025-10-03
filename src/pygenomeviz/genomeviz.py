@@ -745,6 +745,7 @@ class GenomeViz:
         for track in self.feature_tracks:
             # Apply annotation position adjustment per track
             ann_list = [t for t in track.ax.texts if isinstance(t, Annotation)]
+            ann_list = sorted(ann_list, key=lambda ann: ann.xy[0])
             if len(ann_list) > config.ann_adjust.limit:
                 continue
             for idx, ann in enumerate(ann_list[1:], 1):

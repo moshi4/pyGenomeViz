@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal, overload
 
 import numpy as np
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
+from matplotlib.patches import ArrowStyle
 
 from pygenomeviz.exception import FeatureRangeError
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from pygenomeviz.track import FeatureTrack
     from pygenomeviz.typing import HPos, PlotStyle, VPos
 
-AXES_METHOD = Literal["text", "annotate", "scatter", "plot"]
+AXES_METHOD = Literal["text", "annotate", "scatter", "vlines", "fill_between"]
 
 
 class FeatureSegment:
@@ -134,12 +135,21 @@ class FeatureSegment:
         ax_method2kws_list = deepcopy(self._ax_method2kws_list)
         for ax_method, kws_list in ax_method2kws_list.items():
             for kws in kws_list:
-                if ax_method == "text":
-                    kws["x"] = self.transform_coord(float(kws["x"]))
-                elif ax_method == "annotate":
-                    transform_x = self.transform_coord(float(kws["xy"][0]))
-                    kws["xy"] = (transform_x, kws["xy"][1])
-                    kws["xytext"] = (transform_x, kws["xytext"][1])
+                if ax_method in ("text", "vlines", "scatter", "fill_between"):
+                    kws["x"] = self.transform_coord(kws["x"])
+                elif ax_method in ("annotate"):
+                    # If promoter arrow length is ratio value (0 < length < 1)
+                    # Convert arrow length ratio to actual length
+                    xy, xytext = kws["xy"], kws["xytext"]
+                    length = float(xy[0]) - float(xytext[0])
+                    if 0.0 < abs(length) < 1.0:
+                        length = self.feature_track.gv.max_track_size * length
+                        xy = (xytext[0] + length, xy[1])
+                    kws["xy"] = (self.transform_coord(xy[0]), xy[1])
+                    kws["xytext"] = (self.transform_coord(xytext[0]), xytext[1])
+                else:
+                    raise ValueError(f"{ax_method=} is invalid method.")
+
         return ax_method2kws_list
 
     ############################################################
@@ -651,6 +661,101 @@ class FeatureSegment:
                 self.add_annotation(label_pos, label, **text_kws)
             else:
                 self.add_text(label_pos, label, **text_kws)
+
+    def add_lollipop(
+        self,
+        x: float,
+        *,
+        height: float = 1.0,
+        line_kws: dict[str, Any] | None = None,
+        point_kws: dict[str, Any] | None = None,
+    ) -> None:
+        """Add lollipop"""
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        point_kws = {} if point_kws is None else deepcopy(point_kws)
+
+        line_kws.setdefault("color", "black")
+        line_kws.setdefault("lw", 1.0)
+        line_kws.setdefault("zorder", 2.0)
+
+        point_kws.setdefault("color", "black")
+        point_kws.setdefault("zorder", 3.0)
+
+        vlines_kws = dict(
+            x=x,
+            ymin=0,
+            ymax=height,
+            clip_on=False,
+            **line_kws,
+        )
+        self._ax_method2kws_list["vlines"].append(vlines_kws)
+
+        scatter_kws = dict(
+            x=x,
+            y=height,
+            clip_on=False,
+            **point_kws,
+        )
+        self._ax_method2kws_list["scatter"].append(scatter_kws)
+
+    def add_promoter(
+        self,
+        x: float,
+        length: float,
+        *,
+        height: float = 1.0,
+        head_length: float = 1.0,
+        head_width: float = 0.5,
+        **kwargs,
+    ) -> None:
+        """Add promoter arrow"""
+        # Check x coordinate is valid or not
+        if not self.start <= x <= self.end:
+            raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
+
+        kwargs.setdefault("color", "black")
+
+        ann_kws = dict(
+            text="",
+            xy=[x + length, height],
+            xytext=[x, 0],
+            arrowprops=dict(
+                arrowstyle=ArrowStyle(
+                    stylename="-|>",
+                    head_length=head_length,
+                    head_width=head_width,
+                ),
+                connectionstyle="angle",
+                shrinkA=0,
+                shrinkB=0,
+                patchA=None,
+                patchB=None,
+                **kwargs,
+            ),
+            annotation_clip=False,
+        )
+        self._ax_method2kws_list["annotate"].append(ann_kws)
+
+    def add_highlight(
+        self,
+        x: tuple[float, float],
+        *,
+        y: tuple[float, float] = (-1, 1),
+        color: str = "lime",
+        alpha: float = 0.5,
+        **kwargs,
+    ) -> None:
+        """Add highlight"""
+        kwargs.setdefault("zorder", 5.0)
+        kwargs.update(fc=color, clip_on=False, alpha=alpha)
+
+        fill_between_kws = dict(
+            x=x,
+            y1=y[0],
+            y2=y[1],
+            **kwargs,
+        )
+        self._ax_method2kws_list["fill_between"].append(fill_between_kws)
 
     ############################################################
     # Private Method

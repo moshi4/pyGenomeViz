@@ -5,6 +5,8 @@ from functools import partial
 from matplotlib.patches import FancyArrow, PathPatch
 from matplotlib.path import Path
 
+from pygenomeviz import config
+
 
 class Arrow(FancyArrow):
     """Arrow Patch Class"""
@@ -44,8 +46,7 @@ class Arrow(FancyArrow):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Setup default patch kwargs
-        default_zorder = 2 if bigstyle else 1
-        kwargs.setdefault("zorder", default_zorder)
+        kwargs.setdefault("zorder", config.zorder.feature(bigstyle))
         kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
@@ -117,8 +118,7 @@ class Box(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Setup default patch kwargs
-        default_zorder = 2 if bigstyle else 1
-        kwargs.setdefault("zorder", default_zorder)
+        kwargs.setdefault("zorder", config.zorder.feature(bigstyle))
         kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
@@ -175,8 +175,7 @@ class RoundBox(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Set default patch properties
-        default_zorder = 2 if bigstyle else 1
-        kwargs.setdefault("zorder", default_zorder)
+        kwargs.setdefault("zorder", config.zorder.feature(bigstyle))
         kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
@@ -242,7 +241,7 @@ class Intron(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Setup default patch kwargs
-        kwargs.setdefault("zorder", 0.99)
+        kwargs.setdefault("zorder", config.zorder.intron)
         kwargs.setdefault("lw", 1)
         kwargs.setdefault("clip_on", False)
         kwargs.setdefault("color", "black")
@@ -302,7 +301,7 @@ class Link(PathPatch):
         """
         # Set default patch properties
         kwargs.setdefault("lw", 0.1)  # If lw=0, twisted part is almost invisible
-        kwargs.setdefault("zorder", 1)
+        kwargs.setdefault("zorder", config.zorder.link)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
             kwargs.setdefault("fc", "grey")

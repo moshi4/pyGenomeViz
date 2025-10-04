@@ -9,6 +9,7 @@ import numpy as np
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 from matplotlib.patches import ArrowStyle
 
+from pygenomeviz import config
 from pygenomeviz.exception import FeatureRangeError
 
 if TYPE_CHECKING:
@@ -676,10 +677,9 @@ class FeatureSegment:
 
         line_kws.setdefault("color", "black")
         line_kws.setdefault("lw", 1.0)
-        line_kws.setdefault("zorder", 2.0)
+        line_kws.setdefault("zorder", config.zorder.lollipop_line)
 
-        point_kws.setdefault("color", "black")
-        point_kws.setdefault("zorder", 3.0)
+        point_kws.setdefault("zorder", config.zorder.lollipop_point)
 
         vlines_kws = dict(
             x=x,
@@ -746,7 +746,7 @@ class FeatureSegment:
         **kwargs,
     ) -> None:
         """Add highlight"""
-        kwargs.setdefault("zorder", 5.0)
+        kwargs.setdefault("zorder", config.zorder.highlight)
         kwargs.update(fc=color, clip_on=False, alpha=alpha)
 
         fill_between_kws = dict(

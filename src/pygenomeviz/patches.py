@@ -46,7 +46,8 @@ class Arrow(FancyArrow):
         # Setup default patch kwargs
         default_zorder = 2 if bigstyle else 1
         kwargs.setdefault("zorder", default_zorder)
-        kwargs.setdefault("lw", 0)
+        if "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
             kwargs.setdefault("fc", "orange")
@@ -123,7 +124,8 @@ class Box(PathPatch):
         # Setup default patch kwargs
         default_zorder = 2 if bigstyle else 1
         kwargs.setdefault("zorder", default_zorder)
-        kwargs.setdefault("lw", 0)
+        if "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
             kwargs.setdefault("fc", "orange")
@@ -181,7 +183,8 @@ class RoundBox(PathPatch):
         # Set default patch properties
         default_zorder = 2 if bigstyle else 1
         kwargs.setdefault("zorder", default_zorder)
-        kwargs.setdefault("lw", 0)
+        if "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
             kwargs.setdefault("fc", "orange")
@@ -248,7 +251,8 @@ class Intron(PathPatch):
         """
         # Setup default patch kwargs
         kwargs.setdefault("zorder", 0.99)
-        kwargs.setdefault("lw", 1)
+        if "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 1)
         kwargs.setdefault("clip_on", False)
         kwargs.setdefault("color", "black")
         kwargs.update(fill=False)
@@ -307,7 +311,8 @@ class Link(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Set default patch properties
-        kwargs.setdefault("lw", 0.1)  # If lw=0, twisted part is almost invisible
+        if "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.1)  # If lw=0, twisted part is almost invisible
         kwargs.setdefault("zorder", 1)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:

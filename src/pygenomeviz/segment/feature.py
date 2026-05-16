@@ -263,8 +263,8 @@ class FeatureSegment:
         x: float,
         text: str,
         *,
+        y: tuple[float, float] = (1.0, 1.5),
         size: float = 12,
-        ymargin: float = 0.5,
         line_kws: dict[str, Any] | None = None,
         **kwargs,
     ) -> None:
@@ -276,10 +276,10 @@ class FeatureSegment:
             Text x coordinate
         text : str
             Text content
+        y : tuple[float, float], optional
+            Annotation line y coordinate tuple
         size : float, optional
             Text size
-        ymargin : float, optional
-            Y margin
         line_kws : dict[str, Any] | None, optional
             FancyArrowPatch properties (e.g. `color="red", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
@@ -298,19 +298,22 @@ class FeatureSegment:
             raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
 
         # Annotation line properties
-        line_kws.setdefault("lw", 0.5)
+        line_kws.setdefault("color", "grey")
         line_kws.update(dict(shrinkA=0, shrinkB=0, patchA=None, patchB=None))
         line_kws.update(dict(arrowstyle="-", relpos=(0.5, 0.0)))
+        if "linewidth" not in line_kws:
+            line_kws.setdefault("lw", 0.5)
 
         # Annotation text properties
+        kwargs.setdefault("zorder", config.zorder.ann_line)
         kwargs.update(dict(size=size, va="bottom", ha="center", rotation=0))
         kwargs.pop("vpos", None)  # Remove add_text specific kwargs
         kwargs.pop("hpos", None)  # Remove add_text specific kwargs
 
         ann_kws = dict(
             text=text,
-            xy=(x, 1.0),
-            xytext=(x, 1.0 + ymargin),
+            xy=(x, min(y)),
+            xytext=(x, max(y)),
             arrowprops=line_kws,
             **kwargs,
         )

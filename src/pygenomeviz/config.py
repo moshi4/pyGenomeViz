@@ -23,6 +23,7 @@ class _PatchZorder:
     normal_feature: ClassVar[float] = 1.0
     intron: ClassVar[float] = 0.99
     link: ClassVar[float] = 1.0
+    ann_line: ClassVar[float] = 0.99
     lollipop_line: ClassVar[float] = 0.99
     lollipop_point: ClassVar[float] = 2.01
     highlight: ClassVar[float] = 3.0

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from pygenomeviz.track import FeatureTrack
-    from pygenomeviz.typing import HPos, PlotStyle, VPos
+    from pygenomeviz.typing import HPos, PlotStyle, Strand, VPos
 
 AXES_METHOD = Literal["text", "annotate", "scatter", "vlines", "fill_between"]
 
@@ -727,14 +727,34 @@ class FeatureSegment:
     def add_promoter(
         self,
         x: float,
-        length: float,
+        length: float = 0.02,
         *,
-        height: float = 1.0,
+        y: float = 1.0,
+        strand: Strand = 1,
         head_length: float = 1.0,
         head_width: float = 0.5,
         **kwargs,
     ) -> None:
-        """Add promoter arrow"""
+        """Add promoter arrow
+
+        Parameters
+        ----------
+        x : float
+            X coordinate
+        length : float
+            Arrow length (If `0 < length < 1`, it is treated as ratio length)
+        y : float, optional
+            Y coordinate promoter height
+        strand : Strand, optional
+            Arrow strand direction (1 or -1)
+        head_length : float, optional
+            Arrow head length
+        head_width : float, optional
+            Arrow head width
+        kwargs : dict[str, Any] | None, optional
+            FancyArrowPatch properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
+        """
         # Check x coordinate is valid or not
         if not self.start <= x <= self.end:
             raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
@@ -743,7 +763,7 @@ class FeatureSegment:
 
         ann_kws = dict(
             text="",
-            xy=[x + length, height],
+            xy=[x - length, y] if strand == -1 else [x + length, y],
             xytext=[x, 0],
             arrowprops=dict(
                 arrowstyle=ArrowStyle(

@@ -13,6 +13,7 @@ HPos = Literal["left", "center", "right"]
 SeqType = Literal["nucleotide", "protein"]
 Unit = Literal["Gb", "Mb", "Kb", "bp"]
 Theme = Literal["light", "dark"]
+Strand = Literal[-1, 1]
 
 AlnCliName = Literal["pgv-blast", "pgv-mummer", "pgv-mmseqs", "pgv-pmauve"]
 GenbankDatasetName = Literal[

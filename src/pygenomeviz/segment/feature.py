@@ -788,17 +788,32 @@ class FeatureSegment:
         *,
         y: tuple[float, float] = (-1, 1),
         color: str = "lime",
-        alpha: float = 0.5,
+        alpha: float = 0.2,
         **kwargs,
     ) -> None:
-        """Add highlight"""
+        """Add highlight
+
+        Parameters
+        ----------
+        x : tuple[float, float]
+            X cooridinate range
+        y : tuple[float, float], optional
+            Y coordinate range
+        color : str, optional
+            Highlight color
+        alpha : float, optional
+            Color transparency
+        kwargs : dict[str, Any] | None, optional
+             Axes.fill_between properties (e.g. `lw=1.0, ec="black", ...`)
+             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.fill_between.html>
+        """
         kwargs.setdefault("zorder", config.zorder.highlight)
         kwargs.update(fc=color, clip_on=False, alpha=alpha)
 
         fill_between_kws = dict(
             x=x,
-            y1=y[0],
-            y2=y[1],
+            y1=min(y),
+            y2=max(y),
             **kwargs,
         )
         self._ax_method2kws_list["fill_between"].append(fill_between_kws)

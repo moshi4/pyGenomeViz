@@ -670,24 +670,47 @@ class FeatureSegment:
         self,
         x: float,
         *,
-        height: float = 1.0,
+        y: float = 1.0,
+        size: float = 6.0,
         line_kws: dict[str, Any] | None = None,
         point_kws: dict[str, Any] | None = None,
     ) -> None:
-        """Add lollipop"""
+        """Add lollipop
+
+        Parameters
+        ----------
+        x : float
+            X coordinate
+        y : float, optional
+            Y coordinate lollipop height
+        size : float, optional
+            Point size
+        line_kws : dict[str, Any] | None, optional
+            Axes.vlines properties (e.g. `dict(color="red", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.vlines.html>
+        point_kws : dict[str, Any] | None, optional
+            Axes.scatter properties (e.g. `dict(fc="red", ec="black", lw=0.5,...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.scatter.html>
+        """
         line_kws = {} if line_kws is None else deepcopy(line_kws)
         point_kws = {} if point_kws is None else deepcopy(point_kws)
 
+        # Set default line properties
         line_kws.setdefault("color", "black")
-        line_kws.setdefault("lw", 1.0)
         line_kws.setdefault("zorder", config.zorder.lollipop_line)
+        if "linewidth" not in line_kws:
+            line_kws.setdefault("lw", 1.0)
 
+        # Set default point properties
+        point_kws.update(**dict(s=size**2))
         point_kws.setdefault("zorder", config.zorder.lollipop_point)
+        if "facecolor" not in point_kws and "color" not in point_kws:
+            point_kws.setdefault("fc", "tab:blue")
 
         vlines_kws = dict(
             x=x,
-            ymin=0,
-            ymax=height,
+            ymin=min(0, y),
+            ymax=max(0, y),
             clip_on=False,
             **line_kws,
         )
@@ -695,7 +718,7 @@ class FeatureSegment:
 
         scatter_kws = dict(
             x=x,
-            y=height,
+            y=y,
             clip_on=False,
             **point_kws,
         )

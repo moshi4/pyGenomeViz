@@ -45,7 +45,7 @@ dev = [
     { include-group = "jupyter" },
     { include-group = "docs" },
 ]
-test = ["pytest>=8.0.0", "pytest-cov>=4.0.0"]
+test = ["pytest>=8.0.0", "pytest-cov>=7.0.0"]
 lint = ["ruff>=0.4.0", "pre-commit>=3.5.0"]
 jupyter = ["ipykernel>=6.13.0"]
 docs = [
@@ -58,9 +58,12 @@ docs = [
 ]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "7.0"
 addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+patch = ["subprocess"]
 
 [tool.ruff]
 line-length = 88

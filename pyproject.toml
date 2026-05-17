@@ -46,7 +46,7 @@ dev = [
     { include-group = "docs" },
 ]
 test = ["pytest>=8.0.0", "pytest-cov>=7.0.0"]
-lint = ["ruff>=0.4.0", "ty>=0.0.37", "pre-commit>=3.5.0"]
+lint = ["ruff>=0.4.0", "ty>=0.0.37", "prek>=0.4.0"]
 jupyter = ["ipykernel>=6.13.0"]
 docs = [
     "mkdocs>=1.2",

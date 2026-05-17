@@ -16,7 +16,7 @@ class ColorCycler:
     """Color Cycler Class"""
 
     counter = 0
-    cmap = plt.get_cmap("tab10")  # type: ignore
+    cmap = plt.get_cmap("tab10")
 
     def __new__(cls, n: int | None = None) -> str:
         """Get hexcolor cyclically from cmap by counter or user specified number
@@ -43,7 +43,7 @@ class ColorCycler:
     @classmethod
     def set_cmap(cls, name: str) -> None:
         """Set colormap (Default: `tab10`)"""
-        cls.cmap = plt.get_cmap(name)  # type: ignore
+        cls.cmap = plt.get_cmap(name)
         cls.counter = 0
 
     @classmethod
@@ -148,7 +148,7 @@ def to_stack_features(features: list[SeqFeature]) -> list[list[SeqFeature]]:
     stack_features : list[list[SeqFeature]]
         Stacked features
     """
-    sorted_features = sorted(features, key=lambda f: int(f.location.start))  # type: ignore
+    sorted_features = sorted(features, key=lambda f: int(f.location.start))
 
     def is_overlap(feature1: SeqFeature, feature2: SeqFeature) -> bool:
         """Check if features overlap each other"""
@@ -202,12 +202,12 @@ def interpolate_color(
     def to_nearly_white(color: str, nearly_value: float = 0.1) -> str:
         """Convert target color to nearly white"""
         cmap = LinearSegmentedColormap.from_list("m", ["white", color])
-        return to_hex(cmap(nearly_value))  # type: ignore
+        return to_hex(cmap(nearly_value))
 
     nearly_white = to_nearly_white(base_color)
     cmap = LinearSegmentedColormap.from_list("m", [nearly_white, base_color])
     norm = Normalize(vmin=vmin, vmax=vmax)
-    return to_hex(cmap(norm(v)))  # type: ignore
+    return to_hex(cmap(norm(v)))
 
 
 @overload

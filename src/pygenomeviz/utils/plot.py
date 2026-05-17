@@ -37,7 +37,7 @@ def plot_patches(
             patch_col = PatchCollection(
                 patch_group, match_original=True, zorder=zorder, clip_on=False
             )
-            ax.add_collection(patch_col)  # type: ignore
+            ax.add_collection(patch_col)
     else:
         for patch in patches:
             ax.add_patch(patch)

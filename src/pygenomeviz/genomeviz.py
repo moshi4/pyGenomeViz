@@ -254,9 +254,9 @@ class GenomeViz:
 
         Parameters
         ----------
-        target1 : tuple[str, int, int] | tuple[str, int | str | None, int, int]
+        target1 : tuple[str, int, int] | tuple[str, str | None, int, int]
             Target link1 `(track_name, start, end)` or `(track_name, target_segment, start, end)`
-        target2 : tuple[str, int, int] | tuple[str, int | str | None, int, int]
+        target2 : tuple[str, int, int] | tuple[str, str | None, int, int]
             Target link2 `(track_name, start, end)` or `(track_name, target_segment, start, end)`
         color : str, optional
             Link color
@@ -286,15 +286,22 @@ class GenomeViz:
             Patch properties (e.g. `ec="black", lw=0.5, hatch="//", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """  # noqa: E501
+
         # Get target link track
-        if len(target1) == 3:
-            target1 = (target1[0], None, target1[1], target1[2])
-        if len(target2) == 3:
-            target2 = (target2[0], None, target2[1], target2[2])
-        link_track = self._get_target_link_track(target1, target2)
+        def _to_target_tuple(
+            target: tuple[str, int, int] | tuple[str, str | None, int, int],
+        ) -> tuple[str, str | None, int, int]:
+            if len(target) == 3:
+                return (target[0], None, target[1], target[2])  # type: ignore
+            else:
+                return target  # type: ignore
+
+        _target1 = _to_target_tuple(target1)
+        _target2 = _to_target_tuple(target2)
+        link_track = self._get_target_link_track(_target1, _target2)
 
         # Get upper & lower target feature track, segment info
-        track_name2target = {target1[0]: target1, target2[0]: target2}
+        track_name2target = {_target1[0]: _target1, _target2[0]: _target2}
         upper_target = track_name2target[link_track.upper_feature_track.name]
         lower_target = track_name2target[link_track.lower_feature_track.name]
         upper_seg_name, upper_start, upper_end = upper_target[1:]
@@ -530,7 +537,7 @@ class GenomeViz:
         if len(tracks) == 0:
             raise ValueError("Failed to plot figure. No track found!!")
 
-        with plt.style.context(self._mpl_style):  # type: ignore
+        with plt.style.context(self._mpl_style):
             # Setup figure & gridspece
             fig = plt.figure(figsize=self.figsize, dpi=dpi)
             fig.tight_layout()

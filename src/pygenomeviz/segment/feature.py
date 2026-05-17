@@ -102,7 +102,7 @@ class FeatureSegment:
                 break
             if idx < len(self.feature_track.segments) - 1:
                 pos += segment.size + self.feature_track.spaces[idx]
-        return start_pos  # type: ignore
+        return start_pos
 
     @property
     def track_end(self) -> int:
@@ -195,7 +195,7 @@ class FeatureSegment:
             return x + offset
         else:
             x = np.array(x)
-            if np.any(x < self.start) or np.any(x > self.end):  # type: ignore
+            if np.any(x < self.start) or np.any(x > self.end):
                 raise ValueError(err_msg)
             return (np.array(x) + offset).astype(np.float64)
 
@@ -855,9 +855,9 @@ class FeatureSegment:
             Transformaed feature
         """
         locs: list[SimpleLocation] = []
-        for loc in feature.location.parts:
-            start = self.transform_coord(int(loc.start))  # type: ignore
-            end = self.transform_coord(int(loc.end))  # type: ignore
+        for loc in feature.location.parts:  # type: ignore
+            start = self.transform_coord(int(loc.start))
+            end = self.transform_coord(int(loc.end))
             locs.append(SimpleLocation(start, end, loc.strand))
         transform_feature = SeqFeature(
             location=CompoundLocation(locs) if len(locs) >= 2 else locs[0],
@@ -886,7 +886,7 @@ class FeatureSegment:
         extra_tooltip = {} if extra_tooltip is None else deepcopy(extra_tooltip)
 
         start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
-        strand = "-" if feature.location.strand == -1 else "+"
+        strand = "-" if feature.location.strand == -1 else "+"  # type: ignore
         location = f"{start:,} - {end:,} ({strand})"
 
         self._gid2feature_dict[gid] = dict(

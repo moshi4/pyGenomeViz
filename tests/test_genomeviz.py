@@ -76,7 +76,9 @@ def test_manual_features_links_plot(tmp_path: Path) -> None:
 
     gv = GenomeViz(track_align_type="center")
     for genome in genome_list:
-        name, size, features = genome["name"], genome["size"], genome["features"]
+        name = str(genome["name"])
+        size = int(genome["size"])  # type: ignore
+        features: list[tuple[int, int, int]] = genome["features"]  # type: ignore
         track = gv.add_feature_track(name, size, align_label=True)
         for idx, feature in enumerate(features, 1):
             start, end, strand = feature

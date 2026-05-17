@@ -259,7 +259,7 @@ class AlignCoord:
                     continue
                 rows.append(row)
             # Sort by reference seq coordinates
-            rows = sorted(rows, key=lambda row: row[ref_idx])  # type: ignore
+            rows = sorted(rows, key=lambda row: row[ref_idx])
 
         align_coords = []
         for row in rows:
@@ -462,7 +462,9 @@ class AlignCoord:
     def _rmax(self) -> int:
         return max(self.ref_start, self.ref_end)
 
-    def __eq__(self, target_ac: AlignCoord) -> bool:
+    def __eq__(self, target_ac: object) -> bool:
+        if not isinstance(target_ac, AlignCoord):
+            return False
         return self.as_tsv_format == target_ac.as_tsv_format
 
     def __hash__(self) -> int:

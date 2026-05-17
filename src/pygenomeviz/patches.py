@@ -133,7 +133,7 @@ class Box(PathPatch):
         p2 = (end, lower_y)
         p3 = (end, upper_y)
         p4 = (start, upper_y)
-        box = Path([p1, p2, p3, p4, p1], closed=True)  # type: ignore
+        box = Path([p1, p2, p3, p4, p1], closed=True)
 
         super().__init__(box, **kwargs)
 

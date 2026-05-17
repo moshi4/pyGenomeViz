@@ -69,7 +69,7 @@ def log_basic_env_info(
     tool_version = CLI_NAME2TOOL[cli_name].get_version()
     logger.info(f"{tool_name} Version: v{tool_version}")
     logger.info(f"Python Version: v{platform.python_version()}")
-    logger.info(f"Check Dependencies: matplotlib v{matplotlib.__version__}")  # type: ignore
+    logger.info(f"Check Dependencies: matplotlib v{matplotlib.__version__}")
     logger.info(f"Check Dependencies: biopython v{Bio.__version__}")
     if log_params:
         for k, v in log_params.items():
@@ -495,7 +495,7 @@ def validate_args(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
 
     # cmap (target = pmauve)
     if hasattr(args, "cmap"):
-        colormaps = list(matplotlib.colormaps)  # type: ignore
+        colormaps = list(matplotlib.colormaps)
         if args.cmap not in colormaps:
             parser.error(f"{args.cmap=} is invalid colormap.\nAvailable {colormaps=}")
 
@@ -531,7 +531,9 @@ def logging_timeit(
         logger = logging.getLogger(__name__)
         msg = f"Done (elapsed time: {elapsed_time:.2f}[s])"
         if show_func_name:
-            msg = f"{msg} [{func.__module__}.{func.__name__}]"
+            module = getattr(func, "__module__", "module")
+            name = getattr(func, "__name__", "function")
+            msg = f"{msg} [{module}.{name}]"
         logger_func = logger.debug if debug else logger.info
         logger_func(msg)
         return result

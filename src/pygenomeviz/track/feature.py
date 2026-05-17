@@ -409,7 +409,7 @@ class FeatureTrack(Track):
             for f in seg.transform_features:
                 start = int(f.location.parts[0].start)  # type: ignore
                 end = int(f.location.parts[-1].end)  # type: ignore
-                strand = -1 if f.location.strand == -1 else 1
+                strand = -1 if f.location.strand == -1 else 1  # type: ignore
                 plotstyle = str(f.qualifiers["plotstyle"])
                 arrow_shaft_ratio = float(f.qualifiers["arrow_shaft_ratio"])
                 patch_kws = dict(f.qualifiers["patch_kws"])
@@ -435,7 +435,7 @@ class FeatureTrack(Track):
             Enable fast rendering using PatchCollection plot style.
         """
         # Collect feature patches
-        patches: list[Patch] = []
+        patches: list[Patch] = []  # type: ignore
         for seg in self.segments:
             for f in seg.transform_exon_features:
                 exon_locs, intron_locs = self._extract_exon_intron_locs(f)
@@ -444,7 +444,7 @@ class FeatureTrack(Track):
                 patch_kws = dict(f.qualifiers["patch_kws"])
 
                 # Plot exon patches
-                strand = -1 if f.location.strand == -1 else 1
+                strand = -1 if f.location.strand == -1 else 1  # type: ignore
                 exon_locs = exon_locs[::-1] if strand == -1 else exon_locs
                 for idx, exon_loc in enumerate(exon_locs, 1):
                     exon_start, exon_end = exon_loc
@@ -504,8 +504,8 @@ class FeatureTrack(Track):
         exon_locs: list[tuple[int, int]] = []
         intron_locs: list[tuple[int, int]] = []
         # Extract exon locations
-        for loc in feature.location.parts:
-            exon_start, exon_end = int(loc.start), int(loc.end)  # type: ignore
+        for loc in feature.location.parts:  # type: ignore
+            exon_start, exon_end = int(loc.start), int(loc.end)
             exon_locs.append((exon_start, exon_end))
         # Extract intron locations
         for i in range(len(exon_locs) - 1):

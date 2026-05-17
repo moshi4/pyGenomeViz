@@ -53,7 +53,7 @@ def load_gbk_file(gbk_file: str | Path | UploadedFile) -> Genbank:
 def is_st_cloud() -> bool:
     """Is launch on streamlit cloud"""
     try:
-        return st.context.url.startswith("https://pygenomeviz.streamlit.app")
+        return str(st.context.url).startswith("https://pygenomeviz.streamlit.app")
     except Exception:
         return False
 

@@ -149,6 +149,52 @@ def test_plot_with_annotation(gbk_file: Path, tmp_path: Path) -> None:
     gv.savefig_html(tmp_path / "result.html")
 
 
+def test_plot_promoter(tmp_path: Path) -> None:
+    """Test plot promoter"""
+    gv = GenomeViz()
+    track = gv.add_feature_track("track", 1000)
+
+    # Add promoter arrow
+    track.add_promoter(50)
+    track.add_promoter(150, 0.05, y=1.5, head_length=0.5, head_width=0.8)
+    track.add_promoter(250, 100, y=-1.0, strand=-1, fc="red")
+
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_plot_lollipop(tmp_path: Path) -> None:
+    """Test plot lollipop"""
+    gv = GenomeViz()
+    track = gv.add_feature_track("track", 1000)
+
+    # Add lollipop
+    track.add_lollipop(350)
+    track.add_lollipop(
+        450, y=-1.0, size=10, point_kws=dict(fc="red", ec="black", lw=0.5)
+    )
+    track.add_lollipop(
+        550, y=1.5, point_kws=dict(color="green"), line_kws=dict(color="green")
+    )
+
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_plot_highlight(tmp_path: Path) -> None:
+    """Test plot highlight"""
+    gv = GenomeViz()
+    track = gv.add_feature_track("track", 1000)
+
+    # Add highlight
+    track.add_highlight((650, 750))
+    track.add_highlight((750, 850), y=(0, 1.5), color="orange")
+    track.add_highlight((850, 950), y=(-1.0, 0), color="red")
+
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
 def test_savefig_html_failed(gbk_file: Path, tmp_path: Path) -> None:
     """Test `gv.savefig_html()` failed when fast_render=True"""
     gbk = Genbank(gbk_file)

@@ -224,11 +224,24 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
         help="Color of features containing '/pseudo' or '/pseudogene' tags",
     )
 
-    label_target_track = st.radio(
+    cols = st.columns(2)
+    label_target_track = cols[0].selectbox(
         label="Label Target Track",
-        options=["top", "all"],
-        horizontal=True,
-        format_func=lambda s: str(s).capitalize() + " Track",
+        options=("top", "all"),
+        format_func=lambda s: str(s).capitalize(),
+    )
+    label_style = cols[1].selectbox(
+        label="Label Display Style",
+        options=("Text", "Annotation"),
+        help=textwrap.dedent(
+            """
+            **Text**:\\
+            Display labels at a 45-degree angle\\
+            **Annotation**:\\
+            Display labels with horizontal annotation style and\\
+            automatically adjusting their position so that the text does not overlap
+            """
+        )[1:-1],
     )
     label_cols = st.columns(2)
     feature_label_type = label_cols[0].selectbox(
@@ -272,9 +285,10 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
         type2color=feature_type2color,
         line_width=line_width,
         pseudo_color=pseudo_color,
-        label_target_track=str(label_target_track),
+        label_target_track=label_target_track,
         label_type=feature_label_type,
         label_size=int(feature_label_size),
+        label_style=label_style,
         label_filter_words=label_filter_words,
     )
 

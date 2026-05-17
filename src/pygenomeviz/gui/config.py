@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import textwrap
 from dataclasses import asdict, dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -33,23 +34,28 @@ class FeatureConfig:
     type2color: dict[str, str] = field(default_factory=lambda: dict(CDS="orange"))
     line_width: float = 0.0
     pseudo_color: str = "lightgrey"
-    label_target_track: str = "top"
+    label_target_track: Literal["top", "all"] = "top"
     label_type: str | None = None
     label_size: int = 10
+    label_wrap_length: int = 20
+    label_style: Literal["Text", "Annotation"] = "Text"
     label_filter_words: list[str] = field(default_factory=list)
 
     @property
-    def label_filter_func(self) -> Callable[[str], str]:
-        """Label filter function (from label_filter_words)"""
+    def label_handler_func(self) -> Callable[[str], str]:
+        """Label handler function"""
 
-        def label_filter(label: str) -> str:
+        def label_handler(label: str) -> str:
             filter_words = [*self.label_filter_words, "hypothetical"]
             for filter_word in filter_words:
                 if filter_word.strip() in label:
                     return ""
-            return label
+            if self.label_style == "Annotation":
+                return "\n".join(textwrap.wrap(label, self.label_wrap_length))
+            else:
+                return label
 
-        return label_filter
+        return label_handler
 
 
 @dataclass

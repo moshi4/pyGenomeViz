@@ -77,7 +77,8 @@ def plot_by_gui_cfg(  # noqa: PLR0912, PLR0915
                     plotstyle=cfg.feat.type2plotstyle[feature.type],  # type: ignore
                     arrow_shaft_ratio=0.5,
                     label_type=label_type,
-                    label_handler=cfg.feat.label_filter_func,
+                    annotation=cfg.feat.label_style == "Annotation",
+                    label_handler=cfg.feat.label_handler_func,
                     ignore_outside_range=True,
                     text_kws=dict(size=cfg.feat.label_size, vpos="top"),
                     fc=fc,

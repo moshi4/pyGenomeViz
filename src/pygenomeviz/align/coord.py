@@ -357,7 +357,7 @@ class AlignCoord:
                     elif idx in (10, 11):
                         # identity, evalue
                         typed_row.append(float(val) if val != "na" else None)
-                align_coords.append(AlignCoord(*typed_row))
+                align_coords.append(AlignCoord(*typed_row))  # type: ignore
         return align_coords
 
     @staticmethod

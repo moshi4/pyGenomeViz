@@ -292,9 +292,9 @@ class GenomeViz:
             target: tuple[str, int, int] | tuple[str, str | None, int, int],
         ) -> tuple[str, str | None, int, int]:
             if len(target) == 3:
-                return (target[0], None, target[1], target[2])  # type: ignore
+                return (target[0], None, target[1], target[2])
             else:
-                return target  # type: ignore
+                return target
 
         _target1 = _to_target_tuple(target1)
         _target2 = _to_target_tuple(target2)

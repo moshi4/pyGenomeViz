@@ -2502,6 +2502,7 @@ wheels = [
 
 [[package]]
 name = "pygenomeviz"
+version = "1.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "biopython" },

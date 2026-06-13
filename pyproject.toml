@@ -1,5 +1,6 @@
 [project]
 name = "pygenomeviz"
+version = "1.7.0"
 description = "A genome visualization python package for comparative genomics"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +19,6 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = ["biopython>=1.80", "matplotlib>=3.6.3", "numpy>=1.21"]
-dynamic = ["version"]
 
 [project.urls]
 homepage = "https://moshi4.github.io/pyGenomeViz/"
@@ -60,9 +60,6 @@ build-backend = "hatchling.build"
 
 [tool.coverage.run]
 patch = ["subprocess"]
-
-[tool.hatch.version]
-path = "src/pygenomeviz/__init__.py"
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"

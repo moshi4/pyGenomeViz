@@ -1,0 +1,4 @@
+biopython
+matplotlib
+numpy
+streamlit

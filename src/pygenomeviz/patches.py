@@ -5,6 +5,8 @@ from functools import partial
 from matplotlib.patches import FancyArrow, PathPatch
 from matplotlib.path import Path
 
+from pygenomeviz import config
+
 
 class Arrow(FancyArrow):
     """Arrow Patch Class"""
@@ -44,8 +46,7 @@ class Arrow(FancyArrow):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Setup default patch kwargs
-        default_zorder = 2 if bigstyle else 1
-        kwargs.setdefault("zorder", default_zorder)
+        kwargs.setdefault("zorder", config.zorder.feature(bigstyle))
         if "linewidth" not in kwargs:
             kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
@@ -54,10 +55,7 @@ class Arrow(FancyArrow):
 
         # x, y
         x = end if strand == -1 else start
-        if bigstyle:
-            y = 0
-        else:
-            y = ylim[0] / 2 if strand == -1 else ylim[1] / 2
+        y = 0 if bigstyle else ylim[0] / 2 if strand == -1 else ylim[1] / 2
         # dx, dy
         length = end - start
         dx, dy = length * strand, 0
@@ -68,8 +66,7 @@ class Arrow(FancyArrow):
         shaft_width = head_width * shaft_ratio
         # head length
         head_length = max_size * 0.015
-        if length < head_length:
-            head_length = length
+        head_length = min(head_length, length)
 
         if not show_head:
             head_length = 0
@@ -122,8 +119,7 @@ class Box(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Setup default patch kwargs
-        default_zorder = 2 if bigstyle else 1
-        kwargs.setdefault("zorder", default_zorder)
+        kwargs.setdefault("zorder", config.zorder.feature(bigstyle))
         if "linewidth" not in kwargs:
             kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
@@ -139,7 +135,7 @@ class Box(PathPatch):
         p2 = (end, lower_y)
         p3 = (end, upper_y)
         p4 = (start, upper_y)
-        box = Path([p1, p2, p3, p4, p1], closed=True)  # type: ignore
+        box = Path([p1, p2, p3, p4, p1], closed=True)
 
         super().__init__(box, **kwargs)
 
@@ -181,8 +177,7 @@ class RoundBox(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Set default patch properties
-        default_zorder = 2 if bigstyle else 1
-        kwargs.setdefault("zorder", default_zorder)
+        kwargs.setdefault("zorder", config.zorder.feature(bigstyle))
         if "linewidth" not in kwargs:
             kwargs.setdefault("lw", 0)
         kwargs.setdefault("clip_on", False)
@@ -197,11 +192,10 @@ class RoundBox(PathPatch):
         xmin, xmax = start, end
         if bigstyle:
             ymin, ymax, ycenter = ylim[0], ylim[1], 0
+        elif strand == -1:
+            ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
         else:
-            if strand == -1:
-                ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
-            else:
-                ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
+            ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
 
         path_data = [
             (Path.MOVETO, (xmin + r_size, ymax)),
@@ -212,7 +206,7 @@ class RoundBox(PathPatch):
             (Path.CURVE3, (xmin - r_size, ycenter)),
             (Path.CURVE3, (xmin + r_size, ymax)),
         ]
-        codes, verts = zip(*path_data)
+        codes, verts = zip(*path_data, strict=False)
         super().__init__(Path(verts, codes), **kwargs)
 
 
@@ -250,7 +244,7 @@ class Intron(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Setup default patch kwargs
-        kwargs.setdefault("zorder", 0.99)
+        kwargs.setdefault("zorder", config.zorder.intron)
         if "linewidth" not in kwargs:
             kwargs.setdefault("lw", 1)
         kwargs.setdefault("clip_on", False)
@@ -261,11 +255,10 @@ class Intron(PathPatch):
         xcenter = (xmin + xmax) / 2
         if bigstyle:
             ymin, ymax, ycenter = ylim[0], ylim[1], 0
+        elif strand == -1:
+            ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
         else:
-            if strand == -1:
-                ymin, ymax, ycenter = ylim[0], 0, ylim[0] / 2
-            else:
-                ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
+            ymin, ymax, ycenter = 0, ylim[1], ylim[1] / 2
         ytop = ymin if strand == -1 else ymax
 
         path_data = [
@@ -273,7 +266,7 @@ class Intron(PathPatch):
             (Path.LINETO, (xcenter, ytop)),
             (Path.LINETO, (xmax, ycenter)),
         ]
-        codes, verts = zip(*path_data)
+        codes, verts = zip(*path_data, strict=False)
         super().__init__(Path(verts, codes), **kwargs)
 
 
@@ -290,7 +283,7 @@ class Link(PathPatch):
         ylim: tuple[float, float] = (-1, 1),
         curve: bool = False,
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -313,7 +306,7 @@ class Link(PathPatch):
         # Set default patch properties
         if "linewidth" not in kwargs:
             kwargs.setdefault("lw", 0.1)  # If lw=0, twisted part is almost invisible
-        kwargs.setdefault("zorder", 1)
+        kwargs.setdefault("zorder", config.zorder.link)
         kwargs.setdefault("clip_on", False)
         if "color" not in kwargs and "facecolor" not in kwargs:
             kwargs.setdefault("fc", "grey")
@@ -341,7 +334,7 @@ class Link(PathPatch):
                 (Path.LINETO, (start1, ymax)),
                 (Path.LINETO, (start2, ymin)),
             ]
-        codes, verts = zip(*path_data)
+        codes, verts = zip(*path_data, strict=False)
         super().__init__(Path(verts, codes), **kwargs)
 
 

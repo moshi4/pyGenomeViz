@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from pygenomeviz.align import AlignCoord
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.mark.parametrize(
@@ -23,7 +26,7 @@ def test_align_coord_property(
     qstrand: int,
     rstrand: int,
     is_inverted: bool,
-):
+) -> None:
     """Test `AlignCoord` property"""
     qid, qname, qlen = "qid", "qname", abs(qend - qstart)
     rid, rname, rlen = "rid", "rname", abs(rend - rstart)
@@ -74,7 +77,7 @@ def align_coords() -> list[AlignCoord]:
     return align_coords
 
 
-def test_align_coord_write_read(align_coords: list[AlignCoord], tmp_path: Path):
+def test_align_coord_write_read(align_coords: list[AlignCoord], tmp_path: Path) -> None:
     """Test `AlignCoord.write()` & `AlignCoord.read()` result"""
     # Test write
     outfile = tmp_path / "align_coords.tsv"
@@ -85,7 +88,7 @@ def test_align_coord_write_read(align_coords: list[AlignCoord], tmp_path: Path):
     read_align_coords = AlignCoord.read(outfile)
 
     # Test write & read result is same
-    for ac, read_ac in zip(align_coords, read_align_coords):
+    for ac, read_ac in zip(align_coords, read_align_coords, strict=False):
         assert ac == read_ac
 
 
@@ -106,7 +109,7 @@ def test_align_coord_filter(
     identity_thr: float | None,
     evalue_thr: float | None,
     expected_count: int,
-):
+) -> None:
     """Test `AlignCoord.filter()` count"""
     filter_align_coords = AlignCoord.filter(
         align_coords,
@@ -117,7 +120,7 @@ def test_align_coord_filter(
     assert len(filter_align_coords) == expected_count
 
 
-def test_align_coord_filter_overlap(align_coords: list[AlignCoord]):
+def test_align_coord_filter_overlap(align_coords: list[AlignCoord]) -> None:
     """Test `AlignCoord.filter_overlap()`"""
     align_coords = [
         AlignCoord("q1", "q1", 10, 20, "r1", "r1", 10, 20),
@@ -140,11 +143,11 @@ def test_align_coord_filter_overlap(align_coords: list[AlignCoord]):
     ]
 
 
-def test_contains_special_method():
+def test_contains_special_method() -> None:
     """Test `__contains__` overlap check special method"""
     # Case1. Same object
     ac1 = AlignCoord("q1", "q1", 10, 20, "r1", "r1", 10, 20)
-    assert (ac1 in ac1) is True
+    assert (ac1 in ac1) is True  # noqa: PLR0124
     # Case2. Both query, ref within
     ac2 = AlignCoord("q1", "q1", 0, 30, "r1", "r1", 0, 30)
     assert (ac1 in ac2) is True

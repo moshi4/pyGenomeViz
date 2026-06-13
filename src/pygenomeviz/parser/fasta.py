@@ -5,9 +5,12 @@ import gzip
 import zipfile
 from io import TextIOWrapper
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from Bio import SeqIO
-from Bio.SeqRecord import SeqRecord
+
+if TYPE_CHECKING:
+    from Bio.SeqRecord import SeqRecord
 
 
 class Fasta:
@@ -18,7 +21,7 @@ class Fasta:
         fasta: str | Path,
         *,
         name: str | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -33,11 +36,10 @@ class Fasta:
         # Set fasta name
         if name is not None:
             self._name = name
+        elif fasta.suffix in (".gz", ".bz2", ".zip"):
+            self._name = fasta.with_suffix("").with_suffix("").name
         else:
-            if fasta.suffix in (".gz", ".bz2", ".zip"):
-                self._name = fasta.with_suffix("").with_suffix("").name
-            else:
-                self._name = fasta.with_suffix("").name
+            self._name = fasta.with_suffix("").name
 
         if len(self.records) == 0:
             raise ValueError(f"Failed to parse '{fasta}' as fasta file.")
@@ -148,10 +150,9 @@ class Fasta:
             with bz2.open(fasta_file, mode="rt", encoding="utf-8") as f:
                 return list(SeqIO.parse(f, "fasta"))
         elif Path(fasta_file).suffix == ".zip":
-            with zipfile.ZipFile(fasta_file) as zip:
-                with zip.open(zip.namelist()[0]) as f:
-                    io = TextIOWrapper(f, encoding="utf-8")
-                    return list(SeqIO.parse(io, "fasta"))
+            with zipfile.ZipFile(fasta_file) as z, z.open(z.namelist()[0]) as f:
+                io = TextIOWrapper(f, encoding="utf-8")
+                return list(SeqIO.parse(io, "fasta"))
         else:
             with open(fasta_file, encoding="utf-8") as f:
                 return list(SeqIO.parse(f, "fasta"))

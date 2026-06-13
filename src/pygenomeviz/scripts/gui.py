@@ -46,7 +46,7 @@ def main() -> None:
 
     cmd = f"streamlit run {app_path} --server.port {port}"
     cmd_args = shlex.split(cmd)
-    sp.run(cmd_args)
+    sp.run(cmd_args, check=False)
 
 
 def get_args(cli_args: list[str] | None = None) -> argparse.Namespace:

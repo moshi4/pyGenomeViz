@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Literal
+
+Range = tuple[int, int]
+Segments = int | Range | Sequence[int | Range] | Mapping[str, int | Range]
 
 TrackAlignType = Literal["left", "center", "right"]
 PlotStyle = Literal["bigarrow", "arrow", "bigbox", "box", "bigrbox", "rbox"]
@@ -9,6 +13,7 @@ HPos = Literal["left", "center", "right"]
 SeqType = Literal["nucleotide", "protein"]
 Unit = Literal["Gb", "Mb", "Kb", "bp"]
 Theme = Literal["light", "dark"]
+Strand = Literal[-1, 1]
 
 AlnCliName = Literal["pgv-blast", "pgv-mummer", "pgv-mmseqs", "pgv-pmauve"]
 GenbankDatasetName = Literal[

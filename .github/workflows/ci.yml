@@ -17,20 +17,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install Rye
-        run: |
-          curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
-
-      - name: Setup Python ${{matrix.python-version}} & Dependencies
-        run: |
-          rye pin ${{ matrix.python-version }}
-          rye sync --update-all --all-features
 
       - name: Install external tool dependencies
         run: |
@@ -38,18 +28,27 @@ jobs:
           sudo apt install -y ncbi-blast+ mmseqs2 mummer progressivemauve last-align
         if: ${{ matrix.os=='ubuntu-latest' }}
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install Python ${{ matrix.python-version }} & dependencies
+        run: uv sync --all-extras --all-groups --upgrade --python ${{ matrix.python-version }}
+
       - name: Run ruff lint check
-        run: rye run ruff check --diff
+        run: uv run ruff check src tests
 
       - name: Run ruff format check
-        run: rye run ruff format --check --diff
+        run: uv run ruff format src tests
+
+      - name: Run ty type check
+        run: uv run ty check src tests
 
       - name: Run pytest
-        run: rye run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+        run: uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
 
       - name: Pytest Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: pytest-coverage.txt
           junitxml-path: pytest.xml
-        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' && !env.ACT }}
+        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' }}

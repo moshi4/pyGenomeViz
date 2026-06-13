@@ -5,7 +5,7 @@ import pytest
 from pygenomeviz.parser import Gff
 
 
-def test_gff_property(gff_file: Path):
+def test_gff_property(gff_file: Path) -> None:
     """Test Gff instance properties"""
     gff = Gff(gff_file)
     assert gff.name == "test"
@@ -17,10 +17,10 @@ def test_gff_property(gff_file: Path):
     assert len(gff.records) == 604
     assert len(gff.records) == len(gff.all_records)
     assert gff.get_seqid2size() == {"NC_000866.4": 168903}
-    assert gff.extract_features() == list(gff.get_seqid2features().values())[0]
+    assert gff.extract_features() == next(iter(gff.get_seqid2features().values()))
 
 
-def test_gff_property_multi_record(multi_record_gff_file: Path):
+def test_gff_property_multi_record(multi_record_gff_file: Path) -> None:
     """Test Gff instance(multi-record) properties"""
     gff = Gff(multi_record_gff_file)
     assert gff.name == "multi_record"
@@ -40,34 +40,34 @@ def test_gff_property_multi_record(multi_record_gff_file: Path):
         "NZ_LAEX01000007.1": 504069,
         "NZ_LAEX01000008.1": 71581,
     }
-    assert gff.target_seqid == list(expected_seqid2size.keys())[0]
+    assert gff.target_seqid == next(iter(expected_seqid2size.keys()))
     assert gff.seqid_list == list(expected_seqid2size.keys())
     assert gff.get_seqid2size() == expected_seqid2size
-    assert gff.extract_features() == list(gff.get_seqid2features().values())[0]
+    assert gff.extract_features() == next(iter(gff.get_seqid2features().values()))
 
 
-def test_parse_gff_gz_file(gff_gz_file: Path):
+def test_parse_gff_gz_file(gff_gz_file: Path) -> None:
     """Parse GZ compressed gff file"""
     gff = Gff(gff_gz_file)
     assert gff.name == "test"
     assert len(gff.records) == 604
 
 
-def test_parse_gff_bz2_file(gff_bz2_file: Path):
+def test_parse_gff_bz2_file(gff_bz2_file: Path) -> None:
     """Parse BZ2 compressed gff file"""
     gff = Gff(gff_bz2_file)
     assert gff.name == "test"
     assert len(gff.records) == 604
 
 
-def test_parse_gff_zip_file(gff_zip_file: Path):
+def test_parse_gff_zip_file(gff_zip_file: Path) -> None:
     """Parse ZIP compressed gff file"""
     gff = Gff(gff_zip_file)
     assert gff.name == "test"
     assert len(gff.records) == 604
 
 
-def test_parse_invalid_file_failed(gbk_file: Path):
+def test_parse_invalid_file_failed(gbk_file: Path) -> None:
     """Test parse invalid(genbank) file failed"""
     with pytest.raises(ValueError):
         Gff(gbk_file)

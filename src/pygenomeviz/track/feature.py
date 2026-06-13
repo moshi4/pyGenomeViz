@@ -3,21 +3,22 @@ from __future__ import annotations
 import textwrap
 from collections.abc import Sequence
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Mapping, overload
-
-import numpy as np
-from Bio.SeqFeature import SeqFeature
-from matplotlib.patches import Patch
+from typing import TYPE_CHECKING, Any
 
 from pygenomeviz.exception import SegmentNotFoundError, SubTrackNotFoundError
 from pygenomeviz.patches import PLOTSTYLE2PATCH, Intron
 from pygenomeviz.segment import FeatureSegment
 from pygenomeviz.track import Track
-from pygenomeviz.typing import HPos, PlotStyle, TrackAlignType, VPos
 from pygenomeviz.utils.plot import plot_patches
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
+    from collections.abc import Mapping
+
+    from Bio.SeqFeature import SeqFeature
+    from matplotlib.patches import Patch
+
+    from pygenomeviz import GenomeViz
+    from pygenomeviz.typing import TrackAlignType
 
 
 class FeatureTrack(Track):
@@ -28,6 +29,7 @@ class FeatureTrack(Track):
         name: str,
         seg_name2range: Mapping[str, tuple[int, int]],
         *,
+        gv: GenomeViz,
         ratio: float = 1.0,
         space: float | list[float] = 0.01,
         offset: int | TrackAlignType = "left",
@@ -36,7 +38,7 @@ class FeatureTrack(Track):
         align_label: bool = True,
         label_kws: dict[str, Any] | None = None,
         line_kws: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -44,6 +46,8 @@ class FeatureTrack(Track):
             Track name
         seg_name2range : Mapping[str, tuple[int, int]]
             Segment name & range dict
+        gv : GenomeViz
+            Parent GenomeViz instance
         ratio : float, optional
             Track size ratio
         space : float | list[float], optional
@@ -77,13 +81,13 @@ class FeatureTrack(Track):
             segments.append(segment)
 
         # Check space list length
-        if isinstance(space, (list, tuple)):
-            if len(space) != len(seg_name2range) - 1:
-                raise ValueError(f"{len(space)=} is invalid!!")
+        if isinstance(space, Sequence) and len(space) != len(seg_name2range) - 1:
+            raise ValueError(f"{len(space)=} is invalid!!")
 
         self._segments = segments
+        self._gv = gv
         self._space = space
-        self._offset = offset
+        self._offset: int | TrackAlignType = offset
         self._labelsize = labelsize
         self._labelmargin = labelmargin
         self._align_label = align_label
@@ -94,11 +98,28 @@ class FeatureTrack(Track):
         self._label: str | None = None
         self._segment_sep_text_kws_list: Sequence[dict[str, Any] | None] = []
 
-        self._max_track_total_seg_size: int | None = None
+        # Set first segment plot method as track plot method
+        # Enhancing usability in cases when track consist of a single segment
+        self.add_text = self.segments[0].add_text
+        self.add_annotation = self.segments[0].add_annotation
+        self.add_sublabel = self.segments[0].add_sublabel
+        self.add_feature = self.segments[0].add_feature
+        self.add_features = self.segments[0].add_features
+        self.add_exon_feature = self.segments[0].add_exon_feature
+        self.add_exon_features = self.segments[0].add_exon_features
+        self.add_lollipop = self.segments[0].add_lollipop
+        self.add_promoter = self.segments[0].add_promoter
+        self.add_highlight = self.segments[0].add_highlight
+        self.transform_coord = self.segments[0].transform_coord
 
     ############################################################
     # Property
     ############################################################
+
+    @property
+    def gv(self) -> GenomeViz:
+        """Parent GenomeViz"""
+        return self._gv
 
     @property
     def label(self) -> str:
@@ -106,18 +127,20 @@ class FeatureTrack(Track):
         return self.name if self._label is None else self._label
 
     @property
+    def raw_offset(self) -> int | TrackAlignType:
+        """Raw offset value"""
+        return self._offset
+
+    @property
     def offset(self) -> int:
         """Track offset"""
-        offset = self._offset
+        offset = self.raw_offset
         if isinstance(offset, str):
-            if offset == "left":
-                return 0
-            elif offset == "center":
-                return int((max(self.xlim) - self.plot_size) / 2)
-            elif offset == "right":
-                return max(self.xlim) - self.plot_size
-            else:
-                raise ValueError(f"{offset=} is invalid!!")
+            return dict(
+                left=0,
+                center=int((max(self.xlim) - self.plot_size) / 2),
+                right=max(self.xlim) - self.plot_size,
+            )[offset]
         else:
             if not offset >= 0:
                 raise ValueError(f"offset must be greater than 0 ({offset=}).")
@@ -134,7 +157,7 @@ class FeatureTrack(Track):
         return self._subtracks
 
     @property
-    def total_seg_size(self) -> int:
+    def size(self) -> int:
         """Total segment size"""
         return sum([seg.size for seg in self.segments])
 
@@ -145,46 +168,25 @@ class FeatureTrack(Track):
         if isinstance(self._space, (list, tuple)):
             for space in self._space:
                 if 0 <= space < 1:
-                    spaces.append(int(self.max_track_total_seg_size * space))
+                    spaces.append(int(self.gv.max_track_size * space))
                 else:
                     spaces.append(int(space))
         else:
             for _ in range(len(self.segments) - 1):
                 if 0 <= self._space < 1:
-                    spaces.append(int(self.max_track_total_seg_size * self._space))
+                    spaces.append(int(self.gv.max_track_size * self._space))
                 else:
                     spaces.append(int(self._space))
         return spaces
 
     @property
-    def max_track_total_seg_size(self) -> int:
-        """Max track total segment size (Use space calculation)"""
-        if self._max_track_total_seg_size is None:
-            raise ValueError("'max_track_total_seg_size' is not defined!!")
-        else:
-            return self._max_track_total_seg_size
-
-    @property
     def plot_size(self) -> int:
-        """Plot x size (`total_seg_size` + `sum(spaces)`)"""
-        return self.total_seg_size + sum(self.spaces)
+        """Plot size (`track size` + `sum(spaces)`)"""
+        return self.size + sum(self.spaces)
 
     ############################################################
     # Public Method
     ############################################################
-
-    def set_max_track_total_seg_size(self, max_track_total_seg_size: int) -> None:
-        """Set max track total segment size
-
-        This method is expected to be called within the GenomeViz instance
-        to update track status. General users should not use this method.
-
-        Parameters
-        ----------
-        max_track_total_seg_size : int
-            Max track total segment size
-        """
-        self._max_track_total_seg_size = max_track_total_seg_size
 
     def set_label(self, label: str) -> None:
         """Set track label (By default, `track.label` = `track.name`)
@@ -223,9 +225,8 @@ class FeatureTrack(Track):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # Check list sep length
-        if isinstance(sep, (list, tuple)):
-            if len(sep) != len(self.spaces):
-                raise ValueError(f"{len(sep)=} is invalid!!")
+        if isinstance(sep, (list, tuple)) and len(sep) != len(self.spaces):
+            raise ValueError(f"{len(sep)=} is invalid!!")
 
         # Convert bool sep to list sep
         if isinstance(sep, bool):
@@ -330,348 +331,6 @@ class FeatureTrack(Track):
                 raise SegmentNotFoundError(f"{name=} segment not found (track_name='{self.name}').")  # fmt: skip  # noqa: E501
             return name2segment[name]
 
-    def add_text(
-        self,
-        x: float,
-        text: str,
-        *,
-        target_seg: str | None = None,
-        size: float = 15,
-        vpos: VPos = "top",
-        hpos: HPos = "left",
-        ymargin: float = 0.2,
-        rotation: float = 45,
-        **kwargs,
-    ) -> None:
-        """Add text to track segment
-
-        Parameters
-        ----------
-        x : float
-            Text x coordinate
-        text : str
-            Text content
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        size : float, optional
-            Text size
-        vpos : str, optional
-            Vertical position (`top`|`center`|`bottom`)
-        hpos : str, optional
-            Horizontal position (`left`|`center`|`right`)
-        ymargin : float, optional
-            Y margin
-        rotation : float, optional
-            Text rotation
-        **kwargs : dict, optional
-            `segment.add_text()` method keyword arguments (e.g. `color="red", ...`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_text(
-            x,
-            text,
-            size=size,
-            vpos=vpos,
-            hpos=hpos,
-            ymargin=ymargin,
-            rotation=rotation,
-            **kwargs,
-        )
-
-    def add_sublabel(
-        self,
-        text: str | None = None,
-        *,
-        target_seg: str | None = None,
-        size: float = 12,
-        pos: str = "bottom-left",
-        ymargin: float = 0.2,
-        rotation: float = 0,
-        **kwargs,
-    ) -> None:
-        """Add sublabel to corners of the track segment
-
-        Parameters
-        ----------
-        text : str | None, optional
-            Text content
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        size : float, optional
-            Text size
-        pos : str, optional
-            Label position ([`top`|`bottom`]-[`left`|`center`|`right`])
-        ymargin : float, optional
-            Y margin
-        rotation : float, optional
-            Text rotation
-        **kwargs : dict, optional
-            `segment.add_text()` method keyword arguments (e.g. `color="red", ...`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_sublabel(
-            text,
-            size=size,
-            pos=pos,
-            ymargin=ymargin,
-            rotation=rotation,
-            **kwargs,
-        )
-
-    def add_feature(
-        self,
-        start: int,
-        end: int,
-        strand: int = 1,
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        extra_tooltip: dict[str, str] | None = None,
-        label: str = "",
-        text_kws: dict[str, Any] | None = None,
-        **kwargs,
-    ) -> None:
-        """Add feature
-
-        Parameters
-        ----------
-        start : int
-            Start position
-        end : int
-            End position
-        strand : int, optional
-            Feature strand
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        extra_tooltip : dict[str, str] | None, optional
-            Extra tooltip dict for html figure
-        label : str, optional
-            Feature label
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_feature(
-            start,
-            end,
-            strand,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            extra_tooltip=extra_tooltip,
-            label=label,
-            text_kws=text_kws,
-            **kwargs,
-        )
-
-    def add_features(
-        self,
-        features: SeqFeature | list[SeqFeature],
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        label_type: str | None = None,
-        label_handler: Callable[[str], str] | None = None,
-        extra_tooltip: dict[str, str] | None = None,
-        ignore_outside_range: bool = False,
-        text_kws: dict[str, Any] | None = None,
-        **kwargs,
-    ) -> None:
-        """Add features (BioPython SeqFeature)
-
-        Parameters
-        ----------
-        features : SeqFeature | list[SeqFeature]
-            BioPython SeqFeature or SeqFeature list
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        label_type : str | None, optional
-            Label type (e.g. `gene`,`protein_id`,`product`,etc...)
-        label_handler : Callable[[str], str] | None, optional
-            Label handler function to customize label display.
-            If None, set label handler to exclude labels containing `hypothetical`.
-        extra_tooltip : dict[str, str] | None, optional
-            Extra tooltip dict for html figure
-        ignore_outside_range : bool, optional
-            If True and the feature position is outside the range of the track segment,
-            ignore it without raising an error.
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_features(
-            features,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            label_type=label_type,
-            label_handler=label_handler,
-            extra_tooltip=extra_tooltip,
-            ignore_outside_range=ignore_outside_range,
-            text_kws=text_kws,
-            **kwargs,
-        )
-
-    def add_exon_feature(
-        self,
-        locs: list[tuple[int, int]],
-        strand: int = 1,
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        label: str = "",
-        patch_kws: dict[str, Any] | None = None,
-        intron_patch_kws: dict[str, Any] | None = None,
-        text_kws: dict[str, Any] | None = None,
-    ) -> None:
-        """Add exon feature
-
-        Parameters
-        ----------
-        locs : list[tuple[int, int]]
-            Exon locations (e.g. `[(0, 100), (200, 300), (350, 400)]`)
-        strand : int, optional
-            Feature strand
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        label : str, optional
-            Feature label
-        patch_kws : dict[str, Any] | None, optional
-            Exon patch properties (e.g. `dict(fc="red", lw=0.5, hatch="//", ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        intron_patch_kws : dict[str, Any] | None, optional
-            Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_exon_feature(
-            locs,
-            strand,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            label=label,
-            patch_kws=patch_kws,
-            intron_patch_kws=intron_patch_kws,
-            text_kws=text_kws,
-        )
-
-    def add_exon_features(
-        self,
-        features: SeqFeature | list[SeqFeature],
-        *,
-        target_seg: str | None = None,
-        plotstyle: PlotStyle = "arrow",
-        arrow_shaft_ratio: float = 0.5,
-        label_type: str | None = None,
-        label_handler: Callable[[str], str] | None = None,
-        extra_tooltip: dict[str, str] | None = None,
-        ignore_outside_range: bool = False,
-        patch_kws: dict[str, Any] | None = None,
-        intron_patch_kws: dict[str, Any] | None = None,
-        text_kws: dict[str, Any] | None = None,
-    ) -> None:
-        """Add exon features
-
-        Parameters
-        ----------
-        features : SeqFeature | list[SeqFeature]
-            BioPython SeqFeature or SeqFeature list
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-        plotstyle : PlotStyle, optional
-            Feature plot style (`bigarrow`|`arrow`|`bigbox`|`box`|`bigrbox`|`rbox`)
-        arrow_shaft_ratio : float, optional
-            Arrow shaft size ratio
-        label_type : str | None, optional
-            Label type (e.g. `gene`,`protein_id`,`product`, etc...)
-        label_handler : Callable[[str], str] | None, optional
-            Label handler function to customize label display.
-            If None, set label handler to exclude labels containing `hypothetical`.
-        extra_tooltip : dict[str, str] | None, optional
-            Extra tooltip dict for html figure
-        ignore_outside_range : bool, optional
-            If True and the feature position is outside the range of the track segment,
-            ignore it without raising an error.
-        patch_kws : dict[str, Any] | None, optional
-            Exon patch properties (e.g. `dict(fc="red", lw=0.5, hatch="//", ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        intron_patch_kws : dict[str, Any] | None, optional
-            Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
-            (e.g. `dict(size=12, color="red", ...)`)
-        """
-        segment = self.get_segment(target_seg)
-        segment.add_exon_features(
-            features,
-            plotstyle=plotstyle,
-            arrow_shaft_ratio=arrow_shaft_ratio,
-            label_type=label_type,
-            label_handler=label_handler,
-            extra_tooltip=extra_tooltip,
-            ignore_outside_range=ignore_outside_range,
-            patch_kws=patch_kws,
-            intron_patch_kws=intron_patch_kws,
-            text_kws=text_kws,
-        )
-
-    @overload
-    def transform_coord(self, x: int, *, target_seg: str | None = None) -> int: ...
-    @overload
-    def transform_coord(self, x: float, *, target_seg: str | None = None) -> float: ...
-    @overload
-    def transform_coord(
-        self, x: NDArray, *, target_seg: str | None = None
-    ) -> NDArray[np.float64]: ...
-
-    def transform_coord(
-        self,
-        x: int | float | NDArray,
-        *,
-        target_seg: str | None = None,
-    ) -> int | float | NDArray[np.float64]:
-        """Transform segment-level coordinate to track-level coordinate
-
-        Parameters
-        ----------
-        x : int | float | NDArray
-            Segment-level coordinate(s)
-        target_seg : str | None, optional
-            Target segment name. If None, first segment is selected.
-
-        Returns
-        -------
-        transform_x : int | float| NDArray[np.float64]
-            Track-level coordinate(s)
-        """
-        seg = self.get_segment(target_seg)
-        return seg.transform_coord(x)
-
     def plot_all(self, fast_render: bool = True) -> None:
         """Plot all objects (Expected to be called in `gv.plotfig()`)
 
@@ -691,7 +350,7 @@ class FeatureTrack(Track):
         self._plot_segment_sep()
         self._plot_features(fast_render)
         self._plot_exon_features(fast_render)
-        self._plot_texts()
+        self._call_plot_methods()
 
     ############################################################
     # Private Method
@@ -750,7 +409,7 @@ class FeatureTrack(Track):
             for f in seg.transform_features:
                 start = int(f.location.parts[0].start)  # type: ignore
                 end = int(f.location.parts[-1].end)  # type: ignore
-                strand = -1 if f.location.strand == -1 else 1
+                strand = -1 if f.location.strand == -1 else 1  # type: ignore
                 plotstyle = str(f.qualifiers["plotstyle"])
                 arrow_shaft_ratio = float(f.qualifiers["arrow_shaft_ratio"])
                 patch_kws = dict(f.qualifiers["patch_kws"])
@@ -776,7 +435,7 @@ class FeatureTrack(Track):
             Enable fast rendering using PatchCollection plot style.
         """
         # Collect feature patches
-        patches: list[Patch] = []
+        patches: list[Patch] = []  # type: ignore
         for seg in self.segments:
             for f in seg.transform_exon_features:
                 exon_locs, intron_locs = self._extract_exon_intron_locs(f)
@@ -785,7 +444,7 @@ class FeatureTrack(Track):
                 patch_kws = dict(f.qualifiers["patch_kws"])
 
                 # Plot exon patches
-                strand = -1 if f.location.strand == -1 else 1
+                strand = -1 if f.location.strand == -1 else 1  # type: ignore
                 exon_locs = exon_locs[::-1] if strand == -1 else exon_locs
                 for idx, exon_loc in enumerate(exon_locs, 1):
                     exon_start, exon_end = exon_loc
@@ -817,11 +476,12 @@ class FeatureTrack(Track):
 
         plot_patches(patches, self.ax, fast_render)
 
-    def _plot_texts(self) -> None:
-        """Plot texts"""
+    def _call_plot_methods(self) -> None:
+        """Call plot axes methods"""
         for seg in self.segments:
-            for text_kws in seg.transform_text_kws_list:
-                self.ax.text(**text_kws)
+            for ax_method, kws_list in seg.transform_ax_method2kws_list.items():
+                for kws in kws_list:
+                    getattr(self.ax, ax_method)(**kws)
 
     def _extract_exon_intron_locs(
         self,
@@ -844,8 +504,8 @@ class FeatureTrack(Track):
         exon_locs: list[tuple[int, int]] = []
         intron_locs: list[tuple[int, int]] = []
         # Extract exon locations
-        for loc in feature.location.parts:
-            exon_start, exon_end = int(loc.start), int(loc.end)  # type: ignore
+        for loc in feature.location.parts:  # type: ignore
+            exon_start, exon_end = int(loc.start), int(loc.end)
             exon_locs.append((exon_start, exon_end))
         # Extract intron locations
         for i in range(len(exon_locs) - 1):
@@ -854,7 +514,7 @@ class FeatureTrack(Track):
 
         return exon_locs, intron_locs
 
-    def __str__(self):
+    def __str__(self) -> str:
         track_segments = {seg.name: (seg.start, seg.end) for seg in self.segments}
         return textwrap.dedent(
             f"""
@@ -863,7 +523,7 @@ class FeatureTrack(Track):
             """
         )[1:-1]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
@@ -876,7 +536,7 @@ class FeatureSubTrack(Track):
         *,
         ratio: float,
         feature_track: FeatureTrack,
-    ):
+    ) -> None:
         """
         Parameters
         ----------

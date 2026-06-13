@@ -1,30 +1,37 @@
 from __future__ import annotations
 
 import io
-from collections.abc import Mapping, Sequence
 from copy import deepcopy
-from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import LinearSegmentedColormap, Normalize, to_hex
-from matplotlib.figure import Figure
 from matplotlib.font_manager import FontProperties
 from matplotlib.gridspec import GridSpec
+from matplotlib.text import Annotation, Text
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
+from pygenomeviz import config
 from pygenomeviz.exception import (
     FeatureTrackNotFoundError,
     LinkRangeError,
     LinkTrackNotFoundError,
 )
 from pygenomeviz.track import FeatureSubTrack, FeatureTrack, LinkTrack, Track
-from pygenomeviz.typing import Theme, TrackAlignType, Unit
 from pygenomeviz.utils.helper import interpolate_color, size_label_formatter
 from pygenomeviz.viewer import setup_viewer_html
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from pathlib import Path
+
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+    from matplotlib.transforms import Bbox
+
+    from pygenomeviz.typing import Segments, Theme, TrackAlignType, Unit
 
 
 class GenomeViz:
@@ -46,7 +53,7 @@ class GenomeViz:
         link_track_ratio: float = 1.0,
         theme: Theme = "light",
         show_axis: bool = False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -103,6 +110,13 @@ class GenomeViz:
         """Link tracks"""
         return [t for t in self.get_tracks() if isinstance(t, LinkTrack)]
 
+    @property
+    def max_track_size(self) -> int:
+        """Max track size (total segment size)"""
+        if len(self.feature_tracks) == 0:
+            raise ValueError("No feature track found!!")
+        return max([t.size for t in self.feature_tracks])
+
     ############################################################
     # Public Method
     ############################################################
@@ -130,10 +144,7 @@ class GenomeViz:
     def add_feature_track(
         self,
         name: str,
-        segments: int
-        | tuple[int, int]
-        | Sequence[int | tuple[int, int]]
-        | Mapping[str, int | tuple[int, int]],
+        segments: Segments,
         *,
         space: float | list[float] = 0.02,
         offset: int | TrackAlignType | None = None,
@@ -152,7 +163,7 @@ class GenomeViz:
         ----------
         name : str
             Track name
-        segments : int | tuple[int, int] | Sequence[int | tuple[int, int]] | Mapping[str, int | tuple[int, int]]
+        segments : Segments
             Track segments definition. Segment sizes or ranges can be specified.
         space : float | list[float], optional
             Space ratio between segments.
@@ -192,6 +203,7 @@ class GenomeViz:
         feature_track = FeatureTrack(
             name,
             self._to_seg_name2range(segments),
+            gv=self,
             ratio=self._feature_track_ratio,
             space=space,
             offset=self._track_align_type if offset is None else offset,
@@ -216,7 +228,8 @@ class GenomeViz:
             self._tracks.append(link_track)
 
         self._tracks.append(feature_track)
-        self._update_track_status()
+
+        self._update_track_xlim()
 
         return feature_track
 
@@ -241,9 +254,9 @@ class GenomeViz:
 
         Parameters
         ----------
-        target1 : tuple[str, int, int] | tuple[str, int | str | None, int, int]
+        target1 : tuple[str, int, int] | tuple[str, str | None, int, int]
             Target link1 `(track_name, start, end)` or `(track_name, target_segment, start, end)`
-        target2 : tuple[str, int, int] | tuple[str, int | str | None, int, int]
+        target2 : tuple[str, int, int] | tuple[str, str | None, int, int]
             Target link2 `(track_name, start, end)` or `(track_name, target_segment, start, end)`
         color : str, optional
             Link color
@@ -273,15 +286,22 @@ class GenomeViz:
             Patch properties (e.g. `ec="black", lw=0.5, hatch="//", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """  # noqa: E501
+
         # Get target link track
-        if len(target1) == 3:
-            target1 = (target1[0], None, target1[1], target1[2])
-        if len(target2) == 3:
-            target2 = (target2[0], None, target2[1], target2[2])
-        link_track = self._get_target_link_track(target1, target2)
+        def _to_target_tuple(
+            target: tuple[str, int, int] | tuple[str, str | None, int, int],
+        ) -> tuple[str, str | None, int, int]:
+            if len(target) == 3:
+                return (target[0], None, target[1], target[2])
+            else:
+                return target
+
+        _target1 = _to_target_tuple(target1)
+        _target2 = _to_target_tuple(target2)
+        link_track = self._get_target_link_track(_target1, _target2)
 
         # Get upper & lower target feature track, segment info
-        track_name2target = {target1[0]: target1, target2[0]: target2}
+        track_name2target = {_target1[0]: _target1, _target2[0]: _target2}
         upper_target = track_name2target[link_track.upper_feature_track.name]
         lower_target = track_name2target[link_track.lower_feature_track.name]
         upper_seg_name, upper_start, upper_end = upper_target[1:]
@@ -346,7 +366,7 @@ class GenomeViz:
             If None, scale bar size & label are automatically set.
         """
 
-        def plot_scale_bar(lowest_track_ax: Axes):
+        def plot_scale_bar(lowest_track_ax: Axes) -> None:
             if scale_size_label is None:
                 scale_size = lowest_track_ax.get_xticks()[1]
                 scale_label = size_label_formatter(scale_size)
@@ -517,7 +537,7 @@ class GenomeViz:
         if len(tracks) == 0:
             raise ValueError("Failed to plot figure. No track found!!")
 
-        with plt.style.context(self._mpl_style):  # type: ignore
+        with plt.style.context(self._mpl_style):
             # Setup figure & gridspece
             fig = plt.figure(figsize=self.figsize, dpi=dpi)
             fig.tight_layout()
@@ -553,6 +573,9 @@ class GenomeViz:
                 self._plot_colorbar(fig)
 
         self._setup_jupyter_inline()
+
+        if config.ann_adjust.enabled:
+            self._adjust_annotation()
 
         return fig
 
@@ -610,7 +633,7 @@ class GenomeViz:
         # Load SVG contents
         fig = self.plotfig(fast_render=False) if figure is None else figure
         svg_fig_bytes = io.BytesIO()
-        fig.savefig(fname=svg_fig_bytes, format="svg")
+        fig.savefig(svg_fig_bytes, format="svg", pad_inches=0.5)
         svg_fig_bytes.seek(0)
         svg_fig_contents = svg_fig_bytes.read().decode("utf-8")
 
@@ -639,37 +662,33 @@ class GenomeViz:
     # Private Method
     ############################################################
 
-    def _update_track_status(self) -> None:
-        """Update track status
+    def _update_track_xlim(self) -> None:
+        """Update track xlim
 
-        This method is called at the end of `add_feature_track()`
+        This method is called at the end of `add_feature_track()` every time
         """
-        # Set `max_track_total_seg_size` & `xlim` for each feature track
-        max_track_total_seg_size = max([t.total_seg_size for t in self.feature_tracks])
+        xlim_size = 0
         for t in self.feature_tracks:
-            t.set_max_track_total_seg_size(max_track_total_seg_size)
-
-        plot_size_list = []
-        for t in self.feature_tracks:
-            offset = t._offset if isinstance(t._offset, int) else 0
-            plot_size_list.append(t.plot_size + offset)
+            offset = t.raw_offset if isinstance(t.raw_offset, int) else 0
+            xlim_size = max(xlim_size, t.plot_size + offset)
         for t in self.get_tracks(subtrack=True):
-            t.set_xlim((0, max(plot_size_list)))
+            t.set_xlim((0, xlim_size))
 
     def _to_seg_name2range(
         self,
-        segments: int
-        | tuple[int, int]
-        | Sequence[int | tuple[int, int]]
-        | Mapping[str, int | tuple[int, int]],
+        segments: Segments,
     ) -> dict[str, tuple[int, int]]:
         """Convert segments type to `segment name` & `range` dict"""
         # Convert segments to dict type
         if isinstance(segments, int):
             segments = [segments]
-        if isinstance(segments, tuple) and len(segments) == 2:
-            if isinstance(segments[0], int) and isinstance(segments[1], int):
-                segments = [segments]  # type: ignore
+        if (
+            isinstance(segments, tuple)
+            and len(segments) == 2
+            and isinstance(segments[0], int)
+            and isinstance(segments[1], int)
+        ):
+            segments = [segments]  # type: ignore
         if isinstance(segments, (list, tuple)):
             segments = {f"seg{idx}": seg for idx, seg in enumerate(segments, 1)}  # type: ignore
 
@@ -710,6 +729,43 @@ class GenomeViz:
 
         return target_link_track
 
+    def _adjust_annotation(self) -> None:
+        """Adjust annotation position to avoid overlap"""
+
+        def get_padded_text_bbox(ann: Annotation) -> Bbox:
+            text_bbox = Text.get_window_extent(ann)
+            h_bbox = text_bbox.height
+            # Add padding to bbox for space between annotations
+            # If annotation has bbox patch, add extra padding
+            line_num = ann.get_text().count("\n") + 1
+            bbox_wpad = (h_bbox * config.ann_adjust.wpad) / line_num
+            bbox_hpad = (h_bbox * config.ann_adjust.hpad) / line_num
+            bbox_patch = ann.get_bbox_patch()
+            if bbox_patch:
+                pad_size = getattr(bbox_patch.get_boxstyle(), "pad", None)
+                if pad_size:
+                    bbox_wpad += (h_bbox * pad_size) / line_num
+                    bbox_hpad += (h_bbox * pad_size) / line_num
+            return text_bbox.padded(bbox_wpad, bbox_hpad)
+
+        self.feature_tracks[0].ax.figure.draw_without_rendering()  # type: ignore
+        for track in self.feature_tracks:
+            # Apply annotation position adjustment per track
+            ann_list = [t for t in track.ax.texts if isinstance(t, Annotation)]
+            ann_list = sorted(ann_list, key=lambda ann: ann.xy[0])
+            if len(ann_list) > config.ann_adjust.limit:
+                continue
+            for idx, ann in enumerate(ann_list[1:], 1):
+                ann_bbox = get_padded_text_bbox(ann)
+                adj_ann_bboxes = [get_padded_text_bbox(ann) for ann in ann_list[:idx]]
+                # Iteratively adjust annotation position
+                while ann_bbox.count_overlaps(adj_ann_bboxes) > 0:
+                    x, y = ann.xyann
+                    ann.xyann = (x, y + config.ann_adjust.dy)
+                    ann_bbox = get_padded_text_bbox(ann)
+                    # Update zorder to avoid annotation line above text bbox
+                    ann.set_zorder(ann.zorder - 1e-6)
+
     def _get_gid2feature_dict(self) -> dict[str, dict[str, Any]]:
         """Get group ID & feature dict
 
@@ -748,13 +804,13 @@ class GenomeViz:
         <https://github.com/matplotlib/matplotlib/issues/26716>
         """
         try:
-            from IPython import get_ipython  # type: ignore
+            from IPython import get_ipython  # noqa: PLC0415
 
             get_ipython().run_line_magic("matplotlib", "inline")
         except Exception:
             pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         ret_val = ""
         for feature_track in self.feature_tracks:
             ret_val += f"{feature_track}\n"

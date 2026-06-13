@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import logging
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
-def init_null_logger():
+def init_null_logger() -> None:
     """Initialize package root logger with NullHandler
 
     Configuring package root null logger for a library
@@ -21,7 +24,7 @@ def init_logger(
     quiet: bool = False,
     verbose: bool = False,
     log_file: str | Path | None = None,
-):
+) -> None:
     """Initialize package root logger with StreamHandler(& FileHandler)
 
     Configuring package root default logger for a CLI tool
@@ -52,10 +55,7 @@ def init_logger(
     # Add stream handler for terminal stderr
     stream_handler = logging.StreamHandler(sys.stderr)
     stream_handler.setFormatter(log_formatter)
-    if quiet:
-        log_level = logging.WARNING
-    else:
-        log_level = logging.DEBUG if verbose else logging.INFO
+    log_level = logging.WARNING if quiet else logging.DEBUG if verbose else logging.INFO
     stream_handler.setLevel(log_level)
     logger.addHandler(stream_handler)
 

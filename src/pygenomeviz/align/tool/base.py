@@ -8,11 +8,15 @@ import shutil
 import subprocess as sp
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING
 
-from pygenomeviz.align import AlignCoord
 from pygenomeviz.const import UNKNOWN_VERSION
 from pygenomeviz.parser import Fasta, Genbank
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from pygenomeviz.align import AlignCoord
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +24,7 @@ logger = logging.getLogger(__name__)
 class AlignToolBase(ABC):
     """Alignment Tool Abstract Base Class"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.check_installation()
 
     @property
@@ -119,7 +123,8 @@ class AlignToolBase(ABC):
                 logger.error("STDERR:")
                 for line in stderr_lines:
                     logger.error(f"> {line}")
-            raise RuntimeError(f"Failed to run '{self.get_tool_name()}' aligner!!")
+            tool_name = self.get_tool_name()
+            raise RuntimeError(f"Failed to run '{tool_name}' aligner!!") from e
 
     @classmethod
     def _get_version(cls, cmd: str, pattern: str) -> str:
@@ -139,7 +144,7 @@ class AlignToolBase(ABC):
         """
         try:
             cmd_args = shlex.split(cmd)
-            cmd_res = sp.run(cmd_args, capture_output=True, text=True)
+            cmd_res = sp.run(cmd_args, check=False, capture_output=True, text=True)
             output = cmd_res.stderr if cmd_res.stdout == "" else cmd_res.stdout
             version = re.findall(pattern, output, re.MULTILINE)[0]
             return version
@@ -193,24 +198,23 @@ class AlignToolBase(ABC):
             raise ValueError("Number of input seqs is less than 2.")
         # Parse genbank or fasta files
         parse_seqs: Sequence[Fasta | Genbank] = []
-        gbk_suffixes = (".gb", ".gbk", ".gbff", ".gb.gz", ".gbk.gz", ".gbff.gz")
-        fasta_suffixes = (".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz")
+        gbk_exts = (".gb", ".gbk", ".gbff", ".gb.gz", ".gbk.gz", ".gbff.gz")
+        fasta_exts = (".fa", ".fna", ".fasta", ".fa.gz", ".fna.gz", ".fasta.gz")
         for seq in seqs:
-            if isinstance(seq, str):
-                seq = Path(seq)
-            if isinstance(seq, Path):
-                suffix = seq.suffix
-                if suffix == ".gz" and len(seq.suffixes) >= 2:
-                    suffix = "".join(seq.suffixes[-2])
-                if suffix in gbk_suffixes:
+            if isinstance(seq, (Fasta, Genbank)):
+                parse_seqs.append(seq)
+            else:
+                ext, exts = Path(seq).suffix, Path(seq).suffixes
+                if ext == ".gz" and len(exts) >= 2:
+                    ext = "".join(exts[-2])
+
+                if ext in gbk_exts:
                     parse_seqs.append(Genbank(seq))
-                elif suffix in fasta_suffixes:
+                elif ext in fasta_exts:
                     parse_seqs.append(Fasta(seq))
                 else:
-                    valid_suffixes = gbk_suffixes + fasta_suffixes
-                    raise ValueError(f"'{seq}' is invalid file suffix ({valid_suffixes=})")  # fmt: skip  # noqa: E501
-            else:
-                parse_seqs.append(seq)
+                    valid_exts = gbk_exts + fasta_exts
+                    raise ValueError(f"'{seq}' is invalid file suffix ({valid_exts=})")
         return parse_seqs
 
     def _write_genome_files(

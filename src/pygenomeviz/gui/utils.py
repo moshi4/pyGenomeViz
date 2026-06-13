@@ -9,14 +9,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import streamlit as st
-from Bio.SeqFeature import SeqFeature
-from matplotlib.figure import Figure
 
-from pygenomeviz import GenomeViz
 from pygenomeviz.parser import Genbank
 
 if TYPE_CHECKING:
+    from Bio.SeqFeature import SeqFeature
+    from matplotlib.figure import Figure
     from streamlit.runtime.uploaded_file_manager import UploadedFile
+
+    from pygenomeviz import GenomeViz
 
 
 @st.cache_data(ttl=3600)
@@ -52,7 +53,7 @@ def load_gbk_file(gbk_file: str | Path | UploadedFile) -> Genbank:
 def is_st_cloud() -> bool:
     """Is launch on streamlit cloud"""
     try:
-        return st.context.url.startswith("https://pygenomeviz.streamlit.app")
+        return str(st.context.url).startswith("https://pygenomeviz.streamlit.app")
     except Exception:
         return False
 
@@ -139,7 +140,7 @@ def get_fig_bytes(gv: GenomeViz, fig: Figure, format: str) -> io.BytesIO:
     """Get figure bytes"""
     fig_bytes = io.BytesIO()
     if format in ("png", "svg"):
-        fig.savefig(fig_bytes, format=format)
+        fig.savefig(fig_bytes, format=format, pad_inches=0.5)
     elif format == "html":
         gv.savefig_html(fig_bytes)
     else:

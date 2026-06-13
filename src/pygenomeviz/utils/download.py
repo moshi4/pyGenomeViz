@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import logging
-import os
 from io import StringIO, TextIOWrapper
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.request import urlretrieve
 
 from Bio import Entrez
 
 from pygenomeviz.parser import Genbank
-from pygenomeviz.typing import GenbankDatasetName, GffExampleFileName
+
+if TYPE_CHECKING:
+    from pygenomeviz.typing import GenbankDatasetName, GffExampleFileName
 
 GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pygenomeviz-data-v1/main/"
 
@@ -90,8 +92,6 @@ def load_example_fasta_dataset(
         Output cache directory (Default: `~/.cache/pygenomeviz/`)
     overwrite_cache : bool, optional
         If True, overwrite cached dataset
-    quiet : bool, optional
-        If True, no print log on screen.
 
     Returns
     -------
@@ -109,7 +109,7 @@ def load_example_fasta_dataset(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "fasta" / name
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
 
@@ -164,7 +164,7 @@ def load_example_genbank_dataset(
     logger = logging.getLogger(__name__)
 
     # Check specified name dataset exists or not
-    if name not in GBK_DATASET.keys():
+    if name not in GBK_DATASET:
         raise ValueError(f"'{name}' dataset not found.")
 
     # Dataset cache local directory
@@ -172,7 +172,7 @@ def load_example_genbank_dataset(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "genbank" / name
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
 
@@ -233,7 +233,7 @@ def load_example_gff_file(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "gff"
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
 
@@ -250,8 +250,8 @@ def fetch_genbank_by_accid(
     accid: str,
     gbk_outfile: str | Path | None = None,
     email: str | None = None,
-) -> TextIOWrapper:
-    """Fetch genbank text by 'Accession ID'
+) -> StringIO:
+    """Fetch genbank text by `Accession ID`
 
     Parameters
     ----------
@@ -264,25 +264,24 @@ def fetch_genbank_by_accid(
 
     Returns
     -------
-    TextIOWrapper
+    gbk_str_io : StringIO
         Genbank data
 
     Examples
     --------
-    >>> gbk_text = fetch_genbank_by_accid("NC_013600")
-    >>> gbk = Genbank(gbk_text)
+    >>> gbk_fetch_data = fetch_genbank_by_accid("NC_002483")
+    >>> gbk = Genbank(gbk_fetch_data)
     """
-    Entrez.email = "" if email is None else email
+    Entrez.email = "" if email is None else email  # type: ignore
     gbk_fetch_data: TextIOWrapper = Entrez.efetch(
         db="nucleotide",
         id=accid,
         rettype="gbwithparts",
         retmode="text",
     )
+    gbk_text = gbk_fetch_data.read()
     if gbk_outfile is not None:
-        gbk_text = gbk_fetch_data.read()
         with open(gbk_outfile, "w", encoding="utf-8") as f:
             f.write(gbk_text)
-        gbk_fetch_data = StringIO(gbk_text)  # type: ignore
 
-    return gbk_fetch_data
+    return StringIO(gbk_text)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -8,13 +8,18 @@ from pygenomeviz.align import MUMmer
 from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_mummer_not_installed
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def test_mummer_get_tool_name():
+    from pygenomeviz.typing import SeqType
+
+
+def test_mummer_get_tool_name() -> None:
     """Test `get_tool_name()`"""
     assert MUMmer.get_tool_name() == "MUMmer"
 
 
-def test_mummer_get_binary_names():
+def test_mummer_get_binary_names() -> None:
     """Test `get_binary_names()`"""
     assert MUMmer.get_binary_names() == [
         "nucmer",
@@ -25,7 +30,7 @@ def test_mummer_get_binary_names():
 
 
 @skipif_mummer_not_installed
-def test_mummer_get_version():
+def test_mummer_get_version() -> None:
     """Test `get_version()`"""
     assert MUMmer.get_version() != UNKNOWN_VERSION
 
@@ -41,8 +46,8 @@ def test_mummer_get_version():
 def test_mummer_api_genbank(
     gbk_dataset_files: list[Path],
     tmp_path: Path,
-    seqtype,
-):
+    seqtype: SeqType,
+) -> None:
     """Run mummer with genbank files"""
     align_coords = MUMmer(
         gbk_dataset_files,
@@ -63,8 +68,8 @@ def test_mummer_api_genbank(
 def test_mummer_api_fasta(
     fasta_dataset_files: list[Path],
     tmp_path: Path,
-    seqtype,
-):
+    seqtype: SeqType,
+) -> None:
     """Run mummer with fasta files"""
     align_coords = MUMmer(
         fasta_dataset_files,

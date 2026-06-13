@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pygenomeviz.gui.config import (
     AlignConfig,
@@ -12,9 +12,12 @@ from pygenomeviz.gui.plot import plot_by_gui_cfg
 from pygenomeviz.parser import Genbank
 from tests.marker import skipif_blast_not_installed
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 @skipif_blast_not_installed
-def test_create_genomeviz(gbk_dataset_files: list[Path], tmp_path: Path):
+def test_create_genomeviz(gbk_dataset_files: list[Path], tmp_path: Path) -> None:
     """Test create genomeviz for GUI"""
     gbk_list = [Genbank(gbk_file) for gbk_file in gbk_dataset_files]
 

@@ -32,7 +32,7 @@ skipif_pmauve_not_installed = pytest.mark.skipif(
 
 
 def _check_streamlit_installation() -> bool:
-    return True if find_spec("streamlit") else False
+    return bool(find_spec("streamlit"))
 
 
 skipif_streamlit_not_installed = pytest.mark.skipif(

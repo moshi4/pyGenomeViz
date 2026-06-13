@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 
-from pygenomeviz import GenomeViz
+from pygenomeviz import GenomeViz, config
 from pygenomeviz.parser import Genbank, Gff
+from pygenomeviz.utils import ColorCycler
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
-def test_plot_features_with_all_plotstyle(tmp_path: Path):
+def test_plot_features_with_all_plotstyle(tmp_path: Path) -> None:
     """Test plot features with all plotstyle"""
     gv = GenomeViz()
     gv.set_scale_bar()
@@ -28,7 +32,7 @@ def test_plot_features_with_all_plotstyle(tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_exon_features_plot(tmp_path: Path):
+def test_exon_features_plot(tmp_path: Path) -> None:
     """Test exon features plot"""
     gv = GenomeViz()
     track = gv.add_feature_track("track1", 1000)
@@ -50,7 +54,7 @@ def test_exon_features_plot(tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_manual_features_links_plot(tmp_path: Path):
+def test_manual_features_links_plot(tmp_path: Path) -> None:
     """Test manual features & links plot"""
     genome_list = [
         dict(
@@ -72,7 +76,9 @@ def test_manual_features_links_plot(tmp_path: Path):
 
     gv = GenomeViz(track_align_type="center")
     for genome in genome_list:
-        name, size, features = genome["name"], genome["size"], genome["features"]
+        name = str(genome["name"])
+        size = int(genome["size"])  # type: ignore
+        features: list[tuple[int, int, int]] = genome["features"]  # type: ignore
         track = gv.add_feature_track(name, size, align_label=True)
         for idx, feature in enumerate(features, 1):
             start, end, strand = feature
@@ -93,7 +99,7 @@ def test_manual_features_links_plot(tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_genbank_plot(gbk_file: Path, tmp_path: Path):
+def test_genbank_plot(gbk_file: Path, tmp_path: Path) -> None:
     """Test genbank features plot"""
     gbk = Genbank(gbk_file)
 
@@ -107,7 +113,7 @@ def test_genbank_plot(gbk_file: Path, tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_gff_plot(gff_file: Path, tmp_path: Path):
+def test_gff_plot(gff_file: Path, tmp_path: Path) -> None:
     """Test gff features plot"""
     gff = Gff(gff_file)
 
@@ -121,7 +127,75 @@ def test_gff_plot(gff_file: Path, tmp_path: Path):
     gv.savefig_html(tmp_path / "result.html")
 
 
-def test_savefig_html_failed(gbk_file: Path, tmp_path: Path):
+def test_plot_with_annotation(gbk_file: Path, tmp_path: Path) -> None:
+    """Test plot features with annotation"""
+    config.ann_adjust.enabled = True
+    ColorCycler.set_cmap("Set3")
+
+    gbk = Genbank(gbk_file)
+    gv = GenomeViz(fig_track_height=0.5)
+    track = gv.add_feature_track(gbk.name, segments=(70000, 90000))
+    for feature in gbk.extract_features("CDS", target_range=track.get_segment().range):
+        color = ColorCycler()
+        track.add_features(
+            feature,
+            plotstyle="bigarrow",
+            color=color,
+            label_type="product",
+            annotation=True,
+            text_kws=dict(bbox=dict(boxstyle="round, pad=0.2", fc=color)),
+        )
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_plot_promoter(tmp_path: Path) -> None:
+    """Test plot promoter"""
+    gv = GenomeViz()
+    track = gv.add_feature_track("track", 1000)
+
+    # Add promoter arrow
+    track.add_promoter(50)
+    track.add_promoter(150, 0.05, y=1.5, head_length=0.5, head_width=0.8)
+    track.add_promoter(250, 100, y=-1.0, strand=-1, fc="red")
+
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_plot_lollipop(tmp_path: Path) -> None:
+    """Test plot lollipop"""
+    gv = GenomeViz()
+    track = gv.add_feature_track("track", 1000)
+
+    # Add lollipop
+    track.add_lollipop(350)
+    track.add_lollipop(
+        450, y=-1.0, size=10, point_kws=dict(fc="red", ec="black", lw=0.5)
+    )
+    track.add_lollipop(
+        550, y=1.5, point_kws=dict(color="green"), line_kws=dict(color="green")
+    )
+
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_plot_highlight(tmp_path: Path) -> None:
+    """Test plot highlight"""
+    gv = GenomeViz()
+    track = gv.add_feature_track("track", 1000)
+
+    # Add highlight
+    track.add_highlight((650, 750))
+    track.add_highlight((750, 850), y=(0, 1.5), color="orange")
+    track.add_highlight((850, 950), y=(-1.0, 0), color="red")
+
+    gv.savefig(tmp_path / "result.png")
+    gv.savefig_html(tmp_path / "result.html")
+
+
+def test_savefig_html_failed(gbk_file: Path, tmp_path: Path) -> None:
     """Test `gv.savefig_html()` failed when fast_render=True"""
     gbk = Genbank(gbk_file)
 

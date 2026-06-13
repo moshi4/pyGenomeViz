@@ -1,37 +1,40 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pygenomeviz.align import ProgressiveMauve
 from pygenomeviz.const import UNKNOWN_VERSION
 from tests.marker import skipif_pmauve_not_installed
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def test_pmauve_get_tool_name():
+
+def test_pmauve_get_tool_name() -> None:
     """Test `get_tool_name()`"""
     assert ProgressiveMauve.get_tool_name() == "progressiveMauve"
 
 
-def test_pmauve_get_binary_names():
+def test_pmauve_get_binary_names() -> None:
     """Test `get_binary_names()`"""
     assert ProgressiveMauve.get_binary_names() == ["progressiveMauve"]
 
 
 @skipif_pmauve_not_installed
-def test_pmauve_get_version():
+def test_pmauve_get_version() -> None:
     """Test `get_version()`"""
     assert ProgressiveMauve.get_version() == UNKNOWN_VERSION
 
 
 @skipif_pmauve_not_installed
-def test_pmauve_api_genbank(gbk_dataset_files: list[Path], tmp_path: Path):
+def test_pmauve_api_genbank(gbk_dataset_files: list[Path], tmp_path: Path) -> None:
     """Run progressiveMauve with genbank files"""
     align_coords = ProgressiveMauve(gbk_dataset_files, outdir=tmp_path).run()
     assert len(align_coords) > 0
 
 
 @skipif_pmauve_not_installed
-def test_pmauve_api_fasta(fasta_dataset_files: list[Path], tmp_path: Path):
+def test_pmauve_api_fasta(fasta_dataset_files: list[Path], tmp_path: Path) -> None:
     """Run progressiveMauve with fasta files"""
     align_coords = ProgressiveMauve(fasta_dataset_files, outdir=tmp_path).run()
     assert len(align_coords) > 0

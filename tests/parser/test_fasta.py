@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import textwrap
-from pathlib import Path
+import warnings
+from typing import TYPE_CHECKING
 
 import pytest
+from Bio import BiopythonDeprecationWarning
 
 from pygenomeviz.parser import Fasta
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 fasta_txt = textwrap.dedent(
     """
@@ -21,7 +26,7 @@ fasta_txt = textwrap.dedent(
 )[1:]
 
 
-def test_fasta_property(tmp_path: Path):
+def test_fasta_property(tmp_path: Path) -> None:
     """Test Fasta instance properties"""
     fasta_file = tmp_path / "test.fa"
     with open(fasta_file, "w", encoding="utf-8") as f:
@@ -48,33 +53,29 @@ def test_fasta_property(tmp_path: Path):
     )
 
 
-def test_parse_fasta_gz_file(fasta_gz_file: Path):
+def test_parse_fasta_gz_file(fasta_gz_file: Path) -> None:
     """Parse GZ compressed fasta file"""
     fasta = Fasta(fasta_gz_file)
     assert fasta.name == "test"
     assert len(fasta.records) == 8
 
 
-def test_parse_fasta_bz2_file(fasta_bz2_file: Path):
+def test_parse_fasta_bz2_file(fasta_bz2_file: Path) -> None:
     """Parse bz2 compressed fasta file"""
     fasta = Fasta(fasta_bz2_file)
     assert fasta.name == "test"
     assert len(fasta.records) == 8
 
 
-def test_parse_fasta_zip_file(fasta_zip_file: Path):
+def test_parse_fasta_zip_file(fasta_zip_file: Path) -> None:
     """Parse zip compressed fasta file"""
     fasta = Fasta(fasta_zip_file)
     assert fasta.name == "test"
     assert len(fasta.records) == 8
 
 
-def test_parse_invalid_file_failed(gff_file: Path):
+def test_parse_invalid_file_failed(gff_file: Path) -> None:
     """Test parse invalid file failed"""
-    import warnings
-
-    from Bio import BiopythonDeprecationWarning
-
     warnings.simplefilter("ignore", BiopythonDeprecationWarning)
 
     with pytest.raises(ValueError):

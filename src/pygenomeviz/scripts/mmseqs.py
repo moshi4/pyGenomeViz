@@ -3,9 +3,8 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from pygenomeviz import GenomeViz
 from pygenomeviz.align import AlignCoord, MMseqs
@@ -21,21 +20,25 @@ from pygenomeviz.scripts import (
     setup_argparser,
     validate_args,
 )
-from pygenomeviz.typing import PlotStyle, TrackAlignType
 from pygenomeviz.utils import is_pseudo_feature
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from pygenomeviz.typing import PlotStyle, TrackAlignType
 
 CLI_NAME = "pgv-mmseqs"
 
 
 @exit_handler
-def main():
+def main() -> None:
     """Main function called from CLI"""
     args = get_args()
     run(**args.__dict__)
 
 
 @logging_timeit
-def run(
+def run(  # noqa: PLR0912
     # General options
     seqs: Sequence[str | Path],
     outdir: str | Path,
@@ -71,13 +74,13 @@ def run(
     feature_labelsize: int,
     cbar_width: float,
     cbar_height: float,
-):
+) -> None:
     """Run genome visualization workflow"""
     log_params = locals()
 
     # Make output directory
     outdir = Path(outdir)
-    os.makedirs(outdir, exist_ok=True)
+    outdir.mkdir(parents=True, exist_ok=True)
 
     # Set logger
     log_file = outdir / LOG_FILENAME
@@ -139,9 +142,9 @@ def run(
                     fc = feature_type2color[feature.type]
                     if is_pseudo_feature(feature):
                         fc = pseudo_color
-                    track.add_features(
+                    seg = track.get_segment(seqid)
+                    seg.add_features(
                         feature,
-                        target_seg=seqid,
                         plotstyle=feature_plotstyle,
                         label_type=feature_label_type,
                         fc=fc,

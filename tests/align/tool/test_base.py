@@ -1,23 +1,27 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+from pytest import MonkeyPatch
 
 from pygenomeviz.align import Blast
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_aligner_tool_initialize_failed(
     gbk_dataset_files: list[Path],
-    monkeypatch,
-):
+    monkeypatch: MonkeyPatch,
+) -> None:
     """Test aligner tool initialize failed when binary not found"""
     monkeypatch.setattr(Blast, "get_binary_names", lambda: ["pseudo_cmd"])
     with pytest.raises(RuntimeError):
         Blast(gbk_dataset_files)
 
 
-def test_aligner_tool_check_installation_failed(monkeypatch):
+def test_aligner_tool_check_installation_failed(monkeypatch: MonkeyPatch) -> None:
     """Test aligner tool check installation failed when binary not found"""
     monkeypatch.setattr(Blast, "get_binary_names", lambda: ["pseudo_cmd"])
     with pytest.raises(RuntimeError):

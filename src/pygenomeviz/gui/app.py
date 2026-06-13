@@ -4,16 +4,20 @@ import io
 import textwrap
 from collections import defaultdict
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import streamlit as st
 from matplotlib.colors import to_hex
+from streamlit.logger import get_logger
 
 import pygenomeviz
 from pygenomeviz import const
 from pygenomeviz.align import AlignCoord, Blast, MMseqs, MUMmer
 from pygenomeviz.gui import config, plot, utils
-from pygenomeviz.typing import AlnMethod
 from pygenomeviz.utils import load_example_genbank_dataset
+
+if TYPE_CHECKING:
+    from pygenomeviz.typing import AlnMethod
 
 # Constant values
 DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
@@ -24,12 +28,12 @@ DEFAULT_FEATURE_TYPE2COLOR = defaultdict(
 )
 DEFAULT_PSEUDO_COLOR = to_hex("lightgrey")
 
+ST_CLOUD_MAX_UPLOAD_FILES = 10
+
 # Streamlit page configuration
-if "layout" not in st.session_state:
-    st.session_state.layout = "centered"
 st.set_page_config(
     page_title="pyGenomeViz WebApp",
-    layout=st.session_state.layout,
+    layout="centered",
     initial_sidebar_state="expanded",
     menu_items={"Report a bug": const.GITHUB_ISSUES_URL},
 )
@@ -78,6 +82,13 @@ else:
             gbk_list = []
         else:
             gbk_list = list(map(utils.load_gbk_file, upload_files))
+
+        if utils.is_st_cloud() and len(gbk_list) > ST_CLOUD_MAX_UPLOAD_FILES:
+            gbk_list = gbk_list[0:ST_CLOUD_MAX_UPLOAD_FILES]
+            st.warning(
+                f"Demo app on Streamlit Cloud limits the maximum number of upload files to {ST_CLOUD_MAX_UPLOAD_FILES}.",  # noqa: E501
+            )
+
 
 with st.sidebar.expander(label="Figure Appearance Options", expanded=False):
     fig_cols = st.columns(2)
@@ -180,7 +191,7 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
         tab_container = st.container(border=True)
         tab_container.caption("Plotstyle & Color Options Tab")
         for feature_type, tab in zip(
-            select_feature_types, tab_container.tabs(select_feature_types)
+            select_feature_types, tab_container.tabs(select_feature_types), strict=True
         ):
             with tab:
                 cols = tab.columns([3, 1])
@@ -213,11 +224,24 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
         help="Color of features containing '/pseudo' or '/pseudogene' tags",
     )
 
-    label_target_track = st.radio(
+    cols = st.columns(2)
+    label_target_track = cols[0].selectbox(
         label="Label Target Track",
-        options=["top", "all"],
-        horizontal=True,
-        format_func=lambda s: str(s).capitalize() + " Track",
+        options=("top", "all"),
+        format_func=lambda s: str(s).capitalize(),
+    )
+    label_style = cols[1].selectbox(
+        label="Label Display Style",
+        options=("Text", "Annotation"),
+        help=textwrap.dedent(
+            """
+            **Text**:\\
+            Display labels at a 45-degree angle\\
+            **Annotation**:\\
+            Display labels with horizontal annotation style and\\
+            automatically adjusting their position so that the text does not overlap
+            """
+        )[1:-1],
     )
     label_cols = st.columns(2)
     feature_label_type = label_cols[0].selectbox(
@@ -251,9 +275,9 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
     )
     label_filter_words = []
     for word in feature_label_filter_words.split(","):
-        word = word.strip()
-        if word != "":
-            label_filter_words.append(word)
+        strip_word = word.strip()
+        if strip_word != "":
+            label_filter_words.append(strip_word)
 
     feat_cfg = config.FeatureConfig(
         types=select_feature_types,
@@ -261,9 +285,10 @@ with st.sidebar.expander(label="Plot Feature Options", expanded=False):
         type2color=feature_type2color,
         line_width=line_width,
         pseudo_color=pseudo_color,
-        label_target_track=str(label_target_track),
+        label_target_track=label_target_track,
         label_type=feature_label_type,
         label_size=int(feature_label_size),
+        label_style=label_style,
         label_filter_words=label_filter_words,
     )
 
@@ -322,7 +347,7 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
         options=["Normal", "Curve"],
         index=0,
     )
-    link_curve = True if link_style == "Curve" else False
+    link_curve = link_style == "Curve"
     colorbar_height = link_cols[1].number_input(
         label="Colorbar Height",
         value=0.3,
@@ -362,29 +387,19 @@ with st.sidebar.expander(label="Plot Link Options", expanded=False):
 
 st.header("pyGenomeViz Streamlit Web Application")
 
-
-def layout_checkbox_on_change():
-    """Layout checkbox callback"""
-    if st.session_state.layout == "wide":
-        st.session_state.layout = "centered"
-    else:
-        st.session_state.layout = "wide"
-
-
-st.checkbox(
-    label="Wide mode",
-    on_change=layout_checkbox_on_change,
-)
+is_wide = st.checkbox(label="Wide mode")
+st.set_page_config(layout="wide" if is_wide else "centered")
 
 # If no genbank file exists, stop execution
 if len(gbk_list) == 0:
     if utils.is_st_cloud():
         st.warning(
             textwrap.dedent(
-                """
-                :warning: This application is running on Streamlit Cloud.
-                Due to the limited CPU and Memory constraints of Streamlit Cloud,
-                this demo page limits the maximum uploadable Genbank file size to 1 MB.
+                f"""
+                This application is running on Streamlit Cloud.
+                Due to the limited cpu and memory constraints of Streamlit Cloud,
+                this demo page limits the maximum uploadable Genbank file size to 1 MB and
+                the maximum number of uploadable files to {ST_CLOUD_MAX_UPLOAD_FILES}.
                 Therefore, if you want to visualize your own genome data,
                 it is recommended that you run pyGenomeViz web application in your local environment.
                 See [pgv-gui document](https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/) for details.
@@ -396,7 +411,7 @@ if len(gbk_list) == 0:
     st.stop()
 
 fig_container = st.container()
-download_container = st.container()
+download_container = st.container(horizontal=True)
 genome_info_container = st.container()
 
 with genome_info_container.form(key="form"):
@@ -455,20 +470,25 @@ with genome_info_container.form(key="form"):
             name2seqid2range[gbk.name] = seqid2range
 
 # Plot figure
-gv, align_coords = plot.plot_by_gui_cfg(
-    gbk_list,
-    config.PgvGuiPlotConfig(fig_cfg, feat_cfg, aln_cfg, name2seqid2range),
-)
+plot_cfg = config.PgvGuiPlotConfig(fig_cfg, feat_cfg, aln_cfg, name2seqid2range)
+gv, align_coords = plot.plot_by_gui_cfg(gbk_list, plot_cfg)
 fig = gv.plotfig()
 fig_container.pyplot(fig)
 
 # Setup download buttons
-png_btn, svg_btn, html_btn, _, aln_btn = download_container.columns([1, 1, 1.2, 1.5, 2])
+for format in ("png", "svg", "html"):
+    download_container.download_button(
+        label=f"{format.upper()}",
+        data=utils.get_fig_bytes(gv, fig, format),
+        file_name=f"pgv_result.{format}",
+        on_click="ignore",
+        icon=":material/download:",
+    )
 
 if align_coords:
     comparison_result_data = io.BytesIO()
     AlignCoord.write(align_coords, comparison_result_data)
-    aln_btn.download_button(
+    download_container.download_button(
         label="Comparison Result",
         data=comparison_result_data,
         file_name="pgv_comparison_result.tsv",
@@ -476,12 +496,5 @@ if align_coords:
         icon=":material/download:",
     )
 
-format2btn = dict(png=png_btn, svg=svg_btn, html=html_btn)
-for format, btn in format2btn.items():
-    btn.download_button(
-        label=f"{format.upper()}",
-        data=utils.get_fig_bytes(gv, fig, format),
-        file_name=f"pgv_result.{format}",
-        on_click="ignore",
-        icon=":material/download:",
-    )
+st_logger = get_logger(__name__)
+st_logger.info(f"Plot figure with following options\n{plot_cfg}")

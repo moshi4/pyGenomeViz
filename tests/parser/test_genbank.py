@@ -5,7 +5,7 @@ import pytest
 from pygenomeviz.parser import Genbank
 
 
-def test_genbank_property(gbk_file: Path):
+def test_genbank_property(gbk_file: Path) -> None:
     """Test Genbank instance properties"""
     gbk = Genbank(gbk_file)
     assert gbk.name == "test"
@@ -14,10 +14,10 @@ def test_genbank_property(gbk_file: Path):
     assert gbk.genome_length == gbk.full_genome_length
     assert gbk.genome_seq == gbk.full_genome_seq
     assert gbk.get_seqid2size() == {"NC_000866.4": 168903}
-    assert gbk.extract_features() == list(gbk.get_seqid2features().values())[0]
+    assert gbk.extract_features() == next(iter(gbk.get_seqid2features().values()))
 
 
-def test_genbank_property_multi_record(multi_record_gbk_file: Path):
+def test_genbank_property_multi_record(multi_record_gbk_file: Path) -> None:
     """Test Genbank instance(multi-record) properties"""
     gbk = Genbank(multi_record_gbk_file)
     assert gbk.name == "multi_record"
@@ -34,10 +34,10 @@ def test_genbank_property_multi_record(multi_record_gbk_file: Path):
         "NZ_LAEX01000007.1": 504069,
         "NZ_LAEX01000008.1": 71581,
     }
-    assert gbk.extract_features() == list(gbk.get_seqid2features().values())[0]
+    assert gbk.extract_features() == next(iter(gbk.get_seqid2features().values()))
 
 
-def test_calc_genome_gc_content(multi_record_gbk_file: Path):
+def test_calc_genome_gc_content(multi_record_gbk_file: Path) -> None:
     """Test `calc_genome_gc_content()`"""
     gbk = Genbank(multi_record_gbk_file)
     default_gc = gbk.calc_genome_gc_content()
@@ -48,7 +48,7 @@ def test_calc_genome_gc_content(multi_record_gbk_file: Path):
     assert gbk.calc_genome_gc_content(seq) == 50
 
 
-def test_calc_gc_content(multi_record_gbk_file: Path):
+def test_calc_gc_content(multi_record_gbk_file: Path) -> None:
     """Test `calc_gc_content()`"""
     gbk = Genbank(multi_record_gbk_file)
     default_gc_list = list(gbk.calc_gc_content()[1])
@@ -59,7 +59,7 @@ def test_calc_gc_content(multi_record_gbk_file: Path):
     assert max(gbk.calc_gc_content(seq="GC" * 10000)[1]) == 100
 
 
-def test_calc_gc_skew(multi_record_gbk_file: Path):
+def test_calc_gc_skew(multi_record_gbk_file: Path) -> None:
     """Test `calc_gc_skew()`"""
     gbk = Genbank(multi_record_gbk_file)
     default_gc_skew_list = list(gbk.calc_gc_skew()[1])
@@ -67,14 +67,16 @@ def test_calc_gc_skew(multi_record_gbk_file: Path):
     assert default_gc_skew_list != list(gbk.calc_gc_skew(seq=gbk.full_genome_seq)[1])
 
 
-def test_genbank_write_cds_fasta(multi_record_gbk_file: Path, tmp_path: Path):
+def test_genbank_write_cds_fasta(multi_record_gbk_file: Path, tmp_path: Path) -> None:
     """Test write cds fasta result"""
     outfile = tmp_path / "cds.faa"
     Genbank(multi_record_gbk_file).write_cds_fasta(outfile)
     assert outfile.exists()
 
 
-def test_genbank_write_genome_fasta(multi_record_gbk_file: Path, tmp_path: Path):
+def test_genbank_write_genome_fasta(
+    multi_record_gbk_file: Path, tmp_path: Path
+) -> None:
     """Test write genome fasta result"""
     # Check output file exists
     outfile = tmp_path / "genome.fna"
@@ -88,28 +90,28 @@ def test_genbank_write_genome_fasta(multi_record_gbk_file: Path, tmp_path: Path)
     assert fasta_count == 8
 
 
-def test_parse_gbk_gz_file(gbk_gz_file: Path):
+def test_parse_gbk_gz_file(gbk_gz_file: Path) -> None:
     """Parse GZ compressed genbank file"""
     gbk = Genbank(gbk_gz_file)
     assert gbk.name == "test"
     assert len(gbk.records) == 1
 
 
-def test_parse_gbk_bz2_file(gbk_bz2_file: Path):
+def test_parse_gbk_bz2_file(gbk_bz2_file: Path) -> None:
     """Parse BZ2 compressed genbank file"""
     gbk = Genbank(gbk_bz2_file)
     assert gbk.name == "test"
     assert len(gbk.records) == 1
 
 
-def test_parse_zip_gbk_file(gbk_zip_file: Path):
+def test_parse_zip_gbk_file(gbk_zip_file: Path) -> None:
     """Parse ZIP compressed genbank file"""
     gbk = Genbank(gbk_zip_file)
     assert gbk.name == "test"
     assert len(gbk.records) == 1
 
 
-def test_parse_invalid_file_failed(gff_file: Path):
+def test_parse_invalid_file_failed(gff_file: Path) -> None:
     """Test parse invalid(gff) file failed"""
     with pytest.raises(ValueError):
         Genbank(gff_file)

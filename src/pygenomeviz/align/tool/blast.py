@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Sequence, get_args
+from typing import TYPE_CHECKING, get_args
 
 from pygenomeviz.align import AlignCoord
 from pygenomeviz.align.tool import AlignToolBase
-from pygenomeviz.parser import Fasta, Genbank
 from pygenomeviz.typing import SeqType
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from pygenomeviz.parser import Fasta, Genbank
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +29,7 @@ class Blast(AlignToolBase):
         evalue: float = 1e-3,
         threads: int | None = None,
         cmd_opts: str | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -80,7 +83,7 @@ class Blast(AlignToolBase):
         with TemporaryDirectory() as tmpdir:
             outdir = self._outdir if self._outdir else tmpdir
             outdir = Path(outdir)
-            os.makedirs(outdir, exist_ok=True)
+            outdir.mkdir(parents=True, exist_ok=True)
             genome_files: list[Path] = self._write_genome_files(self._seqs, outdir)
 
             logger.info(f"{'=' * 10} Start Blast Search {'=' * 10}")

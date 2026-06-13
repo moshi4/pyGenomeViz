@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import csv
 import logging
-import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from pygenomeviz.align import AlignCoord
 from pygenomeviz.align.tool import AlignToolBase
-from pygenomeviz.parser import Genbank
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from pygenomeviz.parser import Genbank
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ class MMseqs(AlignToolBase):
         evalue: float = 1e-3,
         threads: int | None = None,
         cmd_opts: str | None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -71,7 +74,7 @@ class MMseqs(AlignToolBase):
         with TemporaryDirectory() as tmpdir:
             outdir = self._outdir if self._outdir else tmpdir
             outdir = Path(outdir)
-            os.makedirs(outdir, exist_ok=True)
+            outdir.mkdir(parents=True, exist_ok=True)
             cds_files: list[Path] = self._write_cds_files(outdir)
 
             logger.info(f"{'=' * 10} Start MMseqs RBH Search {'=' * 10}")
@@ -79,11 +82,11 @@ class MMseqs(AlignToolBase):
             for idx in range(len(cds_files) - 1):
                 qfile, rfile = cds_files[idx], cds_files[idx + 1]
                 qname, rname = qfile.stem, rfile.stem
-                logger.info(f"{idx + 1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'")  # fmt: skip  # noqa: E501
+                logger.info(f"{idx + 1:02d}. MMseqs RBH Search '{qname}' vs '{rname}'")
                 if qfile.stat().st_size == 0:
-                    logger.warning("No query CDS found. Skip MMseqs RBH search.")  # fmt: skip  # noqa: E501
+                    logger.warning("No query CDS found. Skip MMseqs RBH search.")
                 elif rfile.stat().st_size == 0:
-                    logger.warning("No reference CDS found. Skip MMseqs RBH search.")  # fmt: skip  # noqa: E501
+                    logger.warning("No reference CDS found. Skip MMseqs RBH search.")
                 else:
                     rbh_file = outdir / f"{idx + 1:02d}_{qname}_vs_{rname}.tsv"
                     cmd = f"mmseqs easy-rbh '{qfile}' '{rfile}' '{rbh_file}' {outdir} --threads {self._threads} -e {self._evalue} -v 0"  # noqa: E501

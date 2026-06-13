@@ -1,19 +1,26 @@
 from __future__ import annotations
 
 import uuid
+from collections import defaultdict
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 import numpy as np
 from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
+from matplotlib.patches import ArrowStyle
 
+from pygenomeviz import config
 from pygenomeviz.exception import FeatureRangeError
-from pygenomeviz.typing import HPos, PlotStyle, VPos
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from numpy.typing import NDArray
 
     from pygenomeviz.track import FeatureTrack
+    from pygenomeviz.typing import HPos, PlotStyle, Strand, VPos
+
+AXES_METHOD = Literal["text", "annotate", "scatter", "vlines", "fill_between"]
 
 
 class FeatureSegment:
@@ -25,7 +32,7 @@ class FeatureSegment:
         start: int,
         end: int,
         feature_track: FeatureTrack,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -45,8 +52,11 @@ class FeatureSegment:
 
         self._features: list[SeqFeature] = []
         self._exon_features: list[SeqFeature] = []
-        self._text_kws_list: list[dict[str, Any]] = []
         self._gid2feature_dict: dict[str, dict[str, Any]] = {}
+        self._ax_method2kws_list: dict[
+            AXES_METHOD,
+            list[dict[str, Any]],
+        ] = defaultdict(list)
 
     ############################################################
     # Property
@@ -92,7 +102,7 @@ class FeatureSegment:
                 break
             if idx < len(self.feature_track.segments) - 1:
                 pos += segment.size + self.feature_track.spaces[idx]
-        return start_pos  # type: ignore
+        return start_pos
 
     @property
     def track_end(self) -> int:
@@ -121,14 +131,27 @@ class FeatureSegment:
         return list(map(self._transform_feature, self._exon_features))
 
     @property
-    def transform_text_kws_list(self) -> list[dict[str, Any]]:
-        """Coordinate transformed text keywords list"""
-        plot_text_kws_list: list[dict[str, Any]] = []
-        for text_kws in self._text_kws_list:
-            plot_text_kws = deepcopy(text_kws)
-            plot_text_kws["x"] = self.transform_coord(plot_text_kws["x"])
-            plot_text_kws_list.append(plot_text_kws)
-        return plot_text_kws_list
+    def transform_ax_method2kws_list(self) -> dict[AXES_METHOD, list[dict[str, Any]]]:
+        """Coordinate transformed axes method & keywords list"""
+        ax_method2kws_list = deepcopy(self._ax_method2kws_list)
+        for ax_method, kws_list in ax_method2kws_list.items():
+            for kws in kws_list:
+                if ax_method in ("text", "vlines", "scatter", "fill_between"):
+                    kws["x"] = self.transform_coord(kws["x"])
+                elif ax_method in ("annotate"):
+                    # If promoter arrow length is ratio value (0 < length < 1)
+                    # Convert arrow length ratio to actual length
+                    xy, xytext = kws["xy"], kws["xytext"]
+                    length = float(xy[0]) - float(xytext[0])
+                    if 0.0 < abs(length) < 1.0:
+                        length = self.feature_track.gv.max_track_size * length
+                        xy = (xytext[0] + length, xy[1])
+                    kws["xy"] = (self.transform_coord(xy[0]), xy[1])
+                    kws["xytext"] = (self.transform_coord(xytext[0]), xytext[1])
+                else:
+                    raise ValueError(f"{ax_method=} is invalid method.")
+
+        return ax_method2kws_list
 
     ############################################################
     # Public Method
@@ -172,7 +195,7 @@ class FeatureSegment:
             return x + offset
         else:
             x = np.array(x)
-            if np.any(x < self.start) or np.any(x > self.end):  # type: ignore
+            if np.any(x < self.start) or np.any(x > self.end):
                 raise ValueError(err_msg)
             return (np.array(x) + offset).astype(np.float64)
 
@@ -233,7 +256,68 @@ class FeatureSegment:
             rotation_mode="anchor",
             **kwargs,
         )
-        self._text_kws_list.append(text_kws)
+        self._ax_method2kws_list["text"].append(text_kws)
+
+    def add_annotation(
+        self,
+        x: float,
+        text: str,
+        *,
+        y: tuple[float, float] = (1.0, 1.5),
+        size: float = 12,
+        line_kws: dict[str, Any] | None = None,
+        **kwargs,
+    ) -> None:
+        """Add annotation
+
+        Parameters
+        ----------
+        x : float
+            Text x coordinate
+        text : str
+            Text content
+        y : tuple[float, float], optional
+            Annotation line y coordinate tuple
+        size : float, optional
+            Text size
+        line_kws : dict[str, Any] | None, optional
+            FancyArrowPatch properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
+        **kwargs : dict, optional
+            Text properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.annotate.html>
+        """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+
+        # Ignore if text content is blank or size <= 0
+        if text == "" or size <= 0:
+            return
+
+        # Check x coordinate is valid or not
+        if not self.start <= x <= self.end:
+            raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
+
+        # Annotation line properties
+        line_kws.setdefault("color", "grey")
+        line_kws.update(dict(shrinkA=0, shrinkB=0, patchA=None, patchB=None))
+        line_kws.update(dict(arrowstyle="-", relpos=(0.5, 0.0)))
+        if "linewidth" not in line_kws:
+            line_kws.setdefault("lw", 0.5)
+
+        # Annotation text properties
+        kwargs.setdefault("zorder", config.zorder.ann_line)
+        kwargs.update(dict(size=size, va="bottom", ha="center", rotation=0))
+        kwargs.pop("vpos", None)  # Remove add_text specific kwargs
+        kwargs.pop("hpos", None)  # Remove add_text specific kwargs
+
+        ann_kws = dict(
+            text=text,
+            xy=(x, min(y)),
+            xytext=(x, max(y)),
+            arrowprops=line_kws,
+            **kwargs,
+        )
+        self._ax_method2kws_list["annotate"].append(ann_kws)
 
     def add_sublabel(
         self,
@@ -298,6 +382,7 @@ class FeatureSegment:
         plotstyle: PlotStyle = "arrow",
         arrow_shaft_ratio: float = 0.5,
         extra_tooltip: dict[str, str] | None = None,
+        annotation: bool = False,
         label: str = "",
         text_kws: dict[str, Any] | None = None,
         **kwargs,
@@ -318,10 +403,12 @@ class FeatureSegment:
             Arrow shaft size ratio
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict for html figure
+        annotation : bool, optional
+            If True, add annotation instead of text
         label : str, optional
             Feature label text
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(size=12, color="red", ...)`)
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
@@ -341,7 +428,10 @@ class FeatureSegment:
 
         # Plot text
         label_pos = (start + end) / 2
-        self.add_text(label_pos, label, **text_kws)
+        if annotation:
+            self.add_annotation(label_pos, label, **text_kws)
+        else:
+            self.add_text(label_pos, label, **text_kws)
 
     def add_features(
         self,
@@ -351,6 +441,7 @@ class FeatureSegment:
         arrow_shaft_ratio: float = 0.5,
         label_type: str | None = None,
         label_handler: Callable[[str], str] | None = None,
+        annotation: bool = False,
         extra_tooltip: dict[str, str] | None = None,
         ignore_outside_range: bool = False,
         text_kws: dict[str, Any] | None = None,
@@ -371,26 +462,21 @@ class FeatureSegment:
         label_handler : Callable[[str], str] | None, optional
             Label handler function to customize label display.
             If None, set label handler to exclude labels containing `hypothetical`.
+        annotation : bool, optional
+            If True, add annotation instead of text
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict for html figure
         ignore_outside_range : bool, optional
             If True and the feature position is outside the range of the track segment,
             ignore it without raising an error.
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(color="red", ...)`)
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", lw=0.5, hatch="//", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         text_kws = {} if text_kws is None else deepcopy(text_kws)
-
-        # Set default label handler
-        def default_label_handler(label: str) -> str:
-            return "" if "hypothetical" in label.lower() else label
-
-        if label_handler is None:
-            label_handler = default_label_handler
 
         if isinstance(features, SeqFeature):
             features = [features]
@@ -418,10 +504,15 @@ class FeatureSegment:
 
             # Plot feature label
             label = feature.qualifiers.get(label_type, [""])[0]
-            label = label_handler(label)
+            if label_handler:
+                label = label_handler(label)
+            label = "" if "hypothetical" in label.lower() else label
             start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
             label_pos = (start + end) / 2
-            self.add_text(label_pos, label, **text_kws)
+            if annotation:
+                self.add_annotation(label_pos, label, **text_kws)
+            else:
+                self.add_text(label_pos, label, **text_kws)
 
     def add_exon_feature(
         self,
@@ -431,6 +522,7 @@ class FeatureSegment:
         plotstyle: PlotStyle = "arrow",
         arrow_shaft_ratio: float = 0.5,
         label: str = "",
+        annotation: bool = False,
         patch_kws: dict[str, Any] | None = None,
         intron_patch_kws: dict[str, Any] | None = None,
         text_kws: dict[str, Any] | None = None,
@@ -449,6 +541,8 @@ class FeatureSegment:
             Arrow shaft size ratio
         label : str, optional
             Feature label
+        annotation : bool, optional
+            If True, add annotation instead of text
         patch_kws : dict[str, Any] | None, optional
             Exon patch properties (e.g. `dict(fc="red", lw=0.5, hatch="//", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -456,7 +550,7 @@ class FeatureSegment:
             Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(size=12, color="red", ...)`)
         """
         text_kws = {} if text_kws is None else deepcopy(text_kws)
@@ -479,7 +573,10 @@ class FeatureSegment:
         # Plot text
         start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
         label_pos = (start + end) / 2
-        self.add_text(label_pos, label, **text_kws)
+        if annotation:
+            self.add_annotation(label_pos, label, **text_kws)
+        else:
+            self.add_text(label_pos, label, **text_kws)
 
     def add_exon_features(
         self,
@@ -489,6 +586,7 @@ class FeatureSegment:
         arrow_shaft_ratio: float = 0.5,
         label_type: str | None = None,
         label_handler: Callable[[str], str] | None = None,
+        annotation: bool = False,
         extra_tooltip: dict[str, str] | None = None,
         ignore_outside_range: bool = False,
         patch_kws: dict[str, Any] | None = None,
@@ -510,6 +608,8 @@ class FeatureSegment:
         label_handler : Callable[[str], str] | None, optional
             Label handler function to customize label display.
             If None, set label handler to exclude labels containing `hypothetical`.
+        annotation : bool, optional
+            If True, add annotation instead of text
         extra_tooltip : dict[str, str] | None, optional
             Extra tooltip dict for html figure
         ignore_outside_range : bool, optional
@@ -522,19 +622,12 @@ class FeatureSegment:
             Intron patch properties (e.g. `dict(color="red", lw=2.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         text_kws : dict[str, Any] | None, optional
-            `segment.add_text()` method keyword arguments
+            `segment.add_text()` or `segment.add_annotation()` method keyword arguments
             (e.g. `dict(size=12, color="red", ...)`)
         """
         patch_kws = {} if patch_kws is None else deepcopy(patch_kws)
         intron_patch_kws = {} if intron_patch_kws is None else intron_patch_kws
         text_kws = {} if text_kws is None else deepcopy(text_kws)
-
-        # Set default label handler
-        def default_label_handler(label: str) -> str:
-            return "" if "hypothetical" in label.lower() else label
-
-        if label_handler is None:
-            label_handler = default_label_handler
 
         if isinstance(features, SeqFeature):
             features = [features]
@@ -563,10 +656,167 @@ class FeatureSegment:
 
             # Plot feature label
             label = feature.qualifiers.get(label_type, [""])[0]
-            label = label_handler(label)
+            if label_handler:
+                label = label_handler(label)
+            label = "" if "hypothetical" in label.lower() else label
             start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
             label_pos = (start + end) / 2
-            self.add_text(label_pos, label, **text_kws)
+            if annotation:
+                self.add_annotation(label_pos, label, **text_kws)
+            else:
+                self.add_text(label_pos, label, **text_kws)
+
+    def add_lollipop(
+        self,
+        x: float,
+        *,
+        y: float = 1.0,
+        size: float = 6.0,
+        line_kws: dict[str, Any] | None = None,
+        point_kws: dict[str, Any] | None = None,
+    ) -> None:
+        """Add lollipop
+
+        Parameters
+        ----------
+        x : float
+            X coordinate
+        y : float, optional
+            Y coordinate lollipop height
+        size : float, optional
+            Point size
+        line_kws : dict[str, Any] | None, optional
+            Axes.vlines properties (e.g. `dict(color="red", lw=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.vlines.html>
+        point_kws : dict[str, Any] | None, optional
+            Axes.scatter properties (e.g. `dict(fc="red", ec="black", lw=0.5,...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.scatter.html>
+        """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        point_kws = {} if point_kws is None else deepcopy(point_kws)
+
+        # Set default line properties
+        line_kws.setdefault("color", "black")
+        line_kws.setdefault("zorder", config.zorder.lollipop_line)
+        if "linewidth" not in line_kws:
+            line_kws.setdefault("lw", 1.0)
+
+        # Set default point properties
+        point_kws.update(**dict(s=size**2))
+        point_kws.setdefault("zorder", config.zorder.lollipop_point)
+        if "facecolor" not in point_kws and "color" not in point_kws:
+            point_kws.setdefault("fc", "tab:blue")
+
+        vlines_kws = dict(
+            x=x,
+            ymin=min(0, y),
+            ymax=max(0, y),
+            clip_on=False,
+            **line_kws,
+        )
+        self._ax_method2kws_list["vlines"].append(vlines_kws)
+
+        scatter_kws = dict(
+            x=x,
+            y=y,
+            clip_on=False,
+            **point_kws,
+        )
+        self._ax_method2kws_list["scatter"].append(scatter_kws)
+
+    def add_promoter(
+        self,
+        x: float,
+        length: float = 0.02,
+        *,
+        y: float = 1.0,
+        strand: Strand = 1,
+        head_length: float = 1.0,
+        head_width: float = 0.5,
+        **kwargs,
+    ) -> None:
+        """Add promoter arrow
+
+        Parameters
+        ----------
+        x : float
+            X coordinate
+        length : float
+            Arrow length (If `0 < length < 1`, it is treated as ratio length)
+        y : float, optional
+            Y coordinate promoter height
+        strand : Strand, optional
+            Arrow strand direction (1 or -1)
+        head_length : float, optional
+            Arrow head length
+        head_width : float, optional
+            Arrow head width
+        kwargs : dict[str, Any] | None, optional
+            FancyArrowPatch properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.FancyArrowPatch.html>
+        """
+        # Check x coordinate is valid or not
+        if not self.start <= x <= self.end:
+            raise ValueError(f"{x=} is invalid ({self.start=}, {self.end})")
+
+        kwargs.setdefault("color", "black")
+
+        ann_kws = dict(
+            text="",
+            xy=[x - length, y] if strand == -1 else [x + length, y],
+            xytext=[x, 0],
+            arrowprops=dict(
+                arrowstyle=ArrowStyle(
+                    stylename="-|>",
+                    head_length=head_length,
+                    head_width=head_width,
+                ),
+                connectionstyle="angle",
+                shrinkA=0,
+                shrinkB=0,
+                patchA=None,
+                patchB=None,
+                **kwargs,
+            ),
+            annotation_clip=False,
+        )
+        self._ax_method2kws_list["annotate"].append(ann_kws)
+
+    def add_highlight(
+        self,
+        x: tuple[float, float],
+        *,
+        y: tuple[float, float] = (-1, 1),
+        color: str = "lime",
+        alpha: float = 0.2,
+        **kwargs,
+    ) -> None:
+        """Add highlight
+
+        Parameters
+        ----------
+        x : tuple[float, float]
+            X cooridinate range
+        y : tuple[float, float], optional
+            Y coordinate range
+        color : str, optional
+            Highlight color
+        alpha : float, optional
+            Color transparency
+        kwargs : dict[str, Any] | None, optional
+             Axes.fill_between properties (e.g. `lw=1.0, ec="black", ...`)
+             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.fill_between.html>
+        """
+        kwargs.setdefault("zorder", config.zorder.highlight)
+        kwargs.update(fc=color, clip_on=False, alpha=alpha)
+
+        fill_between_kws = dict(
+            x=x,
+            y1=min(y),
+            y2=max(y),
+            **kwargs,
+        )
+        self._ax_method2kws_list["fill_between"].append(fill_between_kws)
 
     ############################################################
     # Private Method
@@ -605,9 +855,9 @@ class FeatureSegment:
             Transformaed feature
         """
         locs: list[SimpleLocation] = []
-        for loc in feature.location.parts:
-            start = self.transform_coord(int(loc.start))  # type: ignore
-            end = self.transform_coord(int(loc.end))  # type: ignore
+        for loc in feature.location.parts:  # type: ignore
+            start = self.transform_coord(int(loc.start))
+            end = self.transform_coord(int(loc.end))
             locs.append(SimpleLocation(start, end, loc.strand))
         transform_feature = SeqFeature(
             location=CompoundLocation(locs) if len(locs) >= 2 else locs[0],
@@ -636,7 +886,7 @@ class FeatureSegment:
         extra_tooltip = {} if extra_tooltip is None else deepcopy(extra_tooltip)
 
         start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
-        strand = "-" if feature.location.strand == -1 else "+"
+        strand = "-" if feature.location.strand == -1 else "+"  # type: ignore
         location = f"{start:,} - {end:,} ({strand})"
 
         self._gid2feature_dict[gid] = dict(
@@ -657,11 +907,11 @@ class FeatureSegment:
             extra=extra_tooltip,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         seg_name = self.name
         seg_size = self.size
         seg_range = f"({self.start} - {self.end})"
         return f"{seg_name=}, {seg_size=}, {seg_range=}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

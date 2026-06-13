@@ -5,9 +5,12 @@ import io
 from collections import defaultdict
 from dataclasses import astuple, dataclass
 from functools import cached_property
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from pygenomeviz.typing import SeqType
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from pygenomeviz.typing import SeqType
 
 
 @dataclass(frozen=True)
@@ -256,7 +259,7 @@ class AlignCoord:
                     continue
                 rows.append(row)
             # Sort by reference seq coordinates
-            rows = sorted(rows, key=lambda row: row[ref_idx])  # type: ignore
+            rows = sorted(rows, key=lambda row: row[ref_idx])
 
         align_coords = []
         for row in rows:
@@ -354,7 +357,7 @@ class AlignCoord:
                     elif idx in (10, 11):
                         # identity, evalue
                         typed_row.append(float(val) if val != "na" else None)
-                align_coords.append(AlignCoord(*typed_row))
+                align_coords.append(AlignCoord(*typed_row))  # type: ignore
         return align_coords
 
     @staticmethod
@@ -414,7 +417,7 @@ class AlignCoord:
         for ac in align_coords:
             combi = f"{ac.query_id}{ac.query_name}-{ac.ref_id}{ac.ref_name}"
             combi2align_coords[combi].append(ac)
-        for combi, combi_align_coords in combi2align_coords.items():
+        for _, combi_align_coords in combi2align_coords.items():
             for ac1 in combi_align_coords:
                 is_overlap = False
                 for ac2 in combi_align_coords:
@@ -438,13 +441,10 @@ class AlignCoord:
 
         # Check same query-ref coord overlap
         ac1, ac2 = target_ac, self
-        if (
+        return bool(
             ac2._qmin <= ac1._qmin <= ac1._qmax <= ac2._qmax
             and ac2._rmin <= ac1._rmin <= ac1._rmax <= ac2._rmax
-        ):
-            return True
-        else:
-            return False
+        )
 
     @cached_property
     def _qmin(self) -> int:
@@ -462,5 +462,10 @@ class AlignCoord:
     def _rmax(self) -> int:
         return max(self.ref_start, self.ref_end)
 
-    def __eq__(self, target_ac: AlignCoord) -> bool:
+    def __eq__(self, target_ac: object) -> bool:
+        if not isinstance(target_ac, AlignCoord):
+            return False
         return self.as_tsv_format == target_ac.as_tsv_format
+
+    def __hash__(self) -> int:
+        return hash(self.as_tsv_format)

@@ -57,6 +57,7 @@ plugins:
   - search
   - mkdocs-jupyter:
       execute: False
+      no_prompt: True
   - mkdocstrings:
       handlers:
         python:

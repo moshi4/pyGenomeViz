@@ -1,0 +1,1802 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A genome visualization python package for comparative genomics">
+      
+      
+        <meta name="author" content="moshi4">
+      
+      
+      
+      
+        <link rel="next" href="getting_started/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>pyGenomeViz</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#pygenomeviz" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="pyGenomeViz" class="md-header__button md-logo" aria-label="pyGenomeViz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            pyGenomeViz
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/moshi4/pyGenomeViz" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moshi4/pyGenomeViz
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="pyGenomeViz" class="md-nav__button md-logo" aria-label="pyGenomeViz" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    pyGenomeViz
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/moshi4/pyGenomeViz" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moshi4/pyGenomeViz
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#styled-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Styled Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tracks-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tracks &amp; Links
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exon-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exon Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genbank-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genbank Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gff-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GFF Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gff-contigs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GFF Contigs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genbank-comparison-by-blast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genbank Comparison by BLAST
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CLI Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#blast-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BLAST CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mummer-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MUMmer CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mmseqs-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MMseqs CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#progressivemauve-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        progressiveMauve CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gui-web-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GUI (Web Application)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#html-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML Viewer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspiration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspiration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#circular-genome-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Circular Genome Visualization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#star-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Star History
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="example_gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Example Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="plot_tips/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plot Tips
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Docs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Docs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-docs/genomeviz/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GenomeViz
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-docs/track/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FeatureTrack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-docs/segment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FeatureSegment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-docs/genbank/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Genbank
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-docs/gff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gff
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-docs/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Docs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI Docs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli-docs/pgv-blast/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pgv-blast
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli-docs/pgv-mummer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pgv-mummer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli-docs/pgv-mmseqs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pgv-mmseqs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli-docs/pgv-pmauve/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pgv-pmauve
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GUI Docs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    GUI Docs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="gui-docs/pgv-gui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pgv-gui
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#styled-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Styled Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tracks-links" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tracks &amp; Links
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exon-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exon Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genbank-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genbank Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gff-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GFF Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gff-contigs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GFF Contigs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#genbank-comparison-by-blast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genbank Comparison by BLAST
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CLI Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#blast-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BLAST CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mummer-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MUMmer CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mmseqs-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MMseqs CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#progressivemauve-cli-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        progressiveMauve CLI Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gui-web-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GUI (Web Application)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#html-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML Viewer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspiration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspiration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#circular-genome-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Circular Genome Visualization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#star-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Star History
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="pygenomeviz">pyGenomeViz</h1>
+<p><img alt="Python3" src="https://img.shields.io/badge/Language-Python3-steelblue" />
+<img alt="OS" src="https://img.shields.io/badge/OS-_Windows_|_Mac_|_Linux-steelblue" />
+<img alt="License" src="https://img.shields.io/badge/License-MIT-steelblue" />
+<a href="https://pypi.python.org/pypi/pygenomeviz"><img alt="Latest PyPI version" src="https://img.shields.io/pypi/v/pygenomeviz.svg" /></a>
+<a href="https://anaconda.org/conda-forge/pygenomeviz"><img alt="conda-forge" src="https://img.shields.io/conda/vn/conda-forge/pygenomeviz.svg?color=green" /></a>
+<a href="https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/moshi4/pyGenomeViz/actions/workflows/ci.yml/badge.svg" /></a></p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#api-examples">API Examples</a></li>
+<li><a href="#cli-examples">CLI Examples</a></li>
+<li><a href="#gui-web-application">GUI (Web Application)</a></li>
+<li><a href="#html-viewer">HTML Viewer</a></li>
+<li><a href="#inspiration">Inspiration</a></li>
+<li><a href="#circular-genome-visualization">Circular Genome Visualization</a></li>
+<li><a href="#star-history">Star History</a></li>
+</ul>
+<h2 id="overview">Overview</h2>
+<p>pyGenomeViz is a genome visualization python package for comparative genomics implemented based on matplotlib.
+This package is developed for the purpose of easily and beautifully plotting genomic
+features and sequence similarity comparison links between multiple genomes.
+It supports genome visualization of Genbank/GFF format file and can be saved figure in various formats (JPG/PNG/SVG/PDF/HTML).
+User can use pyGenomeViz for interactive genome visualization figure plotting on jupyter notebook,
+or automatic genome visualization figure plotting in genome analysis scripts/workflow.</p>
+<p>For more information, please see full documentation <a href="https://moshi4.github.io/pyGenomeViz/">here</a>.</p>
+<p><img alt="pygenomeviz_gallery.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pygenomeviz_gallery.png" /><br />
+<strong>Fig.1 pyGenomeViz example plot gallery</strong></p>
+<p><img alt="pygenomeviz_gui.gif" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif" />
+<strong>Fig.2 pyGenomeViz web application example (<a href="https://pygenomeviz.streamlit.app">Demo Page</a>)</strong></p>
+<h2 id="installation">Installation</h2>
+<p><code>Python 3.10 or later</code> is required for installation.</p>
+<p><strong>Install PyPI package:</strong></p>
+<div class="highlight"><pre><span></span><code>pip install pygenomeviz
+</code></pre></div>
+<p><strong>Install conda-forge package:</strong></p>
+<div class="highlight"><pre><span></span><code>conda install -c conda-forge pygenomeviz
+</code></pre></div>
+<p><strong>Use Docker (<a href="https://github.com/moshi4/pyGenomeViz/pkgs/container/pygenomeviz">Image Registry</a>):</strong></p>
+<div class="highlight"><pre><span></span><code>docker run -it --rm -p 8501:8501 ghcr.io/moshi4/pygenomeviz:latest pgv-gui -h
+</code></pre></div>
+<h2 id="api-examples">API Examples</h2>
+<p>Jupyter notebooks containing code examples below is available <a href="https://github.com/moshi4/pyGenomeViz/blob/main/notebooks/example.ipynb">here</a>.</p>
+<h3 id="features">Features</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">()</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_xticks</span><span class="p">(</span><span class="n">ymargin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="s2">&quot;track&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">track</span><span class="o">.</span><span class="n">add_sublabel</span><span class="p">()</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Add features to track</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">460</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">710</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">750</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;grey&quot;</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s2">&quot;//&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;features.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="features.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/features.png" /></p>
+<h3 id="styled-features">Styled Features</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">()</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_bar</span><span class="p">(</span><span class="n">ymargin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="s2">&quot;track&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2000</span><span class="p">))</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">track</span><span class="o">.</span><span class="n">add_sublabel</span><span class="p">()</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># Add styled features</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;arrow&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1120</span><span class="p">,</span> <span class="mi">1220</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;bigarrow&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;bigarrow&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1240</span><span class="p">,</span> <span class="mi">1340</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1360</span><span class="p">,</span> <span class="mi">1480</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;bigbox&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;bigbox&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;limegreen&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1620</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;rbox&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;rbox&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;magenta&quot;</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1640</span><span class="p">,</span> <span class="mi">1740</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;bigrbox&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;bigrbox&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;grey&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1760</span><span class="p">,</span> <span class="mi">1860</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">arrow_shaft_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;arrow shaft = 0.2&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="mi">1880</span><span class="p">,</span> <span class="mi">1980</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">arrow_shaft_ratio</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;arrow shaft = 1.0&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;styled_features.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="styled_features.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/styled_features.png" /></p>
+<h3 id="tracks-links">Tracks &amp; Links</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">genome_list</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="p">(</span><span class="s2">&quot;genome 01&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="p">[(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">750</span><span class="p">,</span> <span class="mi">950</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]),</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="p">(</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">1300</span><span class="p">,</span> <span class="p">[(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">350</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">950</span><span class="p">,</span> <span class="mi">1150</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]),</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="p">(</span><span class="s2">&quot;genome 03&quot;</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="p">[(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">350</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]),</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">]</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">(</span><span class="n">fig_track_height</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">track_align_type</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_bar</span><span class="p">()</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Set tracks &amp; features</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="k">for</span> <span class="n">genome</span> <span class="ow">in</span> <span class="n">genome_list</span><span class="p">:</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">genome</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">genome</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">genome</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="n">track</span><span class="o">.</span><span class="n">add_sublabel</span><span class="p">()</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>        <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span> <span class="o">=</span> <span class="n">feature</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>        <span class="n">track</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">strand</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;bigarrow&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;gene</span><span class="si">{</span><span class="n">idx</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">text_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vpos</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">hpos</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">))</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="c1"># Add links between &quot;genome 01&quot; and &quot;genome 02&quot;</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 01&quot;</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 01&quot;</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">500</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">700</span><span class="p">))</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 01&quot;</span><span class="p">,</span> <span class="mi">750</span><span class="p">,</span> <span class="mi">950</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">1150</span><span class="p">,</span> <span class="mi">950</span><span class="p">))</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="c1"># Add links between &quot;genome 02&quot; and &quot;genome 03&quot;</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 03&quot;</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">,</span> <span class="n">inverted_color</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">curve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="mi">450</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 03&quot;</span><span class="p">,</span> <span class="mi">450</span><span class="p">,</span> <span class="mi">350</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">,</span> <span class="n">inverted_color</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">curve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">700</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 03&quot;</span><span class="p">,</span> <span class="mi">700</span><span class="p">,</span> <span class="mi">500</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">,</span> <span class="n">inverted_color</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">curve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">((</span><span class="s2">&quot;genome 03&quot;</span><span class="p">,</span> <span class="mi">900</span><span class="p">,</span> <span class="mi">700</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;genome 02&quot;</span><span class="p">,</span> <span class="mi">1150</span><span class="p">,</span> <span class="mi">950</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">,</span> <span class="n">inverted_color</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">curve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;tracks_and_links.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="tracks_and_links.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/tracks_and_links.png" /></p>
+<h3 id="exon-features">Exon Features</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">exon_regions1</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">210</span><span class="p">),</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">480</span><span class="p">),</span> <span class="p">(</span><span class="mi">590</span><span class="p">,</span> <span class="mi">800</span><span class="p">),</span> <span class="p">(</span><span class="mi">850</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="p">(</span><span class="mi">1030</span><span class="p">,</span> <span class="mi">1300</span><span class="p">)]</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">exon_regions2</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1500</span><span class="p">,</span> <span class="mi">1710</span><span class="p">),</span> <span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">2480</span><span class="p">),</span> <span class="p">(</span><span class="mi">2590</span><span class="p">,</span> <span class="mi">2800</span><span class="p">)]</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">exon_regions3</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">3000</span><span class="p">,</span> <span class="mi">3300</span><span class="p">),</span> <span class="p">(</span><span class="mi">3400</span><span class="p">,</span> <span class="mi">3690</span><span class="p">),</span> <span class="p">(</span><span class="mi">3800</span><span class="p">,</span> <span class="mi">4100</span><span class="p">),</span> <span class="p">(</span><span class="mi">4200</span><span class="p">,</span> <span class="mi">4620</span><span class="p">)]</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">()</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="s2">&quot;track&quot;</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Add exon features</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">track</span><span class="o">.</span><span class="n">add_exon_feature</span><span class="p">(</span><span class="n">exon_regions1</span><span class="p">,</span> <span class="n">strand</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">,</span> <span class="n">text_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hpos</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">))</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">track</span><span class="o">.</span><span class="n">add_exon_feature</span><span class="p">(</span><span class="n">exon_regions2</span><span class="p">,</span> <span class="n">strand</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;arrow&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;arrow&quot;</span><span class="p">,</span> <span class="n">text_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vpos</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">hpos</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">),</span> <span class="n">patch_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">fc</span><span class="o">=</span><span class="s2">&quot;darkgrey&quot;</span><span class="p">),</span> <span class="n">intron_patch_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">ec</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">))</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="n">track</span><span class="o">.</span><span class="n">add_exon_feature</span><span class="p">(</span><span class="n">exon_regions3</span><span class="p">,</span> <span class="n">strand</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;bigarrow&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;bigarrow&quot;</span><span class="p">,</span> <span class="n">text_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hpos</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">),</span> <span class="n">patch_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">fc</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;exon_features.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="exon_features.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/exon_features.png" /></p>
+<h3 id="genbank-features">Genbank Features</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">Genbank</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_example_genbank_dataset</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Parse Genbank file</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">gbk_files</span> <span class="o">=</span> <span class="n">load_example_genbank_dataset</span><span class="p">(</span><span class="s2">&quot;yersinia_phage&quot;</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">gbk</span> <span class="o">=</span> <span class="n">Genbank</span><span class="p">(</span><span class="n">gbk_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">(</span><span class="n">fig_track_height</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_bar</span><span class="p">(</span><span class="n">ymargin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="n">gbk</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gbk</span><span class="o">.</span><span class="n">get_seqid2size</span><span class="p">())</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">segments</span><span class="p">:</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="c1"># Plot CDS features</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="n">features</span> <span class="o">=</span> <span class="n">gbk</span><span class="o">.</span><span class="n">get_seqid2features</span><span class="p">()[</span><span class="n">seg</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="n">seg</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="n">seg</span><span class="o">.</span><span class="n">add_sublabel</span><span class="p">()</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;genbank_features.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="genbank_features.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/genbank_features.png" /></p>
+<h3 id="gff-features">GFF Features</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">Gff</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_example_gff_file</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">gff_file</span> <span class="o">=</span> <span class="n">load_example_gff_file</span><span class="p">(</span><span class="s2">&quot;escherichia_coli.gff.gz&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">gff</span> <span class="o">=</span> <span class="n">Gff</span><span class="p">(</span><span class="n">gff_file</span><span class="p">)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">()</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_bar</span><span class="p">(</span><span class="n">ymargin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="n">target_ranges</span> <span class="o">=</span> <span class="p">((</span><span class="mi">215000</span><span class="p">,</span> <span class="mi">230000</span><span class="p">),</span> <span class="p">(</span><span class="mi">300000</span><span class="p">,</span> <span class="mi">320000</span><span class="p">))</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">gff</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">segments</span><span class="o">=</span><span class="n">target_ranges</span><span class="p">)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="n">track</span><span class="o">.</span><span class="n">set_segment_sep</span><span class="p">()</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="n">track</span><span class="o">.</span><span class="n">segments</span><span class="p">:</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="n">segment</span><span class="o">.</span><span class="n">add_sublabel</span><span class="p">()</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="n">features</span> <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">feature_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_range</span><span class="o">=</span><span class="n">segment</span><span class="o">.</span><span class="n">range</span><span class="p">)</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>        <span class="k">if</span> <span class="n">feature</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;CDS&quot;</span><span class="p">:</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>            <span class="n">segment</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">label_type</span><span class="o">=</span><span class="s2">&quot;gene&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">boxstyle</span><span class="o">=</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;skyblue&quot;</span><span class="p">)))</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>        <span class="k">elif</span> <span class="n">feature</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;rRNA&quot;</span><span class="p">:</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>            <span class="n">segment</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">label_type</span><span class="o">=</span><span class="s2">&quot;product&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">hatch</span><span class="o">=</span><span class="s2">&quot;//&quot;</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text_kws</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">boxstyle</span><span class="o">=</span><span class="s2">&quot;round&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">)))</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;gff_features.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="gff_features.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/gff_features.png" /></p>
+<h3 id="gff-contigs">GFF Contigs</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">Gff</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_example_gff_file</span><span class="p">,</span> <span class="n">is_pseudo_feature</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">gff_file</span> <span class="o">=</span> <span class="n">load_example_gff_file</span><span class="p">(</span><span class="s2">&quot;mycoplasma_mycoides.gff&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">gff</span> <span class="o">=</span> <span class="n">Gff</span><span class="p">(</span><span class="n">gff_file</span><span class="p">)</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">(</span><span class="n">fig_track_height</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">feature_track_ratio</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_xticks</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># Plot CDS, rRNA features for each contig to tracks</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="k">for</span> <span class="n">seqid</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">gff</span><span class="o">.</span><span class="n">get_seqid2size</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="n">seqid</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="n">track</span><span class="o">.</span><span class="n">add_sublabel</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;grey&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="n">cds_features</span> <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">get_seqid2features</span><span class="p">(</span><span class="n">feature_type</span><span class="o">=</span><span class="s2">&quot;CDS&quot;</span><span class="p">)[</span><span class="n">seqid</span><span class="p">]</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="c1"># CDS: blue, CDS(pseudo): grey</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="k">for</span> <span class="n">cds_feature</span> <span class="ow">in</span> <span class="n">cds_features</span><span class="p">:</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;grey&quot;</span> <span class="k">if</span> <span class="n">is_pseudo_feature</span><span class="p">(</span><span class="n">cds_feature</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;blue&quot;</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>        <span class="n">track</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">cds_feature</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="c1"># rRNA: lime</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="n">rrna_features</span> <span class="o">=</span> <span class="n">gff</span><span class="o">.</span><span class="n">get_seqid2features</span><span class="p">(</span><span class="n">feature_type</span><span class="o">=</span><span class="s2">&quot;rRNA&quot;</span><span class="p">)[</span><span class="n">seqid</span><span class="p">]</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>    <span class="n">track</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">rrna_features</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lime&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;gff_contigs.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="gff_contigs.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/gff_contigs.png" /></p>
+<h3 id="genbank-comparison-by-blast">Genbank Comparison by BLAST</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenomeViz</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">Genbank</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_example_genbank_dataset</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pygenomeviz.align</span><span class="w"> </span><span class="kn">import</span> <span class="n">Blast</span><span class="p">,</span> <span class="n">AlignCoord</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">gbk_files</span> <span class="o">=</span> <span class="n">load_example_genbank_dataset</span><span class="p">(</span><span class="s2">&quot;yersinia_phage&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">gbk_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">Genbank</span><span class="p">,</span> <span class="n">gbk_files</span><span class="p">))</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="n">gv</span> <span class="o">=</span> <span class="n">GenomeViz</span><span class="p">(</span><span class="n">track_align_type</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="n">gv</span><span class="o">.</span><span class="n">set_scale_bar</span><span class="p">()</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># Plot CDS features</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="k">for</span> <span class="n">gbk</span> <span class="ow">in</span> <span class="n">gbk_list</span><span class="p">:</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    <span class="n">track</span> <span class="o">=</span> <span class="n">gv</span><span class="o">.</span><span class="n">add_feature_track</span><span class="p">(</span><span class="n">gbk</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">gbk</span><span class="o">.</span><span class="n">get_seqid2size</span><span class="p">(),</span> <span class="n">align_label</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="k">for</span> <span class="n">seqid</span><span class="p">,</span> <span class="n">features</span> <span class="ow">in</span> <span class="n">gbk</span><span class="o">.</span><span class="n">get_seqid2features</span><span class="p">(</span><span class="s2">&quot;CDS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>        <span class="n">segment</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">get_segment</span><span class="p">(</span><span class="n">seqid</span><span class="p">)</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>        <span class="n">segment</span><span class="o">.</span><span class="n">add_features</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">plotstyle</span><span class="o">=</span><span class="s2">&quot;bigarrow&quot;</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s2">&quot;limegreen&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="c1"># Run BLAST alignment &amp; filter by user-defined threshold</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="n">align_coords</span> <span class="o">=</span> <span class="n">Blast</span><span class="p">(</span><span class="n">gbk_list</span><span class="p">,</span> <span class="n">seqtype</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="n">align_coords</span> <span class="o">=</span> <span class="n">AlignCoord</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">align_coords</span><span class="p">,</span> <span class="n">length_thr</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">identity_thr</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="c1"># Plot BLAST alignment links</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">align_coords</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>    <span class="n">min_ident</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">([</span><span class="n">ac</span><span class="o">.</span><span class="n">identity</span> <span class="k">for</span> <span class="n">ac</span> <span class="ow">in</span> <span class="n">align_coords</span> <span class="k">if</span> <span class="n">ac</span><span class="o">.</span><span class="n">identity</span><span class="p">]))</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>    <span class="n">color</span><span class="p">,</span> <span class="n">inverted_color</span> <span class="o">=</span> <span class="s2">&quot;grey&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>    <span class="k">for</span> <span class="n">ac</span> <span class="ow">in</span> <span class="n">align_coords</span><span class="p">:</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>        <span class="n">gv</span><span class="o">.</span><span class="n">add_link</span><span class="p">(</span><span class="n">ac</span><span class="o">.</span><span class="n">query_link</span><span class="p">,</span> <span class="n">ac</span><span class="o">.</span><span class="n">ref_link</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">inverted_color</span><span class="o">=</span><span class="n">inverted_color</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">ac</span><span class="o">.</span><span class="n">identity</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">min_ident</span><span class="p">)</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>    <span class="n">gv</span><span class="o">.</span><span class="n">set_colorbar</span><span class="p">([</span><span class="n">color</span><span class="p">,</span> <span class="n">inverted_color</span><span class="p">],</span> <span class="n">vmin</span><span class="o">=</span><span class="n">min_ident</span><span class="p">)</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="n">gv</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;genbank_comparison_by_blast.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><img alt="genbank_comparison_by_blast.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/example/genbank_comparison_by_blast.png" /></p>
+<h2 id="cli-examples">CLI Examples</h2>
+<p>pyGenomeViz provides CLI workflows for genome alignment result visualization of
+Genbank genomes using <code>BLAST</code> / <code>MUMmer</code> / <code>MMseqs</code> / <code>progressiveMauve</code>, respectively.</p>
+<h3 id="blast-cli-workflow">BLAST CLI Workflow</h3>
+<p>See <a href="https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-blast/">pgv-blast document</a> for details.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Download example dataset</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>pgv-download<span class="w"> </span>yersinia_phage
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># Run BLAST CLI workflow</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>pgv-blast<span class="w"> </span>NC_070914.gbk<span class="w"> </span>NC_070915.gbk<span class="w"> </span>NC_070916.gbk<span class="w"> </span>NC_070918.gbk<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">          </span>-o<span class="w"> </span>pgv-blast_example<span class="w"> </span>--seqtype<span class="w"> </span>protein<span class="w"> </span>--show_scale_bar<span class="w"> </span>--curve<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">          </span>--feature_linewidth<span class="w"> </span><span class="m">0</span>.3<span class="w"> </span>--length_thr<span class="w"> </span><span class="m">100</span><span class="w"> </span>--identity_thr<span class="w"> </span><span class="m">30</span>
+</code></pre></div>
+<p><img alt="pgv-blast_example2.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-blast_example2.png" />  </p>
+<h3 id="mummer-cli-workflow">MUMmer CLI Workflow</h3>
+<p>See <a href="https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mummer/">pgv-mummer document</a> for details.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Download example dataset</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>pgv-download<span class="w"> </span>mycoplasma_mycoides
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Run MUMmer CLI workflow</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>pgv-mummer<span class="w"> </span>GCF_000023685.1.gbff<span class="w"> </span>GCF_000800785.1.gbff<span class="w"> </span>GCF_000959055.1.gbff<span class="w"> </span>GCF_000959065.1.gbff<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">           </span>-o<span class="w"> </span>pgv-mummer_example<span class="w"> </span>--show_scale_bar<span class="w"> </span>--curve<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">           </span>--feature_type2color<span class="w"> </span>CDS:blue<span class="w"> </span>rRNA:lime<span class="w"> </span>tRNA:magenta
+</code></pre></div>
+<p><img alt="pgv-mummer_example3.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-mummer_example3.png" />  </p>
+<h3 id="mmseqs-cli-workflow">MMseqs CLI Workflow</h3>
+<p>See <a href="https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-mmseqs/">pgv-mmseqs document</a> for details.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Download example dataset</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>pgv-download<span class="w"> </span>enterobacteria_phage
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># Run MMseqs CLI workflow</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>pgv-mmseqs<span class="w"> </span>NC_013600.gbk<span class="w"> </span>NC_016566.gbk<span class="w"> </span>NC_019724.gbk<span class="w"> </span>NC_024783.gbk<span class="w"> </span>NC_028901.gbk<span class="w"> </span>NC_031081.gbk<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">           </span>-o<span class="w"> </span>pgv-mmseqs_example<span class="w"> </span>--show_scale_bar<span class="w"> </span>--curve<span class="w"> </span>--feature_linewidth<span class="w"> </span><span class="m">0</span>.3<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">           </span>--feature_type2color<span class="w"> </span>CDS:skyblue<span class="w"> </span>--normal_link_color<span class="w"> </span>chocolate<span class="w"> </span>--inverted_link_color<span class="w"> </span>limegreen
+</code></pre></div>
+<p><img alt="pgv-mmseqs_example2.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-mmseqs_example2.png" />  </p>
+<h3 id="progressivemauve-cli-workflow">progressiveMauve CLI Workflow</h3>
+<p>See <a href="https://moshi4.github.io/pyGenomeViz/cli-docs/pgv-pmauve/">pgv-pmauve document</a> for details.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Download example dataset</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>pgv-download<span class="w"> </span>escherichia_coli
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1"># Run progressiveMauve CLI workflow</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>pgv-pmauve<span class="w"> </span>NC_000913.gbk.gz<span class="w"> </span>NC_002695.gbk.gz<span class="w"> </span>NC_011751.gbk.gz<span class="w"> </span>NC_011750.gbk.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">           </span>-o<span class="w"> </span>pgv-pmauve_example<span class="w"> </span>--show_scale_bar
+</code></pre></div>
+<p><img alt="pgv-pmauve_example1.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-pmauve_example1.png" />  </p>
+<h2 id="gui-web-application">GUI (Web Application)</h2>
+<p>pyGenomeViz implements GUI (Web Application) functionality using <a href="https://github.com/streamlit/streamlit">streamlit</a> as an option.
+Users can easily visualize the genomic features in Genbank files and their comparison results with GUI (<a href="https://pygenomeviz.streamlit.app">Demo Page</a>).
+See <a href="https://moshi4.github.io/pyGenomeViz/gui-docs/pgv-gui/">pgv-gui document</a> for details.</p>
+<p><img alt="pygenomeviz_gui.gif" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/src/pygenomeviz/gui/assets/pgv_demo.gif" /></p>
+<h2 id="html-viewer">HTML Viewer</h2>
+<p>pyGenomeViz implements HTML viewer output functionality for interactive data visualization.
+In API, HTML file can be output using <code>savefig_html</code> method. In CLI, user can select HTML file output option.
+As shown below, pan/zoom, tooltip display, object color change, text change, etc are available in HTML viewer
+(<a href="https://moshi4.github.io/pyGenomeViz/images/pgv-viewer_demo1.html">Demo Page1</a>, <a href="https://moshi4.github.io/pyGenomeViz/images/pgv-viewer_demo2.html">Demo Page2</a>).</p>
+<p><img alt="pgv-viewer-demo.gif" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pgv-viewer-demo.gif" /></p>
+<p>Following libraries were used to implement HTML viewer.  </p>
+<ul>
+<li><a href="https://github.com/bgrins/spectrum">Spectrum</a>: Colorpicker  </li>
+<li><a href="https://github.com/timmywil/panzoom">Panzoom</a>: SVG panning and zooming  </li>
+<li><a href="https://github.com/olifolkerd/tabulator">Tabulator</a>: Interactive Table</li>
+<li><a href="https://github.com/Ghosh/micromodal">Micromodal</a>: Modal dialog</li>
+<li><a href="https://github.com/atomiks/tippyjs">Tippy.js</a>: Tooltip</li>
+</ul>
+<h2 id="inspiration">Inspiration</h2>
+<p>pyGenomeViz was inspired by</p>
+<ul>
+<li><a href="https://github.com/biopython/biopython">GenomeDiagram (BioPython)</a></li>
+<li><a href="http://mjsull.github.io/Easyfig/">Easyfig</a></li>
+<li><a href="https://genoplotr.r-forge.r-project.org/">genoplotR</a></li>
+<li><a href="https://github.com/thackl/gggenomes">gggenomes</a></li>
+</ul>
+<h2 id="circular-genome-visualization">Circular Genome Visualization</h2>
+<p>pyGenomeViz is a python package designed for linear genome visualization.
+If you are interested in circular genome visualization, check out my other python package <a href="https://github.com/moshi4/pyCirclize">pyCirclize</a>.</p>
+<p><img alt="pycirclize_example.png" src="https://raw.githubusercontent.com/moshi4/pyGenomeViz/main/docs/images/pycirclize_example.png" /><br />
+<strong>Fig. pyCirclize example plot gallery</strong></p>
+<h2 id="star-history">Star History</h2>
+<p><a href="https://star-history.com/#moshi4/pyGenomeViz&amp;Date"><img alt="Star History Chart" src="https://api.star-history.com/svg?repos=moshi4/pyGenomeViz&amp;type=Date" /></a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.top", "navigation.expand", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

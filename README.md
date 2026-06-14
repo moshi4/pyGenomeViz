@@ -64,13 +64,14 @@ from pygenomeviz import GenomeViz
 gv = GenomeViz()
 gv.set_scale_xticks(ymargin=0.5)
 
-track = gv.add_feature_track("tutorial", 1000)
+track = gv.add_feature_track("track", 1000)
 track.add_sublabel()
 
+# Add features to track
 track.add_feature(50, 200, 1)
 track.add_feature(250, 460, -1, fc="blue")
-track.add_feature(500, 710, 1, fc="lime")
-track.add_feature(750, 960, 1, fc="magenta", lw=1.0)
+track.add_feature(500, 710, 1, fc="lime", lw=1.0)
+track.add_feature(750, 960, 1, fc="magenta", lw=1.0, ec="grey", hatch="//")
 
 gv.savefig("features.png")
 ```
@@ -85,17 +86,18 @@ from pygenomeviz import GenomeViz
 gv = GenomeViz()
 gv.set_scale_bar(ymargin=0.5)
 
-track = gv.add_feature_track("tutorial", (1000, 2000))
+track = gv.add_feature_track("track", (1000, 2000))
 track.add_sublabel()
 
-track.add_feature(1050, 1150, 1, label="arrow")
-track.add_feature(1200, 1300, -1, plotstyle="bigarrow", label="bigarrow", fc="red", lw=1)
-track.add_feature(1330, 1400, 1, plotstyle="bigbox", label="bigbox", fc="blue", text_kws=dict(rotation=0, hpos="center"))
-track.add_feature(1420, 1500, 1, plotstyle="box", label="box", fc="limegreen", text_kws=dict(size=10, color="blue"))
-track.add_feature(1550, 1600, 1, plotstyle="bigrbox", label="bigrbox", fc="magenta", ec="blue", lw=1, text_kws=dict(rotation=0, vpos="bottom", hpos="center"))
-track.add_feature(1650, 1750, -1, plotstyle="rbox", label="rbox", fc="grey", text_kws=dict(rotation=-45, vpos="bottom"))
-track.add_feature(1780, 1880, 1, fc="lime", hatch="o", arrow_shaft_ratio=0.2, label="arrow shaft\n0.2", text_kws=dict(rotation=0, hpos="center"))
-track.add_feature(1890, 1990, 1, fc="lime", hatch="/", arrow_shaft_ratio=1.0, label="arrow shaft\n1.0", text_kws=dict(rotation=0, hpos="center"))
+# Add styled features
+track.add_feature(1000, 1100, 1, label="arrow")
+track.add_feature(1120, 1220, -1, plotstyle="bigarrow", label="bigarrow", fc="red", lw=1)
+track.add_feature(1240, 1340, 1, plotstyle="box", label="box", fc="blue")
+track.add_feature(1360, 1480, 1, plotstyle="bigbox", label="bigbox", fc="limegreen")
+track.add_feature(1500, 1620, -1, plotstyle="rbox", label="rbox", fc="magenta", ec="blue", lw=1)
+track.add_feature(1640, 1740, -1, plotstyle="bigrbox", label="bigrbox", fc="grey")
+track.add_feature(1760, 1860, 1, fc="lime", hatch="o", arrow_shaft_ratio=0.2, label="arrow shaft = 0.2")
+track.add_feature(1880, 1980, 1, fc="lime", hatch="/", arrow_shaft_ratio=1.0, label="arrow shaft = 1.0")
 
 gv.savefig("styled_features.png")
 ```
@@ -108,16 +110,17 @@ gv.savefig("styled_features.png")
 from pygenomeviz import GenomeViz
 
 genome_list = [
-    dict(name="genome 01", size=1000, features=((150, 300, 1), (500, 700, -1), (750, 950, 1))),
-    dict(name="genome 02", size=1300, features=((50, 200, 1), (350, 450, 1), (700, 900, -1), (950, 1150, -1))),
-    dict(name="genome 03", size=1200, features=((150, 300, 1), (350, 450, -1), (500, 700, -1), (700, 900, -1))),
+    ("genome 01", 1000, [(150, 300, 1), (500, 700, -1), (750, 950, 1)]),
+    ("genome 02", 1300, [(50, 200, 1), (350, 450, 1), (700, 900, -1), (950, 1150, -1)]),
+    ("genome 03", 1200, [(150, 300, 1), (350, 450, -1), (500, 700, -1), (700, 900, -1)]),
 ]
 
-gv = GenomeViz(track_align_type="center")
+gv = GenomeViz(fig_track_height=0.7, track_align_type="center")
 gv.set_scale_bar()
 
+# Set tracks & features
 for genome in genome_list:
-    name, size, features = genome["name"], genome["size"], genome["features"]
+    name, size, features = genome[0], genome[1], genome[2]
     track = gv.add_feature_track(name, size)
     track.add_sublabel()
     for idx, feature in enumerate(features, 1):
@@ -149,7 +152,9 @@ exon_regions2 = [(1500, 1710), (2000, 2480), (2590, 2800)]
 exon_regions3 = [(3000, 3300), (3400, 3690), (3800, 4100), (4200, 4620)]
 
 gv = GenomeViz()
-track = gv.add_feature_track("Exon Features", 5000)
+track = gv.add_feature_track("track", 5000)
+
+# Add exon features
 track.add_exon_feature(exon_regions1, strand=1, plotstyle="box", label="box", text_kws=dict(rotation=0, hpos="center"))
 track.add_exon_feature(exon_regions2, strand=-1, plotstyle="arrow", label="arrow", text_kws=dict(rotation=0, vpos="bottom", hpos="center"), patch_kws=dict(fc="darkgrey"), intron_patch_kws=dict(ec="red"))
 track.add_exon_feature(exon_regions3, strand=1, plotstyle="bigarrow", label="bigarrow", text_kws=dict(rotation=0, hpos="center"), patch_kws=dict(fc="lime", lw=1))
@@ -166,17 +171,20 @@ from pygenomeviz import GenomeViz
 from pygenomeviz.parser import Genbank
 from pygenomeviz.utils import load_example_genbank_dataset
 
+# Parse Genbank file
 gbk_files = load_example_genbank_dataset("yersinia_phage")
 gbk = Genbank(gbk_files[0])
 
-gv = GenomeViz()
+gv = GenomeViz(fig_track_height=0.7)
 gv.set_scale_bar(ymargin=0.5)
 
-track = gv.add_feature_track(gbk.name, gbk.genome_length)
-track.add_sublabel()
+track = gv.add_feature_track(gbk.name, gbk.get_seqid2size())
 
-features = gbk.extract_features()
-track.add_features(features)
+for seg in track.segments:
+    # Plot CDS features
+    features = gbk.get_seqid2features()[seg.name]
+    seg.add_features(features, lw=0.5)
+    seg.add_sublabel()
 
 gv.savefig("genbank_features.png")
 ```
@@ -196,18 +204,18 @@ gff = Gff(gff_file)
 gv = GenomeViz()
 gv.set_scale_bar(ymargin=0.5)
 
-target_ranges = ((220000, 230000), (300000, 310000))
+target_ranges = ((215000, 230000), (300000, 320000))
 track = gv.add_feature_track(name=gff.name, segments=target_ranges)
-track.set_segment_sep(symbol="//")
+track.set_segment_sep()
 
 for segment in track.segments:
     segment.add_sublabel()
-    # Plot CDS features
-    cds_features = gff.extract_features(feature_type="CDS", target_range=segment.range)
-    segment.add_features(cds_features, label_type="gene", fc="skyblue", lw=1.0)
-    # Plot rRNA features
-    rrna_features = gff.extract_features(feature_type="rRNA", target_range=segment.range)
-    segment.add_features(rrna_features, label_type="product", hatch="//", fc="lime", lw=1.0)
+    features = gff.extract_features(feature_type=None, target_range=segment.range)
+    for feature in features:
+        if feature.type == "CDS":
+            segment.add_features(feature, label_type="gene", fc="skyblue", lw=1.0, annotation=True, text_kws=dict(bbox=dict(boxstyle="round", fc="skyblue")))
+        elif feature.type == "rRNA":
+            segment.add_features(feature, label_type="product", fc="lime", lw=1.0, hatch="//", annotation=True, text_kws=dict(bbox=dict(boxstyle="round", fc="lime")))
 
 gv.savefig("gff_features.png")
 ```

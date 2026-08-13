@@ -399,4 +399,4 @@ If you are interested in circular genome visualization, check out my other pytho
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=moshi4/pyGenomeViz&type=Date)](https://star-history.com/#moshi4/pyGenomeViz&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=moshi4/pyGenomeViz&type=Date)](https://star-history.dera.page/#moshi4/pyGenomeViz&Date)
